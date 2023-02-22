@@ -1,0 +1,12 @@
+[submodule "third_party/juce"]
+	path = third_party/juce
+	url = https://github.com/juce-framework/JUCE.git
+    branch = 7.0.5
+[submodule "third_party/asio"]
+	path = third_party/asio
+	url = https://github.com/chriskohlhoff/asio.git
+    branch = asio-1-24-0
+[submodule "third_party/simple-websocket-server"]
+	path = third_party/simple-websocket-server
+	url = https://gitlab.com/eidheim/Simple-WebSocket-Server.git
+    branch = v2.0.2
