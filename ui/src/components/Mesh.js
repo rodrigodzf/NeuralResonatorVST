@@ -14,6 +14,8 @@ import { useControls, button } from "leva";
 import { useDrag } from "@use-gesture/react";
 import RandomPolygon from "randompolys";
 import { useGlobalState } from "./State";
+import useWebSocket, { ReadyState } from 'react-use-websocket';
+
 import * as THREE from "three";
 
 // https://codesandbox.io/s/m7inl?file=/src/App.js:452-781
@@ -113,6 +115,7 @@ const Node = forwardRef(
 );
 
 export const Mesh = (props) => {
+  const [endpoint, setEndpoint] = useGlobalState('endpoint');
   const [hovered, setHover] = useState();
   const [active, setActive] = useState(false);
   const [selected, setSelected] = useState();
@@ -160,10 +163,16 @@ export const Mesh = (props) => {
     setShape(new THREE.Shape(polygon));
   }, [polygon]);
 
+  const { sendMessage } = useWebSocket(endpoint, {
+    onOpen: () => console.log("opened"),
+    share: true,
+  });
+
   useControls({
     "new shape": button(() => {
       setButtonClicked((buttonClicked) => !buttonClicked);
       regenerateMesh();
+      sendMessage(JSON.stringify({ type: "new_shape" }));
     }),
   });
   return (

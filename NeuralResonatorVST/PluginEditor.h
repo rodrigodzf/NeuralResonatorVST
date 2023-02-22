@@ -4,7 +4,7 @@
 #include "ConsoleLogger.h"
 #include "BrowserComponent.h"
 #include "ServerThread.h"
-
+#include <juce_gui_basics/juce_gui_basics.h>
 //==============================================================================
 class AudioPluginAudioProcessorEditor 
     : public juce::AudioProcessorEditor
