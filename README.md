@@ -34,11 +34,11 @@ After this we can install and start the UI for development:
 
 ```bash
 cd ui
-npm install
-npm start
+npm install --include=dev
+npm run dev
 ```
 
-This will open a server on `localhost:3000` and you can start developing the UI. The UI will automatically reload when you change something in the source code.
+This will open a server on `localhost:5173` and you can start developing the UI. The UI will automatically reload when you change something in the source code.
 
 The VST and the UI communicate via a websocket. The websocket server is started by the VST and the UI connects to it. The websocket server is started on `localhost:8000/ui`.
 
