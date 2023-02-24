@@ -4,12 +4,12 @@
 
 class ConsoleLogger : public juce::Logger
 {
-    void logMessage (const juce::String& message) override
+    void logMessage(const juce::String& message) override
     {
         std::cout << message << std::endl;
 
-       #if JUCE_WINDOWS
-        Logger::outputDebugString (message);
-       #endif
+#if JUCE_WINDOWS
+        Logger::outputDebugString(message);
+#endif
     }
 };

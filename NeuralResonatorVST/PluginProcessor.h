@@ -45,11 +45,11 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
 public:
-    void coefficentsChanged(const std::string& msg);
-    void handleCoefficentsChanged(const std::string& msg);
-    QueueThread mQueueThread{ "plugin_processor" };
+    void coefficentsChanged(const std::vector< float >& coeffs);
+    void handleCoefficentsChanged(const std::vector< float >& coeffs);
+    QueueThread mQueueThread{"plugin_processor"};
 
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)
 };

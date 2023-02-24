@@ -8,7 +8,7 @@ using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
 using ConnectionPtr = std::shared_ptr<WsServer::Connection>;
 using MessagePtr = std::shared_ptr<WsServer::InMessage>;
 
-class ServerThread : public juce::Thread
+class ServerThread : public juce::Thread, public juce::Thread::Listener
 {
 
 public:
@@ -31,6 +31,7 @@ private:
     WsServer mServer;
     std::vector<ConnectionPtr> mConnections;
     
+    void exitSignalSent() override;
     void onMessage(
         ConnectionPtr connection,
         MessagePtr in_message

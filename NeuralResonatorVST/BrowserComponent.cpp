@@ -5,9 +5,7 @@ BrowserComponent::BrowserComponent(const juce::String &url)
     goToURL(url);
 }
 
-BrowserComponent::~BrowserComponent()
-{
-}
+BrowserComponent::~BrowserComponent() {}
 
 bool BrowserComponent::pageAboutToLoad(const juce::String &newURL)
 {

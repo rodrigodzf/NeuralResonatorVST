@@ -30,8 +30,8 @@ private:
     AudioPluginAudioProcessor& processorRef;
 
     ConsoleLogger mLogger;
-    BrowserComponent mBrowser;
-    ServerThread mServerThread;
+    std::unique_ptr<ServerThread> mServerThreadPtr;
+    std::unique_ptr<BrowserComponent> mBrowserPtr;
     std::unique_ptr<TorchWrapper> mTorchWrapperPtr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
