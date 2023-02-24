@@ -47,23 +47,53 @@ void ServerThread::onMessage(
 {
     auto out_message = in_message->string();
 
-    std::cout << "Server: Message received: \"" << out_message << "\" from "
-              << connection.get() << std::endl;
+    // std::cout << "Server: Message received: \"" << out_message << "\" from "
+    //           << connection.get() << std::endl;
 
     auto parsedJson = JSON::parse(out_message);
     auto messageType = parsedJson.getProperty("type", {}).toString();
 
+    // TODO: this probably should be in another thread
     if (messageType == "new_shape" && mOnNewShapeCallback != nullptr)
     {
         MessageManagerLock mml(this);
         if (mml.lockWasGained())
         {
             juce::Logger::writeToLog("Server: New shape requested");
-
-            // TODO: Create a new shape from the message
             juce::Path path;
             int res = 64;
-            path.addStar(Point(res / 2.f, res / 2.f), 5, 5.0f, 15.0f, 0.0f);
+            parsedJson.getProperty("shape", {}).toString();
+            if (auto positions = parsedJson.getProperty("shape", var()).getArray())
+            {
+                // get number of positions
+                auto numPositions = positions->size();
+
+                for (int i = 0; i < numPositions; i++)
+                {
+                    auto position = (*positions)[i];
+                    auto x = float(position.getProperty("x", var()));
+                    auto y = float(position.getProperty("y", var()));
+
+                    // the positions are in the range [-1, 1], so we need to
+                    // scale them to the range [0, res]
+                    // and flip the y axis
+                    x = (x + 1) * 0.5 * res;
+                    y = res - ((y + 1) * 0.5 * res);
+
+                    // start a new subpath if this is the first position
+                    if (i == 0)
+                    {
+                        path.startNewSubPath(x, y);
+                    }
+                    else 
+                    {
+                        path.lineTo(x, y);
+                    }
+                }
+
+                // close the subpath
+                path.closeSubPath();
+            }
             mOnNewShapeCallback(path);
         }
     }
@@ -73,7 +103,19 @@ void ServerThread::onMessage(
         MessageManagerLock mml(this);
         if (mml.lockWasGained())
         {
-            juce::Logger::writeToLog("Server: New material requested");
+            // get material
+            auto material = parsedJson.getProperty("material", {});
+
+            // get density, stiffness, poisson ratio, alpha, and beta
+            std::vector<float> materialProperties = {
+                float(material.getProperty("density", var())),
+                float(material.getProperty("stiffness", var())),
+                float(material.getProperty("pratio", var())),
+                float(material.getProperty("alpha", var())),
+                float(material.getProperty("beta", var()))
+            };
+
+            mOnNewMaterialCallback(materialProperties);
         }
     }
 
@@ -112,7 +154,7 @@ void ServerThread::setOnNewShapeCallback(
 }
 
 void ServerThread::setOnNewMaterialCallback(
-    std::function< void(const juce::Path &) > callback)
+    std::function< void(const std::vector<float> &) > callback)
 {
     mOnNewMaterialCallback = callback;
 }

@@ -20,14 +20,24 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     setResizable(true, true);
     setSize(400, 300);
 
-    // Draw a shape
+    // Set callbacks
     mServerThread.setOnNewShapeCallback(
         [this](const juce::Path& path){ this->onNewShape(path); }
+    );
+    mServerThread.setOnNewMaterialCallback(
+        [this](const std::vector<float>& material){ this->onNewMaterial(material); }
     );
 
     // Initialize the torch wrapper
     mTorchWrapperPtr = std::make_unique<TorchWrapper>(processorRef);
-    mTorchWrapperPtr->loadModel("/home/diaz/projects/torchplugins/pretrained/pretrained/model_wrap.pt");
+    mTorchWrapperPtr->loadModel(
+        "/home/diaz/projects/torchplugins/pretrained/pretrained/encoder.pt",
+        TorchWrapper::ModelType::ShapeEncoder
+    );
+    mTorchWrapperPtr->loadModel(
+        "/home/diaz/projects/torchplugins/pretrained/pretrained/fc.pt",
+        TorchWrapper::ModelType::FC
+    );
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -54,36 +64,24 @@ void AudioPluginAudioProcessorEditor::resized()
 
 void AudioPluginAudioProcessorEditor::onNewShape(const juce::Path& path)
 {
+    // draw the shape to an image
     int res = 64;
     juce::DrawablePath shape;
     shape.setPath(path);
     shape.setFill(juce::Colours::white);
     shape.setStrokeFill(juce::Colours::white);
-    juce::Image img = juce::Image(juce::Image::SingleChannel, res, res, true);
-    juce::Graphics bufferGraphics(img);
+    juce::Image image = juce::Image(juce::Image::SingleChannel, res, res, true);
+    juce::Graphics bufferGraphics(image);
     shape.draw(bufferGraphics, 1.0f);
-
-    // get the bitmap data and convert to a float tensor
-    juce::Image::BitmapData bitmapData(img, juce::Image::BitmapData::readOnly);
-
-    // get the bitmap data and convert to a float tensor
-    std::vector<float> shapeData;
-    shapeData.reserve(res * res);
-    for (int y = 0; y < res; y++)
-    {
-        for (int x = 0; x < res; x++)
-        {
-            shapeData.push_back(
-                bitmapData.getPixelPointer(x, y)[0] / 255.0f
-            );
-        }
-    }
+    
+    // send the shape data to the torch wrapper
+    mTorchWrapperPtr->getShapeFeatures(image);
 #if 0
     juce::PNGImageFormat png;
 
     juce::Logger::writeToLog("Writing image to file");
     juce::FileOutputStream stream(
-        juce::File::getCurrentWorkingDirectory().getChildFile("star.png"));
+        juce::File::getCurrentWorkingDirectory().getChildFile("shape.png"));
 
     // overwrite the file if it already exists
     if (stream.openedOk())
@@ -91,8 +89,13 @@ void AudioPluginAudioProcessorEditor::onNewShape(const juce::Path& path)
         stream.setPosition(0);
         stream.truncate();
     }
-    png.writeImageToStream(img, stream);
+    png.writeImageToStream(image, stream);
 #endif
-    // send message to wrapper
-    mTorchWrapperPtr->predict("test");
+}
+
+void AudioPluginAudioProcessorEditor::onNewMaterial(
+    const std::vector<float>& material)
+{
+    // send the material data to the torch wrapper
+    mTorchWrapperPtr->predictCoefficients(material);
 }

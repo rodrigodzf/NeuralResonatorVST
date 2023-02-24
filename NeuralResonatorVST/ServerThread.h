@@ -22,7 +22,7 @@ public:
     );
 
     void setOnNewMaterialCallback(
-        std::function<void(const juce::Path &)> callback
+        std::function< void(const std::vector<float> &) > callback
     );
 
     void sendMessage(const juce::String &message);
@@ -44,7 +44,7 @@ private:
     );
 
     std::function<void(const juce::Path &)> mOnNewShapeCallback;
-    std::function<void(const juce::Path &)> mOnNewMaterialCallback;
+    std::function<void(const std::vector<float> &)> mOnNewMaterialCallback;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ServerThread)
 };
