@@ -1,25 +1,31 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
-  "icons": [
-    {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+	"background_color": "#FFFFFF",
+	"description": "UI for the Neural Resonator VST plugin.",
+	"developer": {
+		"name": "Rodrigo Diaz & Lewis Wolstanholme",
+		"url": ""
+	},
+	"display": "standalone",
+	"icons": [
+		{
+			"src": "favicon.ico",
+			"sizes": "64x64",
+			"type": "image/x-icon"
+		},
+		{
+			"src": "images/favicon192.png",
+			"type": "image/png",
+			"sizes": "192x192"
+		},
+		{
+			"src": "images/favicon512.png",
+			"type": "image/png",
+			"sizes": "512x512"
+		}
+	],
+	"manifest_version": 2,
+	"name": "Neural Resonators",
+	"short_name": "neural-resonators",
+	"start_url": ".",
+	"theme_color": "#FFFFFF"
 }
