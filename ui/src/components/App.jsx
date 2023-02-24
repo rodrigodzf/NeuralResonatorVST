@@ -18,7 +18,7 @@ export default function App() {
 				orthographic
 				camera={{
 					position: [0, 0, 10],
-					zoom: 50,
+					zoom: 100,
 					up: [0, 1, 0],
 					far: 10000,
 				}}

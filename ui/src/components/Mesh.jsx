@@ -100,8 +100,8 @@ export const Mesh = (props) => {
 	const [polygon, setPolygon] = useState(() => {
 		const count = 11
 		const bounds = {
-			topLeft: { x: -2, y: -2 },
-			bottomRight: { x: 2, y: 2 },
+			topLeft: { x: -1, y: -1 },
+			bottomRight: { x: 1, y: 1 },
 		}
 		const epsilon = 10
 		const randomPoly = new RandomPolygon(count, bounds, epsilon)
@@ -128,8 +128,8 @@ export const Mesh = (props) => {
 	const regenerateMesh = () => {
 		const count = 11
 		const bounds = {
-			topLeft: { x: -2, y: -2 },
-			bottomRight: { x: 2, y: 2 },
+			topLeft: { x: -1, y: -1 },
+			bottomRight: { x: 1, y: 1 },
 		}
 		const epsilon = 10
 		const randomPoly = new RandomPolygon(count, bounds, epsilon)
@@ -138,6 +138,7 @@ export const Mesh = (props) => {
 
 	useEffect(() => {
 		setShape(new THREE.Shape(polygon))
+        sendMessage(JSON.stringify({ type: 'new_shape', shape: polygon }))
 	}, [polygon])
 
 	const { sendMessage } = useWebSocket(endpoint, {
@@ -149,7 +150,6 @@ export const Mesh = (props) => {
 		'new shape': button(() => {
 			setButtonClicked((buttonClicked) => !buttonClicked)
 			regenerateMesh()
-			sendMessage(JSON.stringify({ type: 'new_shape' }))
 		}),
 	})
 	return (

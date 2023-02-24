@@ -1,4 +1,5 @@
 import { button, LevaPanel, useControls, useCreateStore } from 'leva'
+import { useEffect } from 'react'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
 import { useGlobalState } from './State'
 
@@ -10,18 +11,43 @@ function Panel() {
 		share: true,
 	})
 
-	useControls({
-		density: {
-			value: 0,
-			min: 0,
-			max: 100,
-			step: 1,
-			onChange: (value) => {
-				sendMessage(value)
-			},
-		},
-		stiffness: { value: 0, min: 0, max: 100, step: 1 },
+	const material = useControls({
+            density: {
+                value: 0.5,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            stiffness: {
+                value: 0.5,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            pratio: {
+                value: 0.5,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
+            alpha: {
+                value: 0.5,
+                min: 0,
+                max: 1,
+                step: 0.01,
+
+            },
+            beta: {
+                value: 0.5,
+                min: 0,
+                max: 1,
+                step: 0.01,
+            },
 	})
+
+    useEffect(() => {
+        sendMessage(JSON.stringify({ type: 'new_material', material: material }))
+    }, [material])
 
 	return null
 }

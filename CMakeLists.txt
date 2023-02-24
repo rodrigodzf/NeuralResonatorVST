@@ -10,6 +10,12 @@ add_subdirectory(third_party/juce)
 set(ASIO_PATH third_party/asio)
 set(SIMPLE_WEBSOCKET_SERVER_PATH third_party/simple-websocket-server)
 
+# Torch
+list(APPEND CMAKE_PREFIX_PATH "/media/fast/libs/libtorch-cxx11-abi-shared-with-deps-1.13.0+cu117/libtorch/share/cmake/Torch")
+find_package(Torch REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+add_subdirectory(third_party/torchplugins/src/common/torchwrapper)
+
 add_subdirectory(NeuralResonatorVST)
 
 # Silent cpp warnings
@@ -21,5 +27,6 @@ else()
         -Wno-redundant-decls
         -Wno-zero-as-null-pointer-constant
         -Wno-shadow
+        -Wno-deprecated-declarations
     )
 endif()

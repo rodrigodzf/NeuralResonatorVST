@@ -10,3 +10,7 @@
 	path = third_party/simple-websocket-server
 	url = https://gitlab.com/eidheim/Simple-WebSocket-Server.git
     branch = v2.0.2
+[submodule "third_party/torchplugins"]
+	path = third_party/torchplugins
+	url = https://github.com/rodrigodzf/torchplugins.git
+    branch = master
