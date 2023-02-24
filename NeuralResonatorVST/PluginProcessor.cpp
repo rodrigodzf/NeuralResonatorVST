@@ -89,12 +89,16 @@ void AudioPluginAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     juce::ignoreUnused (sampleRate, samplesPerBlock);
+
+    // Start the queue thread
+    mQueueThread.startThread();
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+    mQueueThread.stopThread(200);
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -178,6 +182,23 @@ void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeI
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
     juce::ignoreUnused (data, sizeInBytes);
+}
+
+void AudioPluginAudioProcessor::coefficentsChanged(
+    const std::string& msg
+)
+{
+    mQueueThread.getIoService().post([this, msg]()
+    {
+        this->handleCoefficentsChanged(msg);
+    });
+}
+
+void AudioPluginAudioProcessor::handleCoefficentsChanged(
+    const std::string& msg
+)
+{
+    std::cout << "Coefficients changed: " << msg << std::endl;
 }
 
 //==============================================================================

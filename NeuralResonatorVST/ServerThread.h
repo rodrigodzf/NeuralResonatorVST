@@ -5,6 +5,8 @@
 #include "server_ws.hpp"
 
 using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
+using ConnectionPtr = std::shared_ptr<WsServer::Connection>;
+using MessagePtr = std::shared_ptr<WsServer::InMessage>;
 
 class ServerThread : public juce::Thread
 {
@@ -19,16 +21,30 @@ public:
         std::function<void(const juce::Path &)> callback
     );
 
+    void setOnNewMaterialCallback(
+        std::function<void(const juce::Path &)> callback
+    );
+
+    void sendMessage(const juce::String &message);
+
 private:
     WsServer mServer;
+    std::vector<ConnectionPtr> mConnections;
     
     void onMessage(
-        std::shared_ptr<WsServer::Connection> connection,
-        std::shared_ptr<WsServer::InMessage> in_message
+        ConnectionPtr connection,
+        MessagePtr in_message
     );
  
-    void onOpen(std::shared_ptr<WsServer::Connection> connection);
+    void onOpen(ConnectionPtr connection);
+    void onClose(
+        ConnectionPtr connection,
+        int status, 
+        const juce::String &reason
+    );
 
     std::function<void(const juce::Path &)> mOnNewShapeCallback;
+    std::function<void(const juce::Path &)> mOnNewMaterialCallback;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ServerThread)
 };
