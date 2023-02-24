@@ -1,6 +1,6 @@
 {
-	"background_color": "",
-	"description": "",
+	"background_color": "#FFFFFF",
+	"description": "UI for the Neural Resonator VST plugin.",
 	"developer": {
 		"name": "Rodrigo Diaz & Lewis Wolstanholme",
 		"url": ""
@@ -27,5 +27,5 @@
 	"name": "Neural Resonators",
 	"short_name": "neural-resonators",
 	"start_url": ".",
-	"theme_color": ""
+	"theme_color": "#FFFFFF"
 }
