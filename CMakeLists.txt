@@ -16,8 +16,6 @@ find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 add_subdirectory(third_party/torchplugins/src/common/torchwrapper)
 
-add_subdirectory(NeuralResonatorVST)
-
 # Silent cpp warnings
 if(MSVC)
     add_compile_options(/W0)
@@ -30,3 +28,5 @@ else()
         -Wno-deprecated-declarations
     )
 endif()
+
+add_subdirectory(NeuralResonatorVST)

@@ -42,3 +42,16 @@ This will open a server on `localhost:3000` and you can start developing the UI.
 
 The VST and the UI communicate via a websocket. The websocket server is started by the VST and the UI connects to it. The websocket server is started on `localhost:8000/ui`.
 
+## Pytorch
+
+For now the pytorch path **must** be set in the `CMakeLists.txt` file. This is because the pytorch library is not installed on the system. The path should be set to the `libtorch` folder in the pytorch installation. The `CMakeLists.txt` file should look like this:
+
+```cmake
+list(APPEND CMAKE_PREFIX_PATH "YOUR_PATH_TO_LIBTORCH/libtorch/share/cmake/Torch")
+```
+
+The models to load are configured in the application data path. In linux this is `~.config/config.json`.
+
+The models can be downloaded from here:
+
+https://drive.google.com/drive/folders/1dafuKfNBS-jLKJJZo5iVsO3d6K84xEmh?usp=share_link

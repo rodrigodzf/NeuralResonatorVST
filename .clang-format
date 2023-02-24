@@ -1,0 +1,23 @@
+﻿---
+BasedOnStyle: Google
+SortIncludes: false
+AlignEscapedNewlines: Left
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+ColumnLimit: 78
+IndentWidth: 4
+SpacesInAngles: false
+SpaceInEmptyParentheses: false
+SpacesInContainerLiterals: false
+IndentFunctionDeclarationAfterType: true
+PenaltyBreakComment: 0
+BreakBeforeBraces: Allman
+# Contructor initializers
+BreakConstructorInitializersBeforeComma: true
+BreakConstructorInitializers: BeforeComma
+IndentAccessModifiers: false
+AccessModifierOffset: -4
+...

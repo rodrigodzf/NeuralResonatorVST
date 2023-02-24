@@ -14,8 +14,16 @@ juce_add_plugin(${PLUGIN_NAME}
     # COPY_PLUGIN_AFTER_BUILD TRUE/FALSE        # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Reju               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE Dem0                            # A unique four-character plugin id with at least one upper-case character
-    FORMATS AU VST3 Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
-    PRODUCT_NAME "ReactJUCEGainPlugin")         # The name of the final executable, which can differ from the target name
+    FORMATS Standalone                          # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
+    PRODUCT_NAME "NeuralResonator")             # The name of the final executable, which can differ from the target name
+
+# Add any resources you need to this target
+# juce_add_binary_data(
+#     ${PLUGIN_NAME}_BINARY_DATA
+#     SOURCES 
+#     config.json
+# )
+
 
 juce_generate_juce_header(${PLUGIN_NAME})
 
@@ -32,7 +40,6 @@ target_sources(
 target_compile_definitions(
     ${PLUGIN_NAME}
     PRIVATE
-    GAINPLUGIN_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
     JUCE_WEB_BROWSER=1  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     JUCE_DEBUG=1
@@ -81,9 +88,8 @@ target_include_directories(
 
 target_link_libraries(
     ${PLUGIN_NAME}
-    INTERFACE
-    ${OPENSSL_LIBRARIES}
     PRIVATE
+    ${OPENSSL_LIBRARIES}
     juce::juce_gui_extra
     juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
     PUBLIC

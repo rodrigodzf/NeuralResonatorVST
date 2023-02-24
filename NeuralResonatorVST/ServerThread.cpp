@@ -5,14 +5,20 @@ using namespace juce;
 ServerThread::ServerThread(unsigned short port) : Thread("Server Thread")
 {
     mServer.config.port = port;
+    addListener(this);
     startThread();
 }
 
 ServerThread::~ServerThread()
 {
     // allow 1000ms for the thread to stop cleanly
+    stopThread(1000);
+}
+
+void ServerThread::exitSignalSent()
+{
     mServer.stop();
-    stopThread(200);
+    mConnections.clear();
 }
 
 void ServerThread::run()
