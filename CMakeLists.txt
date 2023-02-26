@@ -5,9 +5,10 @@ set(CMAKE_CXX_STANDARD 17)
 # Change this option to ON if you want to build the AudioPluginHost for example
 # (practical to debug the plugin processor directly from your IDE)
 option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
+option(ASIO_STANDALONE "Use standalone ASIO" ON)
 
 add_subdirectory(third_party/juce)
-set(ASIO_PATH third_party/asio)
+set(ASIO_PATH third_party/asio/asio)
 set(SIMPLE_WEBSOCKET_SERVER_PATH third_party/simple-websocket-server)
 
 # Torch

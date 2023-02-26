@@ -23,6 +23,7 @@ private:
     // Callbacks for ServerThread
     void onNewShape(const juce::Path &path);
     void onNewMaterial(const std::vector<float> &material);
+    void onNewPosition(const std::vector<float> &position);
 
 private:
     // This reference is provided as a quick way for your editor to

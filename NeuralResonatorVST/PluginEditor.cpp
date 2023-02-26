@@ -10,12 +10,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     // Set up the logger
     juce::Logger::setCurrentLogger(&mLogger);
 
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    // addAndMakeVisible(mBrowser);
-    setResizable(true, true);
-    setSize(400, 300);
-
     // load the config file
     juce::File configFile =
         juce::File::getSpecialLocation(
@@ -61,18 +55,23 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         jassertfalse;
     }
 
-
     // init browser
     mBrowserPtr = std::make_unique<BrowserComponent>(
         "http://" + host + ":" + juce::String(port));
+    addAndMakeVisible(mBrowserPtr.get());
+    setResizable(true, true);
+    setSize(800, 800);
 
     // Set callbacks
     mServerThreadPtr = std::make_unique<ServerThread>();
     mServerThreadPtr->setOnNewShapeCallback([this](const juce::Path& path)
-                                        { this->onNewShape(path); });
+                                            { this->onNewShape(path); });
     mServerThreadPtr->setOnNewMaterialCallback(
         [this](const std::vector<float>& material)
         { this->onNewMaterial(material); });
+    mServerThreadPtr->setOnNewPositionCallback(
+        [this](const std::vector<float>& position)
+        { this->onNewPosition(position); });
 
     // Initialize the torch wrapper
     mTorchWrapperPtr = std::make_unique<TorchWrapper>(processorRef);
@@ -144,5 +143,12 @@ void AudioPluginAudioProcessorEditor::onNewMaterial(
     const std::vector<float>& material)
 {
     // send the material data to the torch wrapper
-    mTorchWrapperPtr->predictCoefficients(material);
+    mTorchWrapperPtr->updateMaterial(material);
+}
+
+void AudioPluginAudioProcessorEditor::onNewPosition(
+    const std::vector<float>& position)
+{
+    // send the position data to the torch wrapper
+    mTorchWrapperPtr->updatePosition(position);
 }

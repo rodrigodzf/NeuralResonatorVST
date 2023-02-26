@@ -46,22 +46,26 @@ target_compile_definitions(
     JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
-# Third-party dependencies
-target_compile_definitions(
-    ${PLUGIN_NAME}
-    INTERFACE
-    ASIO_STANDALONE
-)
-find_path(ASIO_PATH asio.hpp REQUIRED)
-if(NOT ASIO_PATH)
-    message(FATAL_ERROR "Standalone Asio not found")
-else()
-    message(STATUS "Standalone Asio found at ${ASIO_PATH}")
-    target_include_directories(
+if (ASIO_STANDALONE)
+    # for the wss server we need openssl
+    find_package(OpenSSL REQUIRED)
+
+    target_compile_definitions(
         ${PLUGIN_NAME}
         INTERFACE
-        ${ASIO_PATH}
+        USE_STANDALONE_ASIO
     )
+    find_path(ASIO_PATH asio.hpp REQUIRED)
+    if(NOT ASIO_PATH)
+        message(FATAL_ERROR "Standalone Asio not found")
+    else()
+        message(STATUS "Standalone Asio found at ${ASIO_PATH}")
+        target_include_directories(
+            ${PLUGIN_NAME}
+            INTERFACE
+            ${ASIO_PATH}
+        )
+    endif()
 endif()
 
 find_path(SIMPLE_WEBSOCKET_SERVER_PATH server_ws.hpp REQUIRED)
@@ -77,8 +81,6 @@ else()
         ${SIMPLE_WEBSOCKET_SERVER_PATH}
     )
 endif()
-
-find_package(OpenSSL REQUIRED)
 
 target_include_directories(
     ${PLUGIN_NAME}
