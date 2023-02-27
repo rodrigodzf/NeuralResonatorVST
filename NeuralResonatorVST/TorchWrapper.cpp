@@ -1,11 +1,16 @@
 #include "TorchWrapper.h"
 #include <cstring>
-
+#include <algorithm>
 TorchWrapper::TorchWrapper(AudioPluginAudioProcessor &processorRef)
     : mProcessorRef(processorRef)
 {
     mCoefficients.resize(32 * 2 * 6);
     mQueueThread.startThread();
+
+    // initialize the tensors
+    auto options = torch::TensorOptions().dtype(torch::kFloat32);
+    mLastMaterialTensor = torch::full({1, 5}, 0.5f, options);
+    mLastPositionTensor = torch::full({1, 2}, 0.5f, options);
 }
 
 TorchWrapper::~TorchWrapper()
@@ -59,7 +64,7 @@ void TorchWrapper::getShapeFeatures(const juce::Image &image)
         [this, image]() { this->handleGetShapeFeatures(image); });
 }
 
-void TorchWrapper::handleGetShapeFeatures(const juce::Image &image)
+void TorchWrapper::handleGetShapeFeatures(const juce::Image image)
 {
     // get the bitmap data and convert to a float tensor
     juce::Image::BitmapData bitmapData(image,
@@ -115,50 +120,72 @@ void TorchWrapper::handleGetShapeFeatures(const juce::Image &image)
     DBG("Predicted shape features");
 }
 
-void TorchWrapper::predictCoefficients(
-    const std::vector<float> &material)
+void TorchWrapper::updateMaterial(const std::vector<float> &material)
 {
+    // We need to post this to the queue thread because this function is
+    // called from the main thread
+    // we pass a copy of the material vector to the lambda function
+    // TODO: check if we can only make one copy
     mQueueThread.getIoService().post(
-        [this, material]() { this->handlePredictCoefficients(material); });
+        [this, material]()
+        {
+            std::cout << "Updating material" << std::endl;
+            // copy into mLastMaterialTensor
+            std::copy(material.begin(), material.end(),
+                      this->mLastMaterialTensor.data_ptr<float>());
+
+            this->predictCoefficients();
+        });
 }
 
-void TorchWrapper::handlePredictCoefficients(
-    /*const*/ std::vector<float> material)
+void TorchWrapper::updatePosition(const std::vector<float> &position)
 {
+    // We need to post this to the queue thread because this function is
+    // called from the main thread
+    // we pass a copy of the position vector to the lambda function
+    // TODO: check if we can only make one copy
+    mQueueThread.getIoService().post(
+        [this, position]()
+        {
+            std::cout << "Updating position" << std::endl;
+            // copy into mLastPositionTensor
+            std::copy(position.begin(), position.end(),
+                      this->mLastPositionTensor.data_ptr<float>());
+
+            this->predictCoefficients();
+        });
+}
+
+void TorchWrapper::predictCoefficients()
+{
+    DBG("Predicting coefficients");
     if (!mFeaturesReady)
     {
         juce::Logger::writeToLog("Features not ready");
         return;
     }
-#if 0
-    // print the material
-    for (int i = 0; i < material.size(); i++)
+
+    if (!mLastMaterialTensor.numel())
     {
-        std::cout << material[i] << " ";
+        juce::Logger::writeToLog("Material tensor not initialized");
+        return;
     }
-    std::cout << std::endl;
-#endif
 
-    // create the tensor
-    int batchSize = 1;
-    int channels = 1;
-    int height = 1;
-    int width = material.size();
-    auto options = torch::TensorOptions().dtype(torch::kFloat);
-    auto tensor = torch::from_blob(
-        material.data(), {batchSize, channels, height, width}, options);
+    if (!mLastPositionTensor.numel())
+    {
+        juce::Logger::writeToLog("Position tensor not initialized");
+        return;
+    }
 
-    // We need to concatenate the feature tensor with the material tensor
-    // along the 1st dimension (the feature tensor is 1x1000)
-    std::cout << tensor.sizes() << std::endl;
-    std::cout << mFeatureTensor.sizes() << std::endl;
+    // Before inference, we need to concatenate the feature tensor (1x1000)
+    // with position tensor (1x2), and the material tensor (1x5) along the 1st
+    // dimension.
 
-    // expand the feature tensor to match the material tensor
-    auto features = mFeatureTensor.view({1, 1, 1, 1000});
-    tensor = torch::cat({features, tensor}, 3);
-    std::cout << tensor.sizes() << std::endl;
-
-#if 0
+    auto tensor = torch::cat(
+        {mFeatureTensor, mLastPositionTensor, mLastMaterialTensor}, 1);
+    
+    // std::cout << tensor.sizes() << std::endl;
+#if 1
     // inference
     c10::InferenceMode guard;
     try

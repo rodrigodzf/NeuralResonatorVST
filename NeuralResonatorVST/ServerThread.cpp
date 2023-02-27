@@ -54,7 +54,7 @@ void ServerThread::onMessage(
     auto out_message = in_message->string();
 
     // std::cout << "Server: Message received: \"" << out_message << "\" from "
-    //           << connection.get() << std::endl;
+            //   << connection.get() << std::endl;
 
     auto parsedJson = JSON::parse(out_message);
     auto messageType = parsedJson.getProperty("type", {}).toString();
@@ -124,6 +124,24 @@ void ServerThread::onMessage(
             mOnNewMaterialCallback(materialProperties);
         }
     }
+    else if (messageType == "new_position" &&
+             mOnNewPositionCallback != nullptr)
+    {
+        MessageManagerLock mml(this);
+        if (mml.lockWasGained())
+        {
+            // get position
+            auto position = parsedJson.getProperty("position", {});
+
+            // get x, y, and z
+            std::vector<float> positionProperties = {
+                float(position.getProperty("x", var())),
+                float(position.getProperty("y", var()))
+            };
+
+            mOnNewPositionCallback(positionProperties);
+        }
+    }
 
     // std::cout << "Server: Sending message \"" << out_message << "\" to " <<
     // connection.get() << std::endl;
@@ -163,6 +181,12 @@ void ServerThread::setOnNewMaterialCallback(
     std::function< void(const std::vector<float> &) > callback)
 {
     mOnNewMaterialCallback = callback;
+}
+
+void ServerThread::setOnNewPositionCallback(
+    std::function< void(const std::vector<float> &) > callback)
+{
+    mOnNewPositionCallback = callback;
 }
 
 void ServerThread::sendMessage(const juce::String &message)

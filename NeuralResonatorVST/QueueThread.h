@@ -8,8 +8,6 @@
 
 // TODO: Maybe replace all with bool MessageManager::callAsync (std::function<void()> fn)
 
-namespace asio = boost::asio;
-
 class QueueThread : public juce::Thread, public juce::Thread::Listener
 {
 public:

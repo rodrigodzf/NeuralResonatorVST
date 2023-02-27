@@ -18,12 +18,13 @@ public:
     void run() override;
 
     void setOnNewShapeCallback(
-        std::function<void(const juce::Path &)> callback
-    );
+        std::function<void(const juce::Path &)> callback);
 
     void setOnNewMaterialCallback(
-        std::function< void(const std::vector<float> &) > callback
-    );
+        std::function<void(const std::vector<float> &)> callback);
+
+    void setOnNewPositionCallback(
+        std::function<void(const std::vector<float> &)> callback);
 
     void sendMessage(const juce::String &message);
 
@@ -46,6 +47,7 @@ private:
 
     std::function<void(const juce::Path &)> mOnNewShapeCallback;
     std::function<void(const std::vector<float> &)> mOnNewMaterialCallback;
+    std::function<void(const std::vector<float> &)> mOnNewPositionCallback;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ServerThread)
 };

@@ -46,22 +46,28 @@ target_compile_definitions(
     JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
-# Third-party dependencies
-target_compile_definitions(
-    ${PLUGIN_NAME}
-    INTERFACE
-    ASIO_STANDALONE
-)
-find_path(ASIO_PATH asio.hpp REQUIRED)
-if(NOT ASIO_PATH)
-    message(FATAL_ERROR "Standalone Asio not found")
-else()
-    message(STATUS "Standalone Asio found at ${ASIO_PATH}")
-    target_include_directories(
+if (ASIO_STANDALONE)
+    # for the wss server we need openssl
+    find_package(OpenSSL REQUIRED)
+    message(STATUS "OpenSSL found at ${OPENSSL_INCLUDE_DIR}")
+
+    target_compile_definitions(
         ${PLUGIN_NAME}
-        INTERFACE
-        ${ASIO_PATH}
+        PRIVATE
+        USE_STANDALONE_ASIO
     )
+    find_path(ASIO_PATH asio.hpp REQUIRED)
+    cmake_path(ABSOLUTE_PATH ASIO_PATH BASE_DIRECTORY ${PROJECT_SOURCE_DIR})
+    if(NOT ASIO_PATH)
+        message(FATAL_ERROR "Standalone Asio not found")
+    else()
+        message(STATUS "Standalone Asio found at ${ASIO_PATH}")
+        target_include_directories(
+            ${PLUGIN_NAME}
+            PRIVATE
+            ${ASIO_PATH}/include
+        )
+    endif()
 endif()
 
 find_path(SIMPLE_WEBSOCKET_SERVER_PATH server_ws.hpp REQUIRED)
@@ -78,8 +84,6 @@ else()
     )
 endif()
 
-find_package(OpenSSL REQUIRED)
-
 target_include_directories(
     ${PLUGIN_NAME}
     INTERFACE
@@ -89,9 +93,8 @@ target_include_directories(
 target_link_libraries(
     ${PLUGIN_NAME}
     PRIVATE
-    ${OPENSSL_LIBRARIES}
+    OpenSSL::SSL
     juce::juce_gui_extra
-    juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
     PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
@@ -99,3 +102,11 @@ target_link_libraries(
     juce::juce_audio_utils
     torchwrapper
 )
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(
+        ${PLUGIN_NAME}
+        PRIVATE
+        juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
+    )
+endif()

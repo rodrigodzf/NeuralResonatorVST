@@ -10,6 +10,8 @@ git clone --recurse-submodules
 
 First we need to install the dependencies of [juce](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md):
 
+For **Linux**:
+
 ```bash
 sudo apt update
 sudo apt install libasound2-dev libjack-jackd2-dev \
@@ -19,6 +21,23 @@ sudo apt install libasound2-dev libjack-jackd2-dev \
     libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
     libwebkit2gtk-4.0-dev \
     libglu1-mesa-dev mesa-common-dev
+```
+
+Additionally we need openssl:
+
+For **Linux**:
+
+```bash
+sudo apt install libssl-dev
+```
+For **Mac**:
+
+From [here](https://stackoverflow.com/a/29792635)
+
+```bash
+brew install openssl
+brew link --force openssl
+pkg-config --modversion openssl
 ```
 
 Then we can build the project:

@@ -24,10 +24,12 @@ public:
                    const std::string& deviceString = "cpu");
 
     void getShapeFeatures(const juce::Image& image);
-    void handleGetShapeFeatures(const juce::Image& image);
+    void handleGetShapeFeatures(const juce::Image image);
 
-    void predictCoefficients(const std::vector<float>& material);
-    void handlePredictCoefficients(/*const*/ std::vector<float> material);
+    void updateMaterial(const std::vector<float>& material);
+    void updatePosition(const std::vector<float>& position);
+
+    void predictCoefficients();
 
 private:
     torch::jit::Module mShapeEncoderNetwork;
@@ -35,6 +37,8 @@ private:
 
     // intermediate tensor for features
     torch::Tensor mFeatureTensor;
+    torch::Tensor mLastMaterialTensor;
+    torch::Tensor mLastPositionTensor;
     std::vector<float> mCoefficients;
 
     // flags
