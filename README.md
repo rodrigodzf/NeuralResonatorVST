@@ -32,8 +32,12 @@ sudo apt install libssl-dev
 ```
 For **Mac**:
 
+From [here](https://stackoverflow.com/a/29792635)
+
 ```bash
 brew install openssl
+brew link --force openssl
+pkg-config --modversion openssl
 ```
 
 Then we can build the project:

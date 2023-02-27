@@ -49,21 +49,23 @@ target_compile_definitions(
 if (ASIO_STANDALONE)
     # for the wss server we need openssl
     find_package(OpenSSL REQUIRED)
+    message(STATUS "OpenSSL found at ${OPENSSL_INCLUDE_DIR}")
 
     target_compile_definitions(
         ${PLUGIN_NAME}
-        INTERFACE
+        PRIVATE
         USE_STANDALONE_ASIO
     )
     find_path(ASIO_PATH asio.hpp REQUIRED)
+    cmake_path(ABSOLUTE_PATH ASIO_PATH BASE_DIRECTORY ${PROJECT_SOURCE_DIR})
     if(NOT ASIO_PATH)
         message(FATAL_ERROR "Standalone Asio not found")
     else()
         message(STATUS "Standalone Asio found at ${ASIO_PATH}")
         target_include_directories(
             ${PLUGIN_NAME}
-            INTERFACE
-            ${ASIO_PATH}
+            PRIVATE
+            ${ASIO_PATH}/include
         )
     endif()
 endif()
@@ -91,9 +93,8 @@ target_include_directories(
 target_link_libraries(
     ${PLUGIN_NAME}
     PRIVATE
-    ${OPENSSL_LIBRARIES}
+    OpenSSL::SSL
     juce::juce_gui_extra
-    juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
     PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
@@ -101,3 +102,11 @@ target_link_libraries(
     juce::juce_audio_utils
     torchwrapper
 )
+
+if (LINUX)
+    target_link_libraries(
+        ${PLUGIN_NAME}
+        PRIVATE
+        juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
+    )
+endif()
