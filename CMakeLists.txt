@@ -15,15 +15,15 @@ set(ASIO_PATH third_party/asio/asio)
 set(SIMPLE_WEBSOCKET_SERVER_PATH third_party/simple-websocket-server)
 
 # Torch
-list(APPEND CMAKE_PREFIX_PATH "/Users/diaz/mambaforge/envs/modal/lib/python3.10/site-packages/torch")
+# list(APPEND CMAKE_PREFIX_PATH "/Users/diaz/mambaforge/envs/modal/lib/python3.10/site-packages/torch")
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 add_subdirectory(third_party/torchplugins/src/common/torchwrapper)
 
 # Silent cpp warnings
-if(MSVC)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_options(/W0)
-else()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_compile_options(
         -Wno-unused-parameter
         -Wno-redundant-decls

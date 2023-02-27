@@ -103,7 +103,7 @@ target_link_libraries(
     torchwrapper
 )
 
-if (LINUX)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(
         ${PLUGIN_NAME}
         PRIVATE
