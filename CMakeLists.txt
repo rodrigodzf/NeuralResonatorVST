@@ -9,6 +9,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 # (practical to debug the plugin processor directly from your IDE)
 option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
 option(ASIO_STANDALONE "Use standalone ASIO" ON)
+option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 
 add_subdirectory(third_party/juce)
 set(ASIO_PATH third_party/asio/asio)

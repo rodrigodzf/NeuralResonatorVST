@@ -17,13 +17,29 @@ juce_add_plugin(${PLUGIN_NAME}
     FORMATS Standalone                          # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "NeuralResonator")             # The name of the final executable, which can differ from the target name
 
-# Add any resources you need to this target
-# juce_add_binary_data(
-#     ${PLUGIN_NAME}_BINARY_DATA
-#     SOURCES 
-#     config.json
-# )
+# Custom command to compile the ui
+set(MINIFIED_UI_PATH ${CMAKE_SOURCE_DIR}/ui/dist/index.html)
+add_custom_command(
+    TARGET ${PLUGIN_NAME}
+    PRE_BUILD
+    # OUTPUT ${MINIFIED_UI_PATH}
+    COMMAND npm run build
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ui
+    COMMENT "Building UI"
+)
 
+# Add any resources you need to this target
+juce_add_binary_data(
+    BinaryData
+    SOURCES 
+    ${MINIFIED_UI_PATH}
+)
+
+set_target_properties(
+    BinaryData 
+    PROPERTIES
+    POSITION_INDEPENDENT_CODE TRUE
+)
 
 juce_generate_juce_header(${PLUGIN_NAME})
 
@@ -44,6 +60,7 @@ target_compile_definitions(
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     JUCE_DEBUG=1
     JUCE_VST3_CAN_REPLACE_VST2=0
+    BROWSER_DEV_SERVER=$<BOOL:${BROWSER_DEV_SERVER}>
 )
 
 if (ASIO_STANDALONE)
@@ -95,6 +112,7 @@ target_link_libraries(
     PRIVATE
     OpenSSL::SSL
     juce::juce_gui_extra
+    BinaryData
     PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
