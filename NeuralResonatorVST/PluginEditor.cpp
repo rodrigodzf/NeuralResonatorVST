@@ -1,6 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
+#include "JuceHeader.h"
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
@@ -55,9 +55,18 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         jassertfalse;
     }
 
+    // Save or load the index.html file
+    auto indexFile = saveLoadIndexFile();
+
     // init browser
-    mBrowserPtr = std::make_unique<BrowserComponent>(
-        "http://" + host + ":" + juce::String(port));
+#if BROWSER_DEV_SERVER
+#pragma message("Using dev server for UI")
+    juce::String url = "http://" + host + ":" + juce::String(port);
+#else
+#pragma message("Using local file for UI")
+    juce::String url = "file://" + indexFile.getFullPathName();
+#endif
+    mBrowserPtr = std::make_unique<BrowserComponent>(url);
     addAndMakeVisible(mBrowserPtr.get());
     setResizable(true, true);
     setSize(800, 800);
@@ -151,4 +160,60 @@ void AudioPluginAudioProcessorEditor::onNewPosition(
 {
     // send the position data to the torch wrapper
     mTorchWrapperPtr->updatePosition(position);
+}
+
+juce::File AudioPluginAudioProcessorEditor::saveLoadIndexFile()
+{
+    // create or load the index file
+    juce::File indexFile = juce::File::getSpecialLocation(
+        juce::File::SpecialLocationType::userApplicationDataDirectory
+    ).getChildFile("index.html");
+
+    juce::Logger::writeToLog("Index file path: " + indexFile.getFullPathName());
+
+    // if the index file doesn't exist, create it
+    if (!indexFile.existsAsFile())
+    {
+        // Create a file output stream to write the binary data to
+        juce::FileOutputStream stream(
+            juce::File::getSpecialLocation(
+                juce::File::SpecialLocationType::userApplicationDataDirectory
+            ).getChildFile("index.html")
+        );
+
+        // write the binary data to the file
+        stream.write(BinaryData::index_html, BinaryData::index_htmlSize);
+        stream.flush();
+    }
+    else
+    {
+        // if the index file exists, check that it's the same as the one in the
+        // binary data
+        juce::FileInputStream stream(indexFile);
+        juce::MemoryBlock block;
+        stream.readIntoMemoryBlock(block);
+        if (block.getSize() != BinaryData::index_htmlSize)
+        {
+            juce::Logger::writeToLog("Index file is different, overwriting it");
+            // if the size is different, overwrite the file
+            juce::FileOutputStream stream(
+                juce::File::getSpecialLocation(
+                    juce::File::SpecialLocationType::userApplicationDataDirectory
+                ).getChildFile("index.html")
+            );
+
+            // write the binary data to the file
+            stream.write(BinaryData::index_html, BinaryData::index_htmlSize);
+            stream.flush();
+        }
+
+        // check that the file exists (this should always be true)
+        if (!indexFile.existsAsFile())
+        {
+            juce::Logger::writeToLog("Index file doesn't exist");
+            jassertfalse;
+        }
+    }
+
+    return indexFile;
 }

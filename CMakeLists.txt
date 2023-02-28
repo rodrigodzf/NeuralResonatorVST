@@ -9,6 +9,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 # (practical to debug the plugin processor directly from your IDE)
 option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
 option(ASIO_STANDALONE "Use standalone ASIO" ON)
+option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 
 add_subdirectory(third_party/juce)
 set(ASIO_PATH third_party/asio/asio)
@@ -23,7 +24,7 @@ add_subdirectory(third_party/torchplugins/src/common/torchwrapper)
 # Silent cpp warnings
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_options(/W0)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_compile_options(
         -Wno-unused-parameter
         -Wno-redundant-decls

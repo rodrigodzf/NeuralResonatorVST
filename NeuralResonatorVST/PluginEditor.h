@@ -25,6 +25,11 @@ private:
     void onNewMaterial(const std::vector<float> &material);
     void onNewPosition(const std::vector<float> &position);
 
+    /**
+     * @brief Save the index.html file to the user's home directory
+     */
+    juce::File saveLoadIndexFile();
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

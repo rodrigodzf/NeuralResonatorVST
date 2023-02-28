@@ -27,7 +27,7 @@ public:
         return Thread::startThread();
     }
     
-    void exitSignalSent()
+    void exitSignalSent() override
     {
         std::lock_guard<std::mutex> lock(mMutex);
         mWorkPtr.reset();
