@@ -60,10 +60,10 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 
     // init browser
 #if BROWSER_DEV_SERVER
-#pragma message("Using dev server")
+#pragma message("Using dev server for UI")
     juce::String url = "http://" + host + ":" + juce::String(port);
 #else
-#pragma message("Using local file")
+#pragma message("Using local file for UI")
     juce::String url = "file://" + indexFile.getFullPathName();
 #endif
     mBrowserPtr = std::make_unique<BrowserComponent>(url);
