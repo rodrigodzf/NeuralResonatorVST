@@ -24,7 +24,7 @@ add_subdirectory(third_party/torchplugins/src/common/torchwrapper)
 # Silent cpp warnings
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_options(/W0)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_compile_options(
         -Wno-unused-parameter
         -Wno-redundant-decls
