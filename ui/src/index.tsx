@@ -4,9 +4,8 @@ import { createRoot } from 'react-dom/client'
 
 // src
 import App from './components/App'
-import './css/index.css'
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
 		<App />
 	</React.StrictMode>,
