@@ -74,3 +74,27 @@ The models to load are configured in the application data path. In linux this is
 The models can be downloaded from here:
 
 https://drive.google.com/drive/folders/1dafuKfNBS-jLKJJZo5iVsO3d6K84xEmh?usp=share_link
+
+## Logs and config files
+
+The logs are written to the user application data path.
+
+In Mac this is:
+
+```bash
+tail -f ~/Library/Logs/NeuralResonatorVST/log.txt
+```
+
+Note that the config file is the folder
+
+```bash
+~/Library/NeuralResonatorVST
+```
+
+In Linux this is:
+
+```bash
+tail -f ~/.config/NeuralResonatorVST/log.txt
+```
+
+with the config file in the same folder.
