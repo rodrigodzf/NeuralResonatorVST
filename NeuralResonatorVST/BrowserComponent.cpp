@@ -1,9 +1,7 @@
 #include "BrowserComponent.h"
 
 BrowserComponent::BrowserComponent(const juce::String &url)
-{
-    goToURL(url);
-}
+{}
 
 BrowserComponent::~BrowserComponent() {}
 
