@@ -125,12 +125,14 @@ void AudioPluginAudioProcessor::changeProgramName(int index,
 void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
                                               int samplesPerBlock)
 {
+    juce::Logger::writeToLog("prepareToPlay");
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
+    juce::Logger::writeToLog("releaseResources");
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
