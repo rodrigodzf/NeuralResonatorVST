@@ -126,6 +126,8 @@ void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
     }
 
     if (!mFeaturesReady) { mFeaturesReady = true; }
+
+    predictCoefficients();
     DBG("Predicted shape features");
 }
 

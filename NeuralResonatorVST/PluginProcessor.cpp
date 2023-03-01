@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
+
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -23,18 +24,31 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     mConfigMap = HelperFunctions::getConfig();
     mIndexFile = HelperFunctions::saveLoadIndexFile();
 
+    // Set up the IIR filters
+    mIIRFilters.resize(nParallelFilters);
+    for (int i = 0; i < nParallelFilters; i++)
+    {
+        mIIRFilters[i].resize(nBiquadFilters);
+    }
+
+    for (int i = 0; i < nParallelFilters; i++)
+    {
+        for (int j = 0; j < nBiquadFilters; j++)
+        {
+            mIIRFilters[i][j].set_coefficients(0.0, 0.0, 0.0, 0.0, 0.0);
+        }
+    }
+
     // Start the threads in order (from the bottom up)
     // Start this thread
     mQueueThread.startThread();
 
     // Start Torch wrapper thread
     mTorchWrapperPtr.reset(new TorchWrapper(this));
-    mTorchWrapperPtr->loadModel(
-        mConfigMap["encoder_path"].toStdString(),
-        TorchWrapper::ModelType::ShapeEncoder);
-    mTorchWrapperPtr->loadModel(
-        mConfigMap["fc_path"].toStdString(),
-        TorchWrapper::ModelType::FC);
+    mTorchWrapperPtr->loadModel(mConfigMap["encoder_path"].toStdString(),
+                                TorchWrapper::ModelType::ShapeEncoder);
+    mTorchWrapperPtr->loadModel(mConfigMap["fc_path"].toStdString(),
+                                TorchWrapper::ModelType::FC);
 
     // Start WS server thread
     mServerThreadPtr.reset(
@@ -170,7 +184,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 {
     juce::ignoreUnused(midiMessages);
 
-    juce::ScopedNoDenormals noDenormals;
+    // juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -180,8 +194,8 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // This is here to avoid people getting screaming feedback
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear(i, 0, buffer.getNumSamples());
+    // for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    // buffer.clear(i, 0, buffer.getNumSamples());
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
@@ -189,11 +203,29 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    // https://forum.juce.com/t/1-most-common-programming-mistake-that-we-see-on-the-forum/26013
+
+    // Process samples
+    for (int sampleIdx = 0; sampleIdx < buffer.getNumSamples(); sampleIdx++)
     {
-        auto* channelData = buffer.getWritePointer(channel);
-        juce::ignoreUnused(channelData);
-        // ..do something to the data...
+        for (int channel = 0; channel < totalNumOutputChannels; channel++)
+        {
+            double out = 0.0;
+            // for each filter
+            for (int i = 0; i < mIIRFilters.size(); i++)
+            {
+                double y = buffer.getSample(channel, sampleIdx);
+                for (int j = 0; j < mIIRFilters[i].size(); j++)
+                {
+                    y = mIIRFilters[i][j].process(y);
+                }
+
+                // add to output
+                out += y;
+            }
+
+            buffer.setSample(channel, sampleIdx, static_cast<float>(out));
+        }
     }
 }
 
@@ -237,9 +269,30 @@ void AudioPluginAudioProcessor::coefficentsChanged(
 }
 
 void AudioPluginAudioProcessor::handleCoefficentsChanged(
-    const std::vector<float>& coeffs)
+    const std::vector<float>& coefficients)
 {
     juce::Logger::writeToLog("Coefficents changed");
+    // juce::Logger::writeToLog("Number of coefficients: " +
+    //                          std::to_string(coefficients.size()));
+    int n_parallel = mIIRFilters.size();
+    int n_biquads = mIIRFilters[0].size();
+    int stride = n_biquads * 3;
+    for (int i = 0; i < n_parallel; i++)
+    {
+        for (int j = 0; j < n_biquads; j++)
+        {
+            mIIRFilters[i][j].set_coefficients(
+                coefficients[i * n_biquads * stride + j * stride + 0],
+                coefficients[i * n_biquads * stride + j * stride + 1],
+                coefficients[i * n_biquads * stride + j * stride + 2],
+                coefficients[i * n_biquads * stride + j * stride + 4],
+                coefficients[i * n_biquads * stride + j * stride + 5]);
+
+            // print coefficients
+            // juce::Logger::writeToLog("The filter coefficients are: " +
+            //  mIIRFilters[i][j].to_string());
+        }
+    }
 }
 
 //==============================================================================
