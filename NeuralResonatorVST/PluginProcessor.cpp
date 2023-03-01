@@ -23,6 +23,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     mConfigMap = HelperFunctions::getConfig();
     mIndexFile = HelperFunctions::saveLoadIndexFile();
 
+    // Start the threads in order (from the bottom up)
     // Start this thread
     mQueueThread.startThread();
 
@@ -43,13 +44,15 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 {
     juce::Logger::writeToLog("AudioPluginAudioProcessor destructor");
+
+    // Stop the threads in reverse order (from the top down)
     mServerThreadPtr.reset();
     mServerThreadPtr = nullptr;
 
     mTorchWrapperPtr.reset();
     mTorchWrapperPtr = nullptr;
 
-    mQueueThread.stopThread(200);
+    mQueueThread.stopThread(100);
 
     juce::Logger::setCurrentLogger(nullptr);
 }

@@ -13,8 +13,8 @@ ServerThread::ServerThread(TorchWrapperIf *torchWrapperIf,
 
 ServerThread::~ServerThread()
 {
-    // allow 1000ms for the thread to stop cleanly
-    stopThread(1000);
+    // allow 100ms for the thread to stop cleanly
+    stopThread(100);
 }
 
 void ServerThread::exitSignalSent()

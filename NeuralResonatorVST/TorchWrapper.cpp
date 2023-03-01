@@ -17,7 +17,7 @@ TorchWrapper::TorchWrapper(ProcessorIf *processorPtr)
 
 TorchWrapper::~TorchWrapper()
 {
-    mQueueThread.stopThread(50);
+    mQueueThread.stopThread(100);
 }
 
 TorchWrapperIf *TorchWrapper::getTorchWrapperIfPtr()
