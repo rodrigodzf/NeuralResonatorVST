@@ -1,8 +1,10 @@
 #include "TorchWrapper.h"
+#include "HelperFunctions.h"
 #include <cstring>
 #include <algorithm>
-TorchWrapper::TorchWrapper(AudioPluginAudioProcessor &processorRef)
-    : mProcessorRef(processorRef)
+
+TorchWrapper::TorchWrapper(ProcessorIf *processorPtr)
+    : mProcessorPtr(processorPtr)
 {
     mCoefficients.resize(32 * 2 * 6);
     mQueueThread.startThread();
@@ -18,10 +20,17 @@ TorchWrapper::~TorchWrapper()
     mQueueThread.stopThread(50);
 }
 
+TorchWrapperIf *TorchWrapper::getTorchWrapperIfPtr()
+{
+    return this;
+}
+
 void TorchWrapper::loadModel(const std::string &modelPath,
                              const ModelType modelType,
                              const std::string &deviceString)
 {
+    //TODO: check that the file exists
+
     mQueueThread.getIoService().post(
         [this, modelPath, modelType, deviceString]()
         {
@@ -49,8 +58,8 @@ void TorchWrapper::loadModel(const std::string &modelPath,
             }
             catch (const c10::Error &e)
             {
-                juce::Logger::writeToLog("Error loading model: " +
-                                         std::string(e.what()));
+                juce::Logger::writeToLog("Error loading model: " + modelPath +
+                                         " " + std::string(e.what()));
                 jassertfalse;
                 return;
             }
@@ -58,14 +67,17 @@ void TorchWrapper::loadModel(const std::string &modelPath,
         });
 }
 
-void TorchWrapper::getShapeFeatures(const juce::Image &image)
+void TorchWrapper::receivedNewShape(juce::Path &shape)
 {
     mQueueThread.getIoService().post(
-        [this, image]() { this->handleGetShapeFeatures(image); });
+        [this, shape]() { this->handleReceivedNewShape(shape); });
 }
 
-void TorchWrapper::handleGetShapeFeatures(const juce::Image image)
+void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
 {
+    // convert the path to an image
+    juce::Image image = HelperFunctions::shapeToImage(shape);
+
     // get the bitmap data and convert to a float tensor
     juce::Image::BitmapData bitmapData(image,
                                        juce::Image::BitmapData::readOnly);
@@ -113,14 +125,11 @@ void TorchWrapper::handleGetShapeFeatures(const juce::Image image)
         jassertfalse;
     }
 
-    if (!mFeaturesReady)
-    {
-        mFeaturesReady = true;
-    }
+    if (!mFeaturesReady) { mFeaturesReady = true; }
     DBG("Predicted shape features");
 }
 
-void TorchWrapper::updateMaterial(const std::vector<float> &material)
+void TorchWrapper::receivedNewMaterial(const std::vector<float> &material)
 {
     // We need to post this to the queue thread because this function is
     // called from the main thread
@@ -129,7 +138,7 @@ void TorchWrapper::updateMaterial(const std::vector<float> &material)
     mQueueThread.getIoService().post(
         [this, material]()
         {
-            std::cout << "Updating material" << std::endl;
+            juce::Logger::writeToLog("Updating material");
             // copy into mLastMaterialTensor
             std::copy(material.begin(), material.end(),
                       this->mLastMaterialTensor.data_ptr<float>());
@@ -138,7 +147,7 @@ void TorchWrapper::updateMaterial(const std::vector<float> &material)
         });
 }
 
-void TorchWrapper::updatePosition(const std::vector<float> &position)
+void TorchWrapper::receivedNewPosition(const std::vector<float> &position)
 {
     // We need to post this to the queue thread because this function is
     // called from the main thread
@@ -183,7 +192,7 @@ void TorchWrapper::predictCoefficients()
 
     auto tensor = torch::cat(
         {mFeatureTensor, mLastPositionTensor, mLastMaterialTensor}, 1);
-    
+
     // std::cout << tensor.sizes() << std::endl;
 #if 1
     // inference
@@ -206,7 +215,6 @@ void TorchWrapper::predictCoefficients()
                                  std::string(e.what()));
         jassertfalse;
     }
-    mProcessorRef.coefficentsChanged(mCoefficients);
+    mProcessorPtr->coefficentsChanged(mCoefficients);
 #endif
-
 }

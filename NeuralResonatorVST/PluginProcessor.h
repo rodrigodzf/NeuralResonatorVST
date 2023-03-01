@@ -1,10 +1,12 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
-#include "QueueThread.h"
-
+#include "ServerThread.h"
+#include "TorchWrapper.h"
+#include "ProcessorIf.h"
 //==============================================================================
-class AudioPluginAudioProcessor : public juce::AudioProcessor
+class AudioPluginAudioProcessor : public juce::AudioProcessor,
+                                  public ProcessorIf
 {
 public:
     //==============================================================================
@@ -17,8 +19,7 @@ public:
 
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
-    void processBlock(juce::AudioBuffer< float >&,
-                      juce::MidiBuffer&) override;
+    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     using AudioProcessor::processBlock;
 
     //==============================================================================
@@ -45,9 +46,18 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
 public:
-    void coefficentsChanged(const std::vector< float >& coeffs);
-    void handleCoefficentsChanged(const std::vector< float >& coeffs);
+    void coefficentsChanged(const std::vector<float>& coeffs) override;
+    void handleCoefficentsChanged(const std::vector<float>& coeffs);
     QueueThread mQueueThread{"plugin_processor"};
+
+    std::map<juce::String, juce::String> mConfigMap;
+    juce::File mIndexFile;
+
+    std::unique_ptr<ServerThread> mServerThreadPtr;
+    std::unique_ptr<TorchWrapper> mTorchWrapperPtr;
+
+private:
+    std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
 
 private:
     //==============================================================================

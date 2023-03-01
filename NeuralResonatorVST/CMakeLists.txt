@@ -14,7 +14,7 @@ juce_add_plugin(${PLUGIN_NAME}
     # COPY_PLUGIN_AFTER_BUILD TRUE/FALSE        # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Diaz               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE NRes                            # A unique four-character plugin id with at least one upper-case character
-    FORMATS Standalone                          # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
+    FORMATS Standalone VST3                     # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "NeuralResonator")             # The name of the final executable, which can differ from the target name
 
 # Custom command to compile the ui
@@ -65,7 +65,7 @@ target_compile_definitions(
     PRIVATE
     JUCE_WEB_BROWSER=1  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
-    JUCE_DEBUG=1
+    JUCE_DEBUG=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     BROWSER_DEV_SERVER=$<BOOL:${BROWSER_DEV_SERVER}>
 )
@@ -134,4 +134,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
         PRIVATE
         juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
     )
+    # target_compile_options(
+    #     ${PLUGIN_NAME}
+    #     PRIVATE
+    #     -fsanitize=address
+    # )
 endif()

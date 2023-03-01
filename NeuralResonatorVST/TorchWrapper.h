@@ -1,14 +1,15 @@
 #pragma once
 
 #include "QueueThread.h"
-#include "PluginProcessor.h"
+#include "ProcessorIf.h"
+#include "TorchWrapperIf.h"
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include <torch/script.h>
 #include <torch/torch.h>
 
-class TorchWrapper
+class TorchWrapper : public TorchWrapperIf
 {
 public:
     enum class ModelType
@@ -17,19 +18,25 @@ public:
         FC
     };
 
-    TorchWrapper(AudioPluginAudioProcessor& processorRef);
+    TorchWrapper(ProcessorIf* processorPtr);
     ~TorchWrapper();
+
+    TorchWrapperIf* getTorchWrapperIfPtr();
 
     void loadModel(const std::string& modelPath, const ModelType modelType,
                    const std::string& deviceString = "cpu");
 
-    void getShapeFeatures(const juce::Image& image);
-    void handleGetShapeFeatures(const juce::Image image);
+    void handleReceivedNewShape(const juce::Path shape);
 
     void updateMaterial(const std::vector<float>& material);
     void updatePosition(const std::vector<float>& position);
 
     void predictCoefficients();
+
+protected:
+    void receivedNewShape(juce::Path& shape) override;
+    void receivedNewMaterial(const std::vector<float>& material) override;
+    void receivedNewPosition(const std::vector<float>& position) override;
 
 private:
     torch::jit::Module mShapeEncoderNetwork;
@@ -47,7 +54,7 @@ private:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    AudioPluginAudioProcessor& mProcessorRef;
+    ProcessorIf* mProcessorPtr;
 
     QueueThread mQueueThread{"torch_wrapper"};
 

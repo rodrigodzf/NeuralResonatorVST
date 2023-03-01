@@ -1,6 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-
+#include "HelperFunctions.h"
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -13,9 +13,46 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
       )
 {
+    // Set up the logger
+    mFileLoggerPtr.reset(juce::FileLogger::createDefaultAppLogger(
+        "NeuralResonatorVST", "log.txt", "NeuralResonatorVST log file"));
+    juce::Logger::setCurrentLogger(mFileLoggerPtr.get());
+    juce::Logger::writeToLog("AudioPluginAudioProcessor constructor");
+
+    // Get config file and index file path
+    mConfigMap = HelperFunctions::getConfig();
+    mIndexFile = HelperFunctions::saveLoadIndexFile();
+
+    // Start this thread
+    mQueueThread.startThread();
+
+    // Start Torch wrapper thread
+    mTorchWrapperPtr.reset(new TorchWrapper(this));
+    mTorchWrapperPtr->loadModel(
+        mConfigMap["encoder_path"].toStdString(),
+        TorchWrapper::ModelType::ShapeEncoder);
+    mTorchWrapperPtr->loadModel(
+        mConfigMap["fc_path"].toStdString(),
+        TorchWrapper::ModelType::FC);
+
+    // Start WS server thread
+    mServerThreadPtr.reset(
+        new ServerThread(mTorchWrapperPtr->getTorchWrapperIfPtr()));
 }
 
-AudioPluginAudioProcessor::~AudioPluginAudioProcessor() {}
+AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
+{
+    juce::Logger::writeToLog("AudioPluginAudioProcessor destructor");
+    mServerThreadPtr.reset();
+    mServerThreadPtr = nullptr;
+
+    mTorchWrapperPtr.reset();
+    mTorchWrapperPtr = nullptr;
+
+    mQueueThread.stopThread(200);
+
+    juce::Logger::setCurrentLogger(nullptr);
+}
 
 //==============================================================================
 const juce::String AudioPluginAudioProcessor::getName() const
@@ -90,17 +127,12 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
-    juce::ignoreUnused(sampleRate, samplesPerBlock);
-
-    // Start the queue thread
-    mQueueThread.startThread();
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
-    mQueueThread.stopThread(200);
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported(
@@ -128,8 +160,8 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(
 #endif
 }
 
-void AudioPluginAudioProcessor::processBlock(
-    juce::AudioBuffer< float >& buffer, juce::MidiBuffer& midiMessages)
+void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
+                                             juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused(midiMessages);
 
@@ -193,14 +225,14 @@ void AudioPluginAudioProcessor::setStateInformation(const void* data,
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(
-    const std::vector< float >& coeffs)
+    const std::vector<float>& coeffs)
 {
     mQueueThread.getIoService().post(
         [this, coeffs]() { this->handleCoefficentsChanged(coeffs); });
 }
 
 void AudioPluginAudioProcessor::handleCoefficentsChanged(
-    const std::vector< float >& coeffs)
+    const std::vector<float>& coeffs)
 {
     juce::Logger::writeToLog("Coefficents changed");
 }
