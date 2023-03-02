@@ -1,5 +1,9 @@
 #pragma once
 
+#include <vector>
+#include <string>
+#include <sstream>
+
 template <typename T>
 class TwoPole
 {

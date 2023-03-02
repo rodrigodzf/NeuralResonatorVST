@@ -58,6 +58,7 @@ target_sources(
     ServerThread.cpp
     BrowserComponent.cpp
     TorchWrapper.cpp
+    Filterbank.cpp
 )
 
 target_compile_definitions(

@@ -12,7 +12,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      )
+              )
+    , mFilterbank(32, 2)
 {
     // Set up the logger
     mFileLoggerPtr.reset(juce::FileLogger::createDefaultAppLogger(
@@ -23,21 +24,6 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     // Get config file and index file path
     mConfigMap = HelperFunctions::getConfig();
     mIndexFile = HelperFunctions::saveLoadIndexFile();
-
-    // Set up the IIR filters
-    mIIRFilters.resize(nParallelFilters);
-    for (int i = 0; i < nParallelFilters; i++)
-    {
-        mIIRFilters[i].resize(nBiquadFilters);
-    }
-
-    for (int i = 0; i < nParallelFilters; i++)
-    {
-        for (int j = 0; j < nBiquadFilters; j++)
-        {
-            mIIRFilters[i][j].set_coefficients(0.0, 0.0, 0.0, 0.0, 0.0);
-        }
-    }
 
     // Start the threads in order (from the bottom up)
     // Start this thread
@@ -206,27 +192,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // https://forum.juce.com/t/1-most-common-programming-mistake-that-we-see-on-the-forum/26013
 
     // Process samples
-    for (int sampleIdx = 0; sampleIdx < buffer.getNumSamples(); sampleIdx++)
-    {
-        for (int channel = 0; channel < totalNumOutputChannels; channel++)
-        {
-            double out = 0.0;
-            // for each filter
-            for (int i = 0; i < mIIRFilters.size(); i++)
-            {
-                double y = buffer.getSample(channel, sampleIdx);
-                for (int j = 0; j < mIIRFilters[i].size(); j++)
-                {
-                    y = mIIRFilters[i][j].process(y);
-                }
-
-                // add to output
-                out += y;
-            }
-
-            buffer.setSample(channel, sampleIdx, static_cast<float>(out));
-        }
-    }
+    mFilterbank.processBuffer(buffer);
 }
 
 //==============================================================================
@@ -274,25 +240,7 @@ void AudioPluginAudioProcessor::handleCoefficentsChanged(
     juce::Logger::writeToLog("Coefficents changed");
     // juce::Logger::writeToLog("Number of coefficients: " +
     //                          std::to_string(coefficients.size()));
-    int n_parallel = mIIRFilters.size();
-    int n_biquads = mIIRFilters[0].size();
-    int stride = n_biquads * 3;
-    for (int i = 0; i < n_parallel; i++)
-    {
-        for (int j = 0; j < n_biquads; j++)
-        {
-            mIIRFilters[i][j].set_coefficients(
-                coefficients[i * n_biquads * stride + j * stride + 0],
-                coefficients[i * n_biquads * stride + j * stride + 1],
-                coefficients[i * n_biquads * stride + j * stride + 2],
-                coefficients[i * n_biquads * stride + j * stride + 4],
-                coefficients[i * n_biquads * stride + j * stride + 5]);
-
-            // print coefficients
-            // juce::Logger::writeToLog("The filter coefficients are: " +
-            //  mIIRFilters[i][j].to_string());
-        }
-    }
+    mFilterbank.setCoefficients(coefficients);
 }
 
 //==============================================================================
