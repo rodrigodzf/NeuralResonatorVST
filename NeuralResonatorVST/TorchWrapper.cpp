@@ -378,6 +378,12 @@ void TorchWrapper::onOpen()
         {
             juce::Logger::writeToLog("Sending initial values to UI");
             densityAttachment->sendInitialUpdate();
+            stiffnessAttachment->sendInitialUpdate();
+            poissonsRatioAttachment->sendInitialUpdate();
+            alphaAttachment->sendInitialUpdate();
+            betaAttachment->sendInitialUpdate();
+            // xposAttachment->sendInitialUpdate();
+            // yposAttachment->sendInitialUpdate();
         });
 }
 

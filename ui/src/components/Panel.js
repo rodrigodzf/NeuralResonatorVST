@@ -46,27 +46,22 @@ function Panel({ws}) {
 
     // this comes from the ws
     useEffect(() => {
-        if (ws.current.readyState !== ReadyState.OPEN) return
         set({densityUi: density})
     }, [density])
 
     useEffect(() => {
-        if (ws.current.readyState !== ReadyState.OPEN) return
         set({stiffnessUi: stiffness})
     }, [stiffness])
 
     useEffect(() => {
-        if (ws.current.readyState !== ReadyState.OPEN) return
         set({pratioUi: pratio})
     }, [pratio])
 
     useEffect(() => {
-        if (ws.current.readyState !== ReadyState.OPEN) return
         set({alphaUi: alpha})
     }, [alpha])
 
     useEffect(() => {
-        if (ws.current.readyState !== ReadyState.OPEN) return
         set({betaUi: beta})
     }, [beta])
 
