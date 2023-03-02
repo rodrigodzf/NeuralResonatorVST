@@ -1,9 +1,11 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_basics/juce_audio_basics.h>
 #include "ServerThread.h"
 #include "TorchWrapper.h"
 #include "ProcessorIf.h"
+#include "Filterbank.h"
 //==============================================================================
 class AudioPluginAudioProcessor : public juce::AudioProcessor,
                                   public ProcessorIf
@@ -59,6 +61,7 @@ public:
 private:
     std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
 
+    Filterbank mFilterbank;
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)

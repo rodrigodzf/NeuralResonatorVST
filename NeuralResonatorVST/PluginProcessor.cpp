@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
+
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -11,7 +12,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-      )
+              )
+    , mFilterbank(32, 2)
 {
     // Set up the logger
     mFileLoggerPtr.reset(juce::FileLogger::createDefaultAppLogger(
@@ -29,12 +31,10 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 
     // Start Torch wrapper thread
     mTorchWrapperPtr.reset(new TorchWrapper(this));
-    mTorchWrapperPtr->loadModel(
-        mConfigMap["encoder_path"].toStdString(),
-        TorchWrapper::ModelType::ShapeEncoder);
-    mTorchWrapperPtr->loadModel(
-        mConfigMap["fc_path"].toStdString(),
-        TorchWrapper::ModelType::FC);
+    mTorchWrapperPtr->loadModel(mConfigMap["encoder_path"].toStdString(),
+                                TorchWrapper::ModelType::ShapeEncoder);
+    mTorchWrapperPtr->loadModel(mConfigMap["fc_path"].toStdString(),
+                                TorchWrapper::ModelType::FC);
 
     // Start WS server thread
     mServerThreadPtr.reset(
@@ -170,7 +170,7 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 {
     juce::ignoreUnused(midiMessages);
 
-    juce::ScopedNoDenormals noDenormals;
+    // juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -180,8 +180,8 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // This is here to avoid people getting screaming feedback
     // when they first compile a plugin, but obviously you don't need to keep
     // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear(i, 0, buffer.getNumSamples());
+    // for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    // buffer.clear(i, 0, buffer.getNumSamples());
 
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
@@ -189,12 +189,10 @@ void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer(channel);
-        juce::ignoreUnused(channelData);
-        // ..do something to the data...
-    }
+    // https://forum.juce.com/t/1-most-common-programming-mistake-that-we-see-on-the-forum/26013
+
+    // Process samples
+    mFilterbank.processBuffer(buffer);
 }
 
 //==============================================================================
@@ -237,9 +235,12 @@ void AudioPluginAudioProcessor::coefficentsChanged(
 }
 
 void AudioPluginAudioProcessor::handleCoefficentsChanged(
-    const std::vector<float>& coeffs)
+    const std::vector<float>& coefficients)
 {
     juce::Logger::writeToLog("Coefficents changed");
+    // juce::Logger::writeToLog("Number of coefficients: " +
+    //                          std::to_string(coefficients.size()));
+    mFilterbank.setCoefficients(coefficients);
 }
 
 //==============================================================================

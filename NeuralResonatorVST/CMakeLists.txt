@@ -1,6 +1,12 @@
 
 set(PLUGIN_NAME NeuralResonatorVST)
 
+set(FORMATS Standalone VST3 AU)
+
+# if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+#     list(APPEND FORMATS LV2)
+# endif()
+
 juce_add_plugin(${PLUGIN_NAME}
     # VERSION ...                               # Set this if the plugin version is different to the project version
     # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
@@ -14,7 +20,7 @@ juce_add_plugin(${PLUGIN_NAME}
     # COPY_PLUGIN_AFTER_BUILD TRUE/FALSE        # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Diaz               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE NRes                            # A unique four-character plugin id with at least one upper-case character
-    FORMATS Standalone VST3 AU                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
+    FORMATS ${FORMATS}                          # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "NeuralResonator")             # The name of the final executable, which can differ from the target name
 
 # Custom command to compile the ui
@@ -58,6 +64,7 @@ target_sources(
     ServerThread.cpp
     BrowserComponent.cpp
     TorchWrapper.cpp
+    Filterbank.cpp
 )
 
 target_compile_definitions(
