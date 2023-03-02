@@ -59,8 +59,10 @@ public:
     std::unique_ptr<TorchWrapper> mTorchWrapperPtr;
 
 private:
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+private:
     std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
-
+    juce::AudioProcessorValueTreeState mParameters;
     Filterbank mFilterbank;
 private:
     //==============================================================================

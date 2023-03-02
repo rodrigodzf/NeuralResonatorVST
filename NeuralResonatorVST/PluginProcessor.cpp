@@ -14,6 +14,11 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               )
     , mFilterbank(32, 2)
+    , mParameters(*this,    // processor to connect to
+                  nullptr,  // undo manager
+                  juce::Identifier("NeuralResonatorVSTParams"),  // identifier
+                  createParameterLayout()  // parameter layout
+      )
 {
     // Set up the logger
     mFileLoggerPtr.reset(juce::FileLogger::createDefaultAppLogger(
@@ -25,20 +30,24 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     mConfigMap = HelperFunctions::getConfig();
     mIndexFile = HelperFunctions::saveLoadIndexFile();
 
-    // Start the threads in order (from the bottom up)
-    // Start this thread
-    mQueueThread.startThread();
-
-    // Start Torch wrapper thread
-    mTorchWrapperPtr.reset(new TorchWrapper(this));
+    // initialize the torch wrapper
+    mTorchWrapperPtr.reset(new TorchWrapper(this, mParameters));
     mTorchWrapperPtr->loadModel(mConfigMap["encoder_path"].toStdString(),
                                 TorchWrapper::ModelType::ShapeEncoder);
     mTorchWrapperPtr->loadModel(mConfigMap["fc_path"].toStdString(),
                                 TorchWrapper::ModelType::FC);
 
-    // Start WS server thread
+    // Initialize the server thread
     mServerThreadPtr.reset(
         new ServerThread(mTorchWrapperPtr->getTorchWrapperIfPtr()));
+
+    mTorchWrapperPtr->setServerThreadIf(
+        mServerThreadPtr->getServerThreadIfPtr());
+
+    // Start the threads in order (from the bottom up)
+    mQueueThread.startThread();
+    mTorchWrapperPtr->startThread();
+    mServerThreadPtr->startThread();
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -215,7 +224,9 @@ void AudioPluginAudioProcessor::getStateInformation(
     // block. You could do that either as raw data, or use the XML or
     // ValueTree classes as intermediaries to make it easy to save and load
     // complex data.
-    juce::ignoreUnused(destData);
+    auto state = mParameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void AudioPluginAudioProcessor::setStateInformation(const void* data,
@@ -224,7 +235,11 @@ void AudioPluginAudioProcessor::setStateInformation(const void* data,
     // You should use this method to restore your parameters from this memory
     // block, whose contents will have been created by the
     // getStateInformation() call.
-    juce::ignoreUnused(data, sizeInBytes);
+    std::unique_ptr<juce::XmlElement> xmlState(
+        getXmlFromBinary(data, sizeInBytes));
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(mParameters.state.getType()))
+            mParameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(
@@ -241,6 +256,71 @@ void AudioPluginAudioProcessor::handleCoefficentsChanged(
     // juce::Logger::writeToLog("Number of coefficients: " +
     //                          std::to_string(coefficients.size()));
     mFilterbank.setCoefficients(coefficients);
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout
+    AudioPluginAudioProcessor::createParameterLayout()
+{
+    // Set up the parameters
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "density",                       // parameterID
+        "Density",                       // parameter name
+        juce::NormalisableRange<float>(  // range
+            0.0f, 1.0f, 0.01f),          // min, max, interval
+        0.5f                             // default value
+        ));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "stiffness",                     // parameterID
+        "Stiffness",                     // parameter name
+        juce::NormalisableRange<float>(  // range
+            0.0f, 1.0f, 0.01f),          // min, max, interval
+        0.5f                             // default value
+        ));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "pratio",                        // parameterID
+        "Poisson Ratio",                 // parameter name
+        juce::NormalisableRange<float>(  // range
+            0.0f, 1.0f, 0.01f),          // min, max, interval
+        0.5f                             // default value
+        ));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "alpha",                         // parameterID
+        "Alpha",                         // parameter name
+        juce::NormalisableRange<float>(  // range
+            0.0f, 1.0f, 0.01f),          // min, max, interval
+        0.5f                             // default value
+        ));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "beta",                          // parameterID
+        "Beta",                          // parameter name
+        juce::NormalisableRange<float>(  // range
+            0.0f, 1.0f, 0.01f),          // min, max, interval
+        0.5f                             // default value
+        ));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "xpos",                          // parameterID
+        "X Position",                    // parameter name
+        juce::NormalisableRange<float>(  // range
+            0.0f, 1.0f, 0.01f),          // min, max, interval
+        0.5f                             // default value
+        ));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        "ypos",                          // parameterID
+        "Y Position",                    // parameter name
+        juce::NormalisableRange<float>(  // range
+            0.0f, 1.0f, 0.01f),          // min, max, interval
+        0.5f                             // default value
+        ));
+
+    return layout;
 }
 
 //==============================================================================

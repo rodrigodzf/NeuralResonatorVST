@@ -8,7 +8,6 @@ ServerThread::ServerThread(TorchWrapperIf *torchWrapperIf,
 {
     mServer.config.port = port;
     addListener(this);
-    startThread();
 }
 
 ServerThread::~ServerThread()
@@ -143,6 +142,8 @@ void ServerThread::onOpen(ConnectionPtr connection)
 
     // add connection to the list of active connections
     mConnections.push_back(connection);
+
+    mTorchWrapperIf->onOpen();
 }
 
 void ServerThread::onClose(ConnectionPtr connection, int status,
@@ -156,6 +157,11 @@ void ServerThread::onClose(ConnectionPtr connection, int status,
     // remove connection from the list of active connections
     auto it = std::find(mConnections.begin(), mConnections.end(), connection);
     if (it != mConnections.end()) { mConnections.erase(it); }
+}
+
+ServerThreadIf* ServerThread::getServerThreadIfPtr()
+{
+    return this;
 }
 
 void ServerThread::sendMessage(const juce::String &message)

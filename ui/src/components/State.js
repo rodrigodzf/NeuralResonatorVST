@@ -5,6 +5,11 @@ const initialState = {
 	positions: {
 		0: { x: 0, y: 0, z: 0 },
 	},
+    density: 0.5,
+    stiffness: 0.5,
+    pratio: 0.5,
+    alpha: 0.5,
+    beta: 0.5,
 }
 
-export const { useGlobalState } = createGlobalState(initialState)
+export const { useGlobalState, setGlobalState } = createGlobalState(initialState)

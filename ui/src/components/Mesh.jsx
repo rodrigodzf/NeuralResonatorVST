@@ -91,7 +91,7 @@ const Node = forwardRef(({ color = 'black', name, position = [0, 0, 0], ...props
 	)
 })
 
-export const Mesh = (props) => {
+export const Mesh = ({ws}) => {
 	const [endpoint, setEndpoint] = useGlobalState('endpoint')
 	const [hovered, setHover] = useState()
 	const [active, setActive] = useState(false)
@@ -138,13 +138,11 @@ export const Mesh = (props) => {
 
 	useEffect(() => {
 		setShape(new THREE.Shape(polygon))
-        sendMessage(JSON.stringify({ type: 'new_shape', shape: polygon }))
+        // if connection is not open, do nothing
+        console.log(ws)
+        if (ws.current.readyState !== ReadyState.OPEN) return
+        ws.current.send(JSON.stringify({ type: 'new_shape', shape: polygon }))
 	}, [polygon])
-
-	const { sendMessage } = useWebSocket(endpoint, {
-		onOpen: () => console.log('opened'),
-		share: true,
-	})
 
 	useControls({
 		'new shape': button(() => {
@@ -154,7 +152,6 @@ export const Mesh = (props) => {
 	})
 	return (
 		<mesh
-			{...props}
 			ref={mesh}
 			onClick={(event) => {
 				setSelected(event.faceIndex)
