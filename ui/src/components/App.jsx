@@ -1,4 +1,5 @@
 import React from 'react'
+import '../css/index.css'
 import '../css/App.css'
 // import { Leva } from "leva";
 import { Canvas } from '@react-three/fiber'
