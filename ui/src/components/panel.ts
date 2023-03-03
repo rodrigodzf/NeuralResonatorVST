@@ -1,47 +1,57 @@
-import { button, LevaPanel, useControls, useCreateStore } from 'leva'
+// dependencies
 import { useEffect } from 'react'
-import useWebSocket, { ReadyState } from 'react-use-websocket'
-import { useGlobalState } from './State'
+import { useControls } from 'leva'
+import useWebSocket from 'react-use-websocket'
 
-function Panel() {
-	const [endpoint, setEndpoint] = useGlobalState('endpoint')
+type ParameterObject = {
+	max: number 
+	min: number
+	step: number
+	value: number
+}
 
-	const { sendMessage } = useWebSocket(endpoint, {
+export function Panel(): null {
+	const { sendMessage } = useWebSocket('endpoint', {
 		onOpen: () => console.log('opened'),
 		share: true,
 	})
 
-	const material = useControls({
+	const material: {
+		density: ParameterObject
+		stiffness: ParameterObject
+		alpha: ParameterObject
+		pratio: ParameterObject
+		beat: ParameterObject
+	} = useControls({
             density: {
-                value: 0.5,
-                min: 0,
                 max: 1,
+				min: 0,
                 step: 0.01,
+                value: 0.5,
             },
             stiffness: {
-                value: 0.5,
+				max: 1,
                 min: 0,
-                max: 1,
                 step: 0.01,
+                value: 0.5,
             },
             pratio: {
-                value: 0.5,
-                min: 0,
                 max: 1,
+				min: 0,
                 step: 0.01,
+                value: 0.5,
             },
             alpha: {
-                value: 0.5,
-                min: 0,
                 max: 1,
+				min: 0,
                 step: 0.01,
-
+				value: 0.5,
             },
             beta: {
-                value: 0.5,
-                min: 0,
                 max: 1,
+				min: 0,
                 step: 0.01,
+                value: 0.5,
             },
 	})
 
@@ -51,5 +61,3 @@ function Panel() {
 
 	return null
 }
-
-export default Panel
