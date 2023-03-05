@@ -128,7 +128,7 @@ export class InputStream {
 				return array
 			default:
 				this.incrementReadPosition(numBytes - 1)
-				return 
+				return
 		}
 	}
 

@@ -11,9 +11,8 @@ export interface JuceMessage<T> {
 
 export const registerCallback = <T extends Function>(eventType: string, handler: T) => {
 	const existingCallbacks = callbacks.get(eventType)
-    existingCallbacks ? existingCallbacks.push(handler) : callbacks.set(eventType, [handler])
+	existingCallbacks ? existingCallbacks.push(handler) : callbacks.set(eventType, [handler])
 }
-
 
 export const JuceIntegration: React.FC<{
 	children: React.ReactNode

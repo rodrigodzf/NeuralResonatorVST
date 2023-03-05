@@ -20,10 +20,10 @@ export type Parameters = {
 	stiffness: ParameterObject
 }
 
-export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => void}): null => {
+export const Panel = observer(({ sendMessage }: SendMessage): null => {
 	const parameters = useContext(ParametersContext)
-	
-	const [_, set]= useControls({
+
+	const [_, set] = useControls({
 		alpha: {
 			max: 1,
 			min: 0,
