@@ -11,65 +11,44 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 #endif
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-              )
+      )
     , mFilterbank(32, 2)
-    , mParameters(*this,    // processor to connect to
-                  nullptr,  // undo manager
-                  juce::Identifier("NeuralResonatorVSTParams"),  // identifier
-                  createParameterLayout()  // parameter layout
+    , mParameters(
+          *this,    // processor to connect to
+          nullptr,  // undo manager
+          juce::Identifier("NeuralResonatorVSTParams"),  // identifier
+          createParameterLayout()                        // parameter layout
       )
 {
     // Set up the logger
     mFileLoggerPtr.reset(juce::FileLogger::createDefaultAppLogger(
-        "NeuralResonatorVST", "log.txt", "NeuralResonatorVST log file"));
+        "NeuralResonatorVST",
+        "log.txt",
+        "NeuralResonatorVST log file"
+    ));
     juce::Logger::setCurrentLogger(mFileLoggerPtr.get());
     juce::Logger::writeToLog("AudioPluginAudioProcessor constructor");
 
     // Get config file and index file path
     mConfigMap = HelperFunctions::getConfig();
     mIndexFile = HelperFunctions::saveLoadIndexFile();
-#if 1 
-    // TODO: Create polygon from vertices as helper function
-    // create a tree with the vertices
-    // This generates a polygon in the range [-0.5, 0.5]
-    // auto polygon = kac_core::geometry::generateConvexPolygon(10);
 
-    //generate 10 evenly spaced points on a circle with radius 0.5
-    std::vector<juce::Point<float>> polygon;
-    for (int i = 0; i < 10; i++)
-    {
-        float angle = 2 * juce::MathConstants<float>::pi * i / 10;
-        polygon.push_back(juce::Point<float>(0.5 * std::cos(angle),
-                                             0.5 * std::sin(angle)));
-    }
+    // Create and append the polygon valueTree to the parameter tree
+    createAndAppendValueTree();
 
-    juce::ValueTree verticesTree("polygon");
-    verticesTree.setProperty("id", "vertices", nullptr);
-    for (auto &vertex : polygon)
-    {
-        juce::Logger::writeToLog("Vertex: " + juce::String(vertex.x) + ", " +
-                                 juce::String(vertex.y));
-        juce::ValueTree vertexTree("vertex");
-        vertexTree.setProperty("x", juce::var(vertex.x * 2.0f), nullptr);
-        vertexTree.setProperty("y", juce::var(vertex.y * 2.0f), nullptr);
-        verticesTree.appendChild(vertexTree, nullptr);
-    }
-
-    // juce::Logger::writeToLog("ParameterSyncer::ParameterSyncer: " +
-                            //  verticesTree.toXmlString());
-    // add the tree to the state
-    mParameters.state.appendChild(verticesTree, nullptr);
-    // juce::Logger::writeToLog("ParameterSyncer::ParameterSyncer: " +
-                            //  mParameters.state.toXmlString());
-#endif
+    juce::Logger::writeToLog(mParameters.state.toXmlString());
 
     // initialize the torch wrapper
     juce::Logger::writeToLog("Initializing torch wrapper");
     mTorchWrapperPtr.reset(new TorchWrapper(this, mParameters));
-    mTorchWrapperPtr->loadModel(mConfigMap["encoder_path"].toStdString(),
-                                TorchWrapper::ModelType::ShapeEncoder);
-    mTorchWrapperPtr->loadModel(mConfigMap["fc_path"].toStdString(),
-                                TorchWrapper::ModelType::FC);
+    mTorchWrapperPtr->loadModel(
+        mConfigMap["encoder_path"].toStdString(),
+        TorchWrapper::ModelType::ShapeEncoder
+    );
+    mTorchWrapperPtr->loadModel(
+        mConfigMap["fc_path"].toStdString(),
+        TorchWrapper::ModelType::FC
+    );
 
     // Initialize the parameter syncer
     juce::Logger::writeToLog("Initializing parameter syncer");
@@ -78,11 +57,13 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     // Initialize the server thread
     juce::Logger::writeToLog("Initializing server thread");
     mServerThreadPtr.reset(
-        new ServerThread(mParameterSyncerPtr->getParameterSyncerIfPtr()));
+        new ServerThread(mParameterSyncerPtr->getParameterSyncerIfPtr())
+    );
 
     // Pass the server thread to the parameter syncer
     mParameterSyncerPtr->setServerThreadIf(
-        mServerThreadPtr->getServerThreadIfPtr());
+        mServerThreadPtr->getServerThreadIfPtr()
+    );
 
     // Start the threads in order (from the bottom up)
     mQueueThread.startThread();
@@ -170,15 +151,19 @@ const juce::String AudioPluginAudioProcessor::getProgramName(int index)
     return {};
 }
 
-void AudioPluginAudioProcessor::changeProgramName(int index,
-                                                  const juce::String& newName)
+void AudioPluginAudioProcessor::changeProgramName(
+    int index,
+    const juce::String& newName
+)
 {
     juce::ignoreUnused(index, newName);
 }
 
 //==============================================================================
-void AudioPluginAudioProcessor::prepareToPlay(double sampleRate,
-                                              int samplesPerBlock)
+void AudioPluginAudioProcessor::prepareToPlay(
+    double sampleRate,
+    int samplesPerBlock
+)
 {
     juce::Logger::writeToLog("prepareToPlay");
     // Use this method as the place to do any pre-playback
@@ -193,7 +178,8 @@ void AudioPluginAudioProcessor::releaseResources()
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported(
-    const BusesLayout& layouts) const
+    const BusesLayout& layouts
+) const
 {
 #if JucePlugin_IsMidiEffect
     juce::ignoreUnused(layouts);
@@ -217,8 +203,10 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported(
 #endif
 }
 
-void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
-                                             juce::MidiBuffer& midiMessages)
+void AudioPluginAudioProcessor::processBlock(
+    juce::AudioBuffer<float>& buffer,
+    juce::MidiBuffer& midiMessages
+)
 {
     juce::ignoreUnused(midiMessages);
 
@@ -261,7 +249,8 @@ juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
 
 //==============================================================================
 void AudioPluginAudioProcessor::getStateInformation(
-    juce::MemoryBlock& destData)
+    juce::MemoryBlock& destData
+)
 {
     // You should use this method to store your parameters in the memory
     // block. You could do that either as raw data, or use the XML or
@@ -272,8 +261,10 @@ void AudioPluginAudioProcessor::getStateInformation(
     // copyXmlToBinary(*xml, destData);
 }
 
-void AudioPluginAudioProcessor::setStateInformation(const void* data,
-                                                    int sizeInBytes)
+void AudioPluginAudioProcessor::setStateInformation(
+    const void* data,
+    int sizeInBytes
+)
 {
     // You should use this method to restore your parameters from this memory
     // block, whose contents will have been created by the
@@ -286,14 +277,17 @@ void AudioPluginAudioProcessor::setStateInformation(const void* data,
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(
-    const std::vector<float>& coeffs)
+    const std::vector<float>& coeffs
+)
 {
     mQueueThread.getIoService().post(
-        [this, coeffs]() { this->handleCoefficentsChanged(coeffs); });
+        [this, coeffs]() { this->handleCoefficentsChanged(coeffs); }
+    );
 }
 
 void AudioPluginAudioProcessor::handleCoefficentsChanged(
-    const std::vector<float>& coefficients)
+    const std::vector<float>& coefficients
+)
 {
     juce::Logger::writeToLog("Coefficents changed");
     // juce::Logger::writeToLog("Number of coefficients: " +
@@ -311,59 +305,108 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "density",                       // parameterID
         "Density",                       // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f, 1.0f, 0.01f),          // min, max, interval
-        0.5f                             // default value
-        ));
+            0.0f,
+            1.0f,
+            0.01f
+        ),    // min, max, interval
+        0.5f  // default value
+    ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "stiffness",                     // parameterID
         "Stiffness",                     // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f, 1.0f, 0.01f),          // min, max, interval
-        0.5f                             // default value
-        ));
+            0.0f,
+            1.0f,
+            0.01f
+        ),    // min, max, interval
+        0.5f  // default value
+    ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "pratio",                        // parameterID
         "Poisson Ratio",                 // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f, 1.0f, 0.01f),          // min, max, interval
-        0.5f                             // default value
-        ));
+            0.0f,
+            1.0f,
+            0.01f
+        ),    // min, max, interval
+        0.5f  // default value
+    ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "alpha",                         // parameterID
         "Alpha",                         // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f, 1.0f, 0.01f),          // min, max, interval
-        0.5f                             // default value
-        ));
+            0.0f,
+            1.0f,
+            0.01f
+        ),    // min, max, interval
+        0.5f  // default value
+    ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "beta",                          // parameterID
         "Beta",                          // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f, 1.0f, 0.01f),          // min, max, interval
-        0.5f                             // default value
-        ));
+            0.0f,
+            1.0f,
+            0.01f
+        ),    // min, max, interval
+        0.5f  // default value
+    ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "xpos",                          // parameterID
         "X Position",                    // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f, 1.0f, 0.01f),          // min, max, interval
-        0.5f                             // default value
-        ));
+            0.0f,
+            1.0f,
+            0.01f
+        ),    // min, max, interval
+        0.5f  // default value
+    ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "ypos",                          // parameterID
         "Y Position",                    // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f, 1.0f, 0.01f),          // min, max, interval
-        0.5f                             // default value
-        ));
+            0.0f,
+            1.0f,
+            0.01f
+        ),    // min, max, interval
+        0.5f  // default value
+    ));
 
     return layout;
+}
+
+void AudioPluginAudioProcessor::createAndAppendValueTree()
+{
+    // generate 10 evenly spaced points on a circle with radius 1
+    auto polygon = HelperFunctions::createCircle(10, 1.0f);
+
+    juce::ValueTree verticesTree("polygon");
+    verticesTree.setProperty("id", "vertices", nullptr);
+
+    juce::Array<juce::var> vertices;
+
+    for (int i = 0; i < polygon.size(); ++i)
+    {
+        // auto& vertex = polygon[i];
+        // juce::ValueTree vertexTree("vertex");
+        // vertexTree.setProperty("id", juce::var(i), nullptr);
+        // vertexTree.setProperty("x", juce::var(vertex.x), nullptr);
+        // vertexTree.setProperty("y", juce::var(vertex.y), nullptr);
+        // verticesTree.appendChild(vertexTree, nullptr);
+
+        vertices.add(juce::var(polygon[i].x));
+        vertices.add(juce::var(polygon[i].y));
+    }
+
+    verticesTree.setProperty("value", vertices, nullptr);
+
+    mParameters.state.appendChild(verticesTree, nullptr);
 }
 
 //==============================================================================

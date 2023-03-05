@@ -19,30 +19,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     mBrowserPtr.reset(new BrowserComponent());
     addAndMakeVisible(mBrowserPtr.get());
     mBrowserPtr->goToURL(url);
-    setSize(800, 800);
-
-#if 0
-
-    // Set callbacks
-    mServerThreadPtr = std::make_unique<ServerThread>();
-    mServerThreadPtr->setOnNewShapeCallback([this](const juce::Path& path)
-                                            { this->onNewShape(path); });
-    mServerThreadPtr->setOnNewMaterialCallback(
-        [this](const std::vector<float>& material)
-        { this->onNewMaterial(material); });
-    mServerThreadPtr->setOnNewPositionCallback(
-        [this](const std::vector<float>& position)
-        { this->onNewPosition(position); });
-
-    // Initialize the torch wrapper
-    mTorchWrapperPtr = std::make_unique<TorchWrapper>(processorRef);
-    mTorchWrapperPtr->loadModel(
-        encoderPath.toStdString(),
-        TorchWrapper::ModelType::ShapeEncoder);
-    mTorchWrapperPtr->loadModel(
-        fcPath.toStdString(),
-        TorchWrapper::ModelType::FC);
-#endif
+    setSize(400, 400);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}

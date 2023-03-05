@@ -5,7 +5,9 @@ import { createValueTreeSynchroniser } from '../valueTree/ValueTreeSynchroniser'
 import { ParameterModel } from './ParameterModel'
 
 export class ParametersModel {
-	constructor(private valueTree: ValueTree, parameterIds: string[], callback: any) {
+	constructor(private valueTree: ValueTree, parameterIds: string[]) {
+        //console.log((this.valueTree.childrenWithProperty('id', 'vertices')!).properties.get('value')!)
+
 		parameterIds.forEach((parameterId) => {
 			;(this as any)[parameterId] = new ParameterModel(
 				this.valueTree.childrenWithProperty('id', parameterId)!,
@@ -19,10 +21,9 @@ export class ParametersModel {
 // Used to inject the parameter types, which are dynamically created fields
 export const makeParametersModel = <T>(
 	valueTree: ValueTree,
-	parameterIds: string[],
-	callback: any,
+	parameterIds: string[]
 ) => {
-	return new ParametersModel(valueTree, parameterIds, callback) as ParametersModel & T
+	return new ParametersModel(valueTree, parameterIds) as ParametersModel & T
 }
 
 // Default way to create a parameters model hooked up to the AudioProcessorValueTreeState.

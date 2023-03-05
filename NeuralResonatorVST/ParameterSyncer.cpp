@@ -4,11 +4,6 @@
 ParameterSyncer::ParameterSyncer(juce::AudioProcessorValueTreeState& vtsRef)
     : juce::ValueTreeSynchroniser(vtsRef.state), mVTSRef(vtsRef)
 {
-    // Sync the state tree with the server.
-    // after connecting to the server, the server will send the full state
-    // tree sendFullSyncCallback();
-
-    //  mVTSRef.state);
 }
 
 ParameterSyncer::~ParameterSyncer() {}
@@ -26,46 +21,44 @@ void ParameterSyncer::setServerThreadIf(ServerThreadIf* serverThreadIfPtr)
     }
 }
 
-void ParameterSyncer::stateChanged(const void* encodedChange,
-                                   size_t encodedChangeSize)
+void ParameterSyncer::stateChanged(
+    const void* encodedChange,
+    size_t encodedChangeSize
+)
 {
     // encode as a base64 string
     auto changesAsBase64 =
         juce::Base64::toBase64(encodedChange, encodedChangeSize);
 
-    juce::Logger::writeToLog("ParameterSyncer::stateChanged: " +
-                             mVTSRef.state.toXmlString());
+    // juce::Logger::writeToLog("ParameterSyncer::stateChanged: " +
+    //  mVTSRef.state.toXmlString());
 
-    // if (mShouldSendToServer)  // !WARNING! this will not stop all messages
-                              // !from being sent to the server (only some)
-    {
-        juce::Logger::writeToLog(
-            "ParameterSyncer::stateChanged: sending to "
-            "server");
-        mServerThreadIfPtr->sendMessage(changesAsBase64);
-    }
-    // mShouldSendToServer = true;
+    // juce::Logger::writeToLog(
+    // "ParameterSyncer::stateChanged: sending to "
+    // "server");
+    mServerThreadIfPtr->sendMessage(changesAsBase64);
 }
 
 void ParameterSyncer::receivedParameterChange(const juce::var& parameter)
 {
     MessageManager::callAsync(
-    [this, parameter]()
-    {
-    // update the state tree
-    auto parameterID = parameter["id"].toString();
-    auto newValue = parameter["value"];
+        [this, parameter]()
+        {
+            // update the state tree
+            auto parameterID = parameter["id"].toString();
+            auto newValue = parameter["value"];
 
-    juce::Logger::writeToLog("ParameterSyncer::receivedParameterChange: " +
-                             parameterID + " " + newValue.toString());
+            // juce::Logger::writeToLog(
+            // "ParameterSyncer::receivedParameterChange: " + parameterID +
+            // " " + newValue.toString());
 
-    // mShouldSendToServer = false;
-    mVTSRef.getParameterAsValue(parameterID) = newValue;
-    // mVTSRef.state.setPropertyExcludingListener(this, parameterID, newValue, nullptr);
-    });
-    // mVTSRef.getParameterAsValue(parameterID).setValue(newValue);
+            mVTSRef.getParameterAsValue(parameterID) = newValue;
+            // mVTSRef.state.setPropertyExcludingListener(this, parameterID,
+            // newValue, nullptr);
+        }
+    );
 }
-// https://forum.juce.com/t/updating-dynamicobject-property-in-valuetree-listeners-not-triggered/49628/5
+
 void ParameterSyncer::receivedShapeChange(const juce::var& shape)
 {
     MessageManager::callAsync(
@@ -73,15 +66,30 @@ void ParameterSyncer::receivedShapeChange(const juce::var& shape)
         {
             // mShouldSendToServer = false;
             auto polygonTree = mVTSRef.state.getChildWithName("polygon");
-            juce::Logger::writeToLog(
-                "ParameterSyncer::receivedShapeChange:polygon: ");
-            // polygonTree.toXmlString());
+            // juce::Logger::writeToLog(
+            //     "ParameterSyncer::receivedShapeChange:polygon: " +
+            //     polygonTree.toXmlString()
+            // );
 
             if (auto positions = shape.getProperty("shape", var()).getArray())
             {
                 auto numPositions = positions->size();
-                polygonTree.getNumChildren();
 
+                juce::Array<juce::var> vertexArray;
+
+                for (int i = 0; i < numPositions; i++)
+                {
+                    auto vertex = (*positions)[i];
+
+                    vertexArray.add(vertex["x"]);
+                    vertexArray.add(vertex["y"]);
+                }
+
+                auto value = polygonTree.getPropertyAsValue("value", nullptr, true);
+                value = vertexArray;
+#if 0
+
+                polygonTree.getNumChildren();
                 // check these are the same
                 jassert(numPositions == polygonTree.getNumChildren());
 
@@ -96,28 +104,21 @@ void ParameterSyncer::receivedShapeChange(const juce::var& shape)
                     //! value.getValueSource().sendChangeMessage(true) will
                     //! generate callbacks to Value::Listener::valueChanged,
                     //! not ValueTree::Listener::valueTreePropertyChanged
+                    //! https://forum.juce.com/t/updating-dynamicobject-property-in-valuetree-listeners-not-triggered/49628/5
                     auto valueX =
                         vertexTree.getPropertyAsValue("x", nullptr, true);
-                    // valueX.getValue().getDynamicObject()->setProperty(
-                    // "x", juce::var(0.1f));
-                    // valueX.getValueSource().sendChangeMessage(true);
 
                     auto valueY =
                         vertexTree.getPropertyAsValue("y", nullptr, true);
-                    // valueY.getValue().getDynamicObject()->setProperty(
-                    // "y", juce::var(0.1f));
-                    // valueY.getValueSource().sendChangeMessage(true);
-                    // auto valuey = vertexTree.getPropertyAsValue("y",
-                    // nullptr);
-                    valueX = vertex["x"];
-                    valueY = vertex["y"];
 
                     // copy our vertex data into the vertex tree
-                    // vertexTree.setProperty("x", vertex["x"], nullptr);
-                    // vertexTree.setProperty("y", vertex["y"], nullptr);
+                    valueX = vertex["x"];
+                    valueY = vertex["y"];
                 }
+#endif
             }
-        });
+        }
+    );
 
     // juce::Logger::writeToLog(
     //     "ParameterSyncer::receivedShapeChange: " +

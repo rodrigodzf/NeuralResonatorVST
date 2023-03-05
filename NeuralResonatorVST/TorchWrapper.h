@@ -20,14 +20,19 @@ public:
         FC
     };
 
-    TorchWrapper(ProcessorIf* processorPtr,
-                 juce::AudioProcessorValueTreeState& vts);
+    TorchWrapper(
+        ProcessorIf* processorPtr,
+        juce::AudioProcessorValueTreeState& vts
+    );
     ~TorchWrapper();
 
     TorchWrapperIf* getTorchWrapperIfPtr() override;
 
-    void loadModel(const std::string& modelPath, const ModelType modelType,
-                   const std::string& deviceString = "cpu");
+    void loadModel(
+        const std::string& modelPath,
+        const ModelType modelType,
+        const std::string& deviceString = "cpu"
+    );
 
     void handleReceivedNewShape(const juce::Path shape);
 
@@ -40,31 +45,16 @@ public:
     bool startThread();
 
 protected:
-#if 0
-    void onOpen() override;
-    void onClose() override;
-    void receivedNewShape(juce::Path& shape) override;
-    void receivedNewMaterial(const std::vector<float>& material) override;
-    void receivedNewPosition(const std::vector<float>& position) override;
-
-private:
-    void parameterUpdate(const juce::String& parameterID, int idx,
-                         float newValue, bool shouldSendToServer);
-    void positionParameterUpdate(const juce::String& parameterID, int idx,
-                                 float value, bool shouldSendToServer);
-
-#endif
     void valueTreePropertyChanged(
         juce::ValueTree& changedTree,
-        const juce::Identifier& changedProperty) override;
+        const juce::Identifier& changedProperty
+    ) override;
 
     void valueTreeChildAdded(juce::ValueTree&, juce::ValueTree&) override;
-    void valueTreeChildRemoved(juce::ValueTree&, juce::ValueTree&,
-                               int) override;
+    void valueTreeChildRemoved(juce::ValueTree&, juce::ValueTree&, int)
+        override;
     void valueTreeChildOrderChanged(juce::ValueTree&, int, int) override;
     void valueTreeParentChanged(juce::ValueTree&) override;
-    // void parameterChanged(const juce::String& parameterID,
-    //                       float newValue) override;
 
 private:
     torch::jit::Module mShapeEncoderNetwork;

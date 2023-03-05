@@ -4,8 +4,10 @@
 #include <cstring>
 #include <algorithm>
 
-TorchWrapper::TorchWrapper(ProcessorIf *processorPtr,
-                           juce::AudioProcessorValueTreeState &vtsRef)
+TorchWrapper::TorchWrapper(
+    ProcessorIf *processorPtr,
+    juce::AudioProcessorValueTreeState &vtsRef
+)
     : mProcessorPtr(processorPtr), mVts(vtsRef)
 {
     mCoefficients.resize(32 * 2 * 6);
@@ -16,83 +18,6 @@ TorchWrapper::TorchWrapper(ProcessorIf *processorPtr,
     mLastPositionTensor = torch::full({1, 2}, 0.5f, options);
 
     mVts.state.addListener(this);
-    // vtsRef.addParameterListener("density", this);
-    // vtsRef.addParameterListener("stiffness", this);
-    // vtsRef.addParameterListener("pratio", this);
-    // vtsRef.addParameterListener("alpha", this);
-    // vtsRef.addParameterListener("beta", this);
-    // vtsRef.addParameterListener("xpos", this);
-    // vtsRef.addParameterListener("ypos", this);
-#if 0
-    // initialize the attachments
-    if (auto *parameter = mVts.getParameter("density"))
-    {
-        densityAttachment.reset(new RemoteParameterAttachment(
-            *parameter,
-            [this](float newValue, bool shouldSendToServer)
-            { parameterUpdate("density", 0, newValue, shouldSendToServer); },
-            mVts.undoManager));
-    }
-
-    if (auto *parameter = mVts.getParameter("stiffness"))
-    {
-        stiffnessAttachment.reset(new RemoteParameterAttachment(
-            *parameter,
-            [this](float newValue, bool shouldSendToServer) {
-                parameterUpdate("stiffness", 1, newValue, shouldSendToServer);
-            },
-            mVts.undoManager));
-    }
-
-    if (auto *parameter = mVts.getParameter("pratio"))
-    {
-        poissonsRatioAttachment.reset(new RemoteParameterAttachment(
-            *parameter,
-            [this](float newValue, bool shouldSendToServer)
-            { parameterUpdate("pratio", 2, newValue, shouldSendToServer); },
-            mVts.undoManager));
-    }
-
-    if (auto *parameter = mVts.getParameter("alpha"))
-    {
-        alphaAttachment.reset(new RemoteParameterAttachment(
-            *parameter,
-            [this](float newValue, bool shouldSendToServer)
-            { parameterUpdate("alpha", 3, newValue, shouldSendToServer); },
-            mVts.undoManager));
-    }
-
-    if (auto *parameter = mVts.getParameter("beta"))
-    {
-        betaAttachment.reset(new RemoteParameterAttachment(
-            *parameter,
-            [this](float newValue, bool shouldSendToServer)
-            { parameterUpdate("beta", 4, newValue, shouldSendToServer); },
-            mVts.undoManager));
-    }
-
-    if (auto *parameter = mVts.getParameter("xpos"))
-    {
-        xposAttachment.reset(new RemoteParameterAttachment(
-            *parameter,
-            [this](float newValue, bool shouldSendToServer) {
-                positionParameterUpdate("xpos", 0, newValue,
-                                        shouldSendToServer);
-            },
-            mVts.undoManager));
-    }
-
-    if (auto *parameter = mVts.getParameter("ypos"))
-    {
-        yposAttachment.reset(new RemoteParameterAttachment(
-            *parameter,
-            [this](float newValue, bool shouldSendToServer) {
-                positionParameterUpdate("ypos", 1, newValue,
-                                        shouldSendToServer);
-            },
-            mVts.undoManager));
-    }
-#endif
 }
 
 TorchWrapper::~TorchWrapper()
@@ -105,9 +30,11 @@ TorchWrapperIf *TorchWrapper::getTorchWrapperIfPtr()
     return this;
 }
 
-void TorchWrapper::loadModel(const std::string &modelPath,
-                             const ModelType modelType,
-                             const std::string &deviceString)
+void TorchWrapper::loadModel(
+    const std::string &modelPath,
+    const ModelType modelType,
+    const std::string &deviceString
+)
 {
     // TODO: check that the file exists
 
@@ -138,13 +65,16 @@ void TorchWrapper::loadModel(const std::string &modelPath,
             }
             catch (const c10::Error &e)
             {
-                juce::Logger::writeToLog("Error loading model: " + modelPath +
-                                         " " + std::string(e.what()));
+                juce::Logger::writeToLog(
+                    "Error loading model: " + modelPath + " " +
+                    std::string(e.what())
+                );
                 jassertfalse;
                 return;
             }
             juce::Logger::writeToLog("Model loaded successfully");
-        });
+        }
+    );
 }
 
 void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
@@ -153,8 +83,10 @@ void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
     juce::Image image = HelperFunctions::shapeToImage(shape);
 
     // get the bitmap data and convert to a float tensor
-    juce::Image::BitmapData bitmapData(image,
-                                       juce::Image::BitmapData::readOnly);
+    juce::Image::BitmapData bitmapData(
+        image,
+        juce::Image::BitmapData::readOnly
+    );
 
     // get the bitmap data and convert to a float tensor
     std::vector<float> bitmapDataAsFloats;
@@ -163,8 +95,9 @@ void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
     {
         for (int x = 0; x < bitmapData.width; x++)
         {
-            bitmapDataAsFloats.push_back(bitmapData.getPixelPointer(x, y)[0] /
-                                         255.0f);
+            bitmapDataAsFloats.push_back(
+                bitmapData.getPixelPointer(x, y)[0] / 255.0f
+            );
         }
     }
 
@@ -174,9 +107,11 @@ void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
     int height = bitmapData.height;
     int width = bitmapData.width;
     auto options = torch::TensorOptions().dtype(torch::kFloat);
-    auto tensor =
-        torch::from_blob(bitmapDataAsFloats.data(),
-                         {batchSize, channels, height, width}, options);
+    auto tensor = torch::from_blob(
+        bitmapDataAsFloats.data(),
+        {batchSize, channels, height, width},
+        options
+    );
 
     // for images we need to repeat the tensor to match the number of channels
     tensor = tensor.repeat({1, 3, 1, 1});
@@ -194,8 +129,9 @@ void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
     }
     catch (const c10::Error &e)
     {
-        juce::Logger::writeToLog("Error processing image: " +
-                                 std::string(e.what()));
+        juce::Logger::writeToLog(
+            "Error processing image: " + std::string(e.what())
+        );
         jassertfalse;
     }
 
@@ -231,7 +167,9 @@ void TorchWrapper::predictCoefficients()
     // dimension.
 
     auto tensor = torch::cat(
-        {mFeatureTensor, mLastPositionTensor, mLastMaterialTensor}, 1);
+        {mFeatureTensor, mLastPositionTensor, mLastMaterialTensor},
+        1
+    );
 
     // std::cout << tensor.sizes() << std::endl;
 #if 1
@@ -246,13 +184,17 @@ void TorchWrapper::predictCoefficients()
         // Execute the model and turn its output into a tensor.
         auto coefficientTensor = mFCNetwork.forward(inputs).toTensor();
 
-        std::memcpy(mCoefficients.data(), coefficientTensor.data_ptr(),
-                    coefficientTensor.numel() * sizeof(float));
+        std::memcpy(
+            mCoefficients.data(),
+            coefficientTensor.data_ptr(),
+            coefficientTensor.numel() * sizeof(float)
+        );
     }
     catch (const c10::Error &e)
     {
-        juce::Logger::writeToLog("Error processing image: " +
-                                 std::string(e.what()));
+        juce::Logger::writeToLog(
+            "Error processing image: " + std::string(e.what())
+        );
         jassertfalse;
     }
     mProcessorPtr->coefficentsChanged(mCoefficients);
@@ -270,208 +212,140 @@ bool TorchWrapper::startThread()
 }
 
 void TorchWrapper::valueTreePropertyChanged(
-    juce::ValueTree &changedTree, const juce::Identifier &changedProperty)
+    juce::ValueTree &changedTree,
+    const juce::Identifier &changedProperty
+)
 {
-    juce::Logger::writeToLog("TorchWrapper::Parameter changed: " +
-                             changedProperty.toString());
-    auto parameterID = changedProperty.toString();
+    // get the type of the tree that changed
+    auto treeType = changedTree.getType().toString();
 
-    if (auto *newValue = changedTree.getPropertyPointer(changedProperty))
+    if (treeType == "PARAM")
     {
-        mQueueThread.getIoService().post(
-            [this, parameterID, newValue]
-            {
-                if (parameterID == "density")
-                {
-                    mLastMaterialTensor[0][0] = float(*newValue);
-                }
-                else if (parameterID == "stiffness")
-                {
-                    mLastMaterialTensor[0][1] = float(*newValue);
-                }
-                else if (parameterID == "pratio")
-                {
-                    mLastMaterialTensor[0][2] = float(*newValue);
-                }
-                else if (parameterID == "alpha")
-                {
-                    mLastMaterialTensor[0][3] = float(*newValue);
-                }
-                else if (parameterID == "beta")
-                {
-                    mLastMaterialTensor[0][4] = float(*newValue);
-                }
-                else if (parameterID == "xpos")
-                {
-                    mLastPositionTensor[0][0] = float(*newValue);
-                }
-                else if (parameterID == "ypos")
-                {
-                    mLastPositionTensor[0][1] = float(*newValue);
-                }
+        auto parameterID = changedTree.getProperty("id").toString();
 
-                this->predictCoefficients();
-            });
+        juce::Logger::writeToLog(
+            "TorchWrapper::Parameter changed: " + parameterID
+        );
+
+        if (auto *newValue = changedTree.getPropertyPointer(changedProperty))
+        {
+            mQueueThread.getIoService().post(
+                [this, parameterID, newValue]
+                {
+                    if (parameterID == "density")
+                    {
+                        mLastMaterialTensor[0][0] = float(*newValue);
+                    }
+                    else if (parameterID == "stiffness")
+                    {
+                        mLastMaterialTensor[0][1] = float(*newValue);
+                    }
+                    else if (parameterID == "pratio")
+                    {
+                        mLastMaterialTensor[0][2] = float(*newValue);
+                    }
+                    else if (parameterID == "alpha")
+                    {
+                        mLastMaterialTensor[0][3] = float(*newValue);
+                    }
+                    else if (parameterID == "beta")
+                    {
+                        mLastMaterialTensor[0][4] = float(*newValue);
+                    }
+                    else if (parameterID == "xpos")
+                    {
+                        mLastPositionTensor[0][0] = float(*newValue);
+                    }
+                    else if (parameterID == "ypos")
+                    {
+                        mLastPositionTensor[0][1] = float(*newValue);
+                    }
+
+                    this->predictCoefficients();
+                }
+            );
+        }
+    }
+    else if (treeType == "polygon")
+    {
+        if (auto *flattenedVertices =
+                changedTree.getPropertyPointer(changedProperty))
+        {
+            mQueueThread.getIoService().post(
+                [this, flattenedVertices]
+                {
+                    auto size = flattenedVertices->size();
+
+                    juce::Path path;
+                    int res = 64;
+
+                    for (int i = 0; i < size; i += 2)
+                    {
+                        auto x = float((*flattenedVertices)[i]);
+                        auto y = float((*flattenedVertices)[i + 1]);
+
+                        // the positions are in the range [-1, 1], so we need
+                        // to scale them to the range [0, res] and flip the y
+                        // axis
+                        x = (x + 1) * 0.5 * res;
+                        y = res - ((y + 1) * 0.5 * res);
+                        if (i == 0) { path.startNewSubPath(x, y); }
+                        else { path.lineTo(x, y); }
+                    }
+
+                    // close the subpath
+                    path.closeSubPath();
+
+                    // juce::Logger::writeToLog(
+                    //     "TorchWrapper::polygon changed: " + path.toString()
+                    // );
+
+                    // handle the path
+                    this->handleReceivedNewShape(path);
+
+                    this->predictCoefficients();
+                }
+            );
+        }
+    }
+    else
+    {
+        juce::Logger::writeToLog(
+            "TorchWrapper::Unknown tree type changed: " + treeType
+        );
+
+        //         else if (parameterID == "vertices")
+        // {
+        //     juce::Logger::writeToLog("Vertices changed");
+        // }
     }
 }
 
-void TorchWrapper::valueTreeChildAdded(juce::ValueTree &parentTree,
-                                       juce::ValueTree &childWhichHasBeenAdded)
+void TorchWrapper::valueTreeChildAdded(
+    juce::ValueTree &parentTree,
+    juce::ValueTree &childWhichHasBeenAdded
+)
 {
 }
 
 void TorchWrapper::valueTreeChildRemoved(
-    juce::ValueTree &parentTree, juce::ValueTree &childWhichHasBeenRemoved,
-    int indexFromWhichChildWasRemoved)
+    juce::ValueTree &parentTree,
+    juce::ValueTree &childWhichHasBeenRemoved,
+    int indexFromWhichChildWasRemoved
+)
 {
 }
 
 void TorchWrapper::valueTreeChildOrderChanged(
-    juce::ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex,
-    int newIndex)
+    juce::ValueTree &parentTreeWhoseChildrenHaveMoved,
+    int oldIndex,
+    int newIndex
+)
 {
 }
 
-void TorchWrapper::valueTreeParentChanged(juce::ValueTree &treeWhoseParentHasChanged)
+void TorchWrapper::valueTreeParentChanged(
+    juce::ValueTree &treeWhoseParentHasChanged
+)
 {
 }
-
-
-
-#if 0
-void TorchWrapper::receivedNewShape(juce::Path &shape)
-{
-    mQueueThread.getIoService().post(
-        [this, shape]() { this->handleReceivedNewShape(shape); });
-}
-
-void TorchWrapper::receivedNewMaterial(const std::vector<float> &material)
-{
-    // We need to post this to the queue thread because this function is
-    // called from the main thread
-    // we pass a copy of the material vector to the lambda function
-    // TODO: check if we can only make one copy
-    // !This must be called from the MessagerManager thread, because we want
-    // !to avoid feedback update of the parameters
-    MessageManager::callAsync(
-        [this, material]()
-        {
-            juce::Logger::writeToLog("Updating material");
-
-            densityAttachment->remoteValueChanged(material[0]);
-            stiffnessAttachment->remoteValueChanged(material[1]);
-            poissonsRatioAttachment->remoteValueChanged(material[2]);
-            alphaAttachment->remoteValueChanged(material[3]);
-            betaAttachment->remoteValueChanged(material[4]);
-        });
-}
-
-void TorchWrapper::receivedNewPosition(const std::vector<float> &position)
-{
-    // We need to post this to the queue thread because this function is
-    // called from the main thread
-    // we pass a copy of the position vector to the lambda function
-    // TODO: check if we can only make one copy
-    // !This must be called from the MessagerManager thread, because we want
-    // !to avoid feedback update of the parameters
-    MessageManager::callAsync(
-        [this, position]()
-        {
-            juce::Logger::writeToLog("Updating position");
-
-            xposAttachment->remoteValueChanged(position[0]);
-            yposAttachment->remoteValueChanged(position[1]);
-        });
-}
-
-void TorchWrapper::parameterUpdate(const juce::String &parameterID, int idx,
-                                   float value, bool shouldSendToServer)
-{
-    //! Here we are in the messenger thread or we MUST ensure that we are in
-    //! the messenger thread
-
-    // ensure we are in the messenger thread
-    jassert(MessageManager::getInstance()->isThisTheMessageThread());
-
-    juce::Logger::writeToLog(
-        "Parameter update: " + parameterID +
-        " should send to server: " + (shouldSendToServer ? "true" : "false"));
-
-    // change the value in the tensor if different
-    // if (mLastMaterialTensor[0][idx].item<float>() == value) { return; }
-
-    mLastMaterialTensor[0][idx] = value;
-
-    // create message
-    juce::var json(new DynamicObject());
-
-    json.getDynamicObject()->setProperty(parameterID, juce::var(value));
-
-    // this should be done in a separate thread
-    mQueueThread.getIoService().post([this] { this->predictCoefficients(); });
-
-    // send the value to the ui
-    if (shouldSendToServer)
-    {
-        juce::Logger::writeToLog("Sending message to UI");
-        mServerThreadIf->sendMessage(JSON::toString(json));
-    }
-}
-
-void TorchWrapper::positionParameterUpdate(const juce::String &parameterID,
-                                           int idx, float value,
-                                           bool shouldSendToServer)
-{
-    //! Here we are in the messenger thread or we MUST ensure that we are in
-    //! the messenger thread
-
-    // ensure we are in the messenger thread
-    jassert(MessageManager::getInstance()->isThisTheMessageThread());
-
-    // change the value in the tensor if different
-    if (mLastPositionTensor[0][idx].item<float>() == value) { return; }
-
-    mLastPositionTensor[0][idx] = value;
-
-    // create message
-    juce::var json(new DynamicObject());
-
-    json.getDynamicObject()->setProperty(parameterID, juce::var(value));
-
-    // this should be done in a separate thread
-    mQueueThread.getIoService().post([this] { this->predictCoefficients(); });
-
-    // send the value to the ui
-    if (shouldSendToServer)
-    {
-        juce::Logger::writeToLog("Sending message to UI");
-        mServerThreadIf->sendMessage(JSON::toString(json));
-    }
-}
-
-void TorchWrapper::onOpen()
-{
-    //! This is called from the server thread
-    //! We need to post this to the MessageManager thread
-    MessageManager::callAsync(
-        [this]()
-        {
-            juce::Logger::writeToLog("Sending initial values to UI");
-            densityAttachment->sendInitialUpdate();
-            stiffnessAttachment->sendInitialUpdate();
-            poissonsRatioAttachment->sendInitialUpdate();
-            alphaAttachment->sendInitialUpdate();
-            betaAttachment->sendInitialUpdate();
-            // xposAttachment->sendInitialUpdate();
-            // yposAttachment->sendInitialUpdate();
-        });
-}
-
-void TorchWrapper::onClose()
-{
-    //! This is called from the server thread
-    //! We need to post this to the MessageManager thread
-    MessageManager::callAsync(
-        [this]() { juce::Logger::writeToLog("Closing connection to UI"); });
-}
-#endif

@@ -61,11 +61,15 @@ public:
     std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
 
 private:
-    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout(
+    );
+    void createAndAppendValueTree();
+
 private:
     std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
     juce::AudioProcessorValueTreeState mParameters;
     Filterbank mFilterbank;
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)

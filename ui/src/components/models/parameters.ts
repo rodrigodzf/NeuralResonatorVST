@@ -18,7 +18,7 @@ export type ParametersType = {
 	beta: ParameterModel<number>
     xpos: ParameterModel<number>
     ypos: ParameterModel<number>
-    vertices: PolygonModel<Array<Vertex>>
+    vertices: ParameterModel<any>
 }
 
 export const PARAMETER_IDS = ['density', 'stiffness', 'pratio', 'alpha', 'beta', 'xpos', 'ypos', 'vertices']
