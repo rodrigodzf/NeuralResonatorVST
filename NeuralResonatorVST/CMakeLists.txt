@@ -65,6 +65,7 @@ target_sources(
     BrowserComponent.cpp
     TorchWrapper.cpp
     Filterbank.cpp
+    ParameterSyncer.cpp
 )
 
 target_compile_definitions(

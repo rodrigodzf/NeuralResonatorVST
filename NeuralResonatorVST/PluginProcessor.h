@@ -6,6 +6,7 @@
 #include "TorchWrapper.h"
 #include "ProcessorIf.h"
 #include "Filterbank.h"
+#include "ParameterSyncer.h"
 //==============================================================================
 class AudioPluginAudioProcessor : public juce::AudioProcessor,
                                   public ProcessorIf
@@ -57,11 +58,18 @@ public:
 
     std::unique_ptr<ServerThread> mServerThreadPtr;
     std::unique_ptr<TorchWrapper> mTorchWrapperPtr;
+    std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
+
+private:
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout(
+    );
+    void createAndAppendValueTree();
 
 private:
     std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
-
+    juce::AudioProcessorValueTreeState mParameters;
     Filterbank mFilterbank;
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AudioPluginAudioProcessor)

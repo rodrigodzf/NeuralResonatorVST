@@ -34,8 +34,12 @@ void Filterbank::setCoefficients(const std::vector<float>& coeffs)
         {
             int idx = i * mNumBiquads * mStride + j * mStride;
             mIIRFilters[i][j].set_coefficients(
-                coeffs[idx], coeffs[idx + 1], coeffs[idx + 2],
-                coeffs[idx + 4], coeffs[idx + 5]);
+                coeffs[idx],
+                coeffs[idx + 1],
+                coeffs[idx + 2],
+                coeffs[idx + 4],
+                coeffs[idx + 5]
+            );
         }
     }
 }
