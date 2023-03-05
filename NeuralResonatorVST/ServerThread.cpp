@@ -2,9 +2,9 @@
 
 using namespace juce;
 
-ServerThread::ServerThread(TorchWrapperIf *torchWrapperIf,
+ServerThread::ServerThread(ParameterSyncerIf *parameterSyncerIf,
                            unsigned short port)
-    : Thread("Server Thread"), mTorchWrapperIf(torchWrapperIf)
+    : Thread("Server Thread"), mParameterSyncerIfPtr(parameterSyncerIf)
 {
     mServer.config.port = port;
     addListener(this);
@@ -56,6 +56,23 @@ void ServerThread::onMessage(std::shared_ptr<WsServer::Connection> connection,
     // "
     //   << connection.get() << std::endl;
 
+    auto parsedJson = JSON::parse(out_message);
+    auto messageType = parsedJson.getProperty("type", {}).toString();
+    if (mParameterSyncerIfPtr == nullptr)
+    {
+        juce::Logger::writeToLog("Server: TorchWrapperIf is null");
+        return;
+    }
+    if (messageType == "new_parameter")
+    {
+        mParameterSyncerIfPtr->receivedParameterChange(parsedJson);
+    }
+    else if (messageType == "new_shape")
+    {
+        mParameterSyncerIfPtr->receivedShapeChange(parsedJson);
+    }
+    
+#if 0
     auto parsedJson = JSON::parse(out_message);
     auto messageType = parsedJson.getProperty("type", {}).toString();
 
@@ -131,6 +148,7 @@ void ServerThread::onMessage(std::shared_ptr<WsServer::Connection> connection,
 
     // std::cout << "Server: Sending message \"" << out_message << "\" to " <<
     // connection.get() << std::endl;
+#endif
 }
 
 void ServerThread::onOpen(ConnectionPtr connection)
@@ -143,7 +161,7 @@ void ServerThread::onOpen(ConnectionPtr connection)
     // add connection to the list of active connections
     mConnections.push_back(connection);
 
-    mTorchWrapperIf->onOpen();
+    mParameterSyncerIfPtr->onOpen();
 }
 
 void ServerThread::onClose(ConnectionPtr connection, int status,
@@ -153,13 +171,13 @@ void ServerThread::onClose(ConnectionPtr connection, int status,
     ss << connection.get();
 
     // juce::Logger::writeToLog("Server: Closed connection " + ss.str() +
-                            //  " with status code " + juce::String(status));
+    //  " with status code " + juce::String(status));
     // remove connection from the list of active connections
     auto it = std::find(mConnections.begin(), mConnections.end(), connection);
     if (it != mConnections.end()) { mConnections.erase(it); }
 }
 
-ServerThreadIf* ServerThread::getServerThreadIfPtr()
+ServerThreadIf *ServerThread::getServerThreadIfPtr()
 {
     return this;
 }

@@ -15,6 +15,15 @@ TorchWrapper::TorchWrapper(ProcessorIf *processorPtr,
     mLastMaterialTensor = torch::full({1, 5}, 0.5f, options);
     mLastPositionTensor = torch::full({1, 2}, 0.5f, options);
 
+    mVts.state.addListener(this);
+    // vtsRef.addParameterListener("density", this);
+    // vtsRef.addParameterListener("stiffness", this);
+    // vtsRef.addParameterListener("pratio", this);
+    // vtsRef.addParameterListener("alpha", this);
+    // vtsRef.addParameterListener("beta", this);
+    // vtsRef.addParameterListener("xpos", this);
+    // vtsRef.addParameterListener("ypos", this);
+#if 0
     // initialize the attachments
     if (auto *parameter = mVts.getParameter("density"))
     {
@@ -83,6 +92,7 @@ TorchWrapper::TorchWrapper(ProcessorIf *processorPtr,
             },
             mVts.undoManager));
     }
+#endif
 }
 
 TorchWrapper::~TorchWrapper()
@@ -135,12 +145,6 @@ void TorchWrapper::loadModel(const std::string &modelPath,
             }
             juce::Logger::writeToLog("Model loaded successfully");
         });
-}
-
-void TorchWrapper::receivedNewShape(juce::Path &shape)
-{
-    mQueueThread.getIoService().post(
-        [this, shape]() { this->handleReceivedNewShape(shape); });
 }
 
 void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
@@ -199,45 +203,6 @@ void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
 
     predictCoefficients();
     DBG("Predicted shape features");
-}
-
-void TorchWrapper::receivedNewMaterial(const std::vector<float> &material)
-{
-    // We need to post this to the queue thread because this function is
-    // called from the main thread
-    // we pass a copy of the material vector to the lambda function
-    // TODO: check if we can only make one copy
-    // !This must be called from the MessagerManager thread, because we want
-    // !to avoid feedback update of the parameters
-    MessageManager::callAsync(
-        [this, material]()
-        {
-            juce::Logger::writeToLog("Updating material");
-
-            densityAttachment->remoteValueChanged(material[0]);
-            stiffnessAttachment->remoteValueChanged(material[1]);
-            poissonsRatioAttachment->remoteValueChanged(material[2]);
-            alphaAttachment->remoteValueChanged(material[3]);
-            betaAttachment->remoteValueChanged(material[4]);
-        });
-}
-
-void TorchWrapper::receivedNewPosition(const std::vector<float> &position)
-{
-    // We need to post this to the queue thread because this function is
-    // called from the main thread
-    // we pass a copy of the position vector to the lambda function
-    // TODO: check if we can only make one copy
-    // !This must be called from the MessagerManager thread, because we want
-    // !to avoid feedback update of the parameters
-    MessageManager::callAsync(
-        [this, position]()
-        {
-            juce::Logger::writeToLog("Updating position");
-
-            xposAttachment->remoteValueChanged(position[0]);
-            yposAttachment->remoteValueChanged(position[1]);
-        });
 }
 
 void TorchWrapper::predictCoefficients()
@@ -302,6 +267,121 @@ void TorchWrapper::setServerThreadIf(ServerThreadIf *serverThreadIf)
 bool TorchWrapper::startThread()
 {
     return mQueueThread.startThread();
+}
+
+void TorchWrapper::valueTreePropertyChanged(
+    juce::ValueTree &changedTree, const juce::Identifier &changedProperty)
+{
+    juce::Logger::writeToLog("TorchWrapper::Parameter changed: " +
+                             changedProperty.toString());
+    auto parameterID = changedProperty.toString();
+
+    if (auto *newValue = changedTree.getPropertyPointer(changedProperty))
+    {
+        mQueueThread.getIoService().post(
+            [this, parameterID, newValue]
+            {
+                if (parameterID == "density")
+                {
+                    mLastMaterialTensor[0][0] = float(*newValue);
+                }
+                else if (parameterID == "stiffness")
+                {
+                    mLastMaterialTensor[0][1] = float(*newValue);
+                }
+                else if (parameterID == "pratio")
+                {
+                    mLastMaterialTensor[0][2] = float(*newValue);
+                }
+                else if (parameterID == "alpha")
+                {
+                    mLastMaterialTensor[0][3] = float(*newValue);
+                }
+                else if (parameterID == "beta")
+                {
+                    mLastMaterialTensor[0][4] = float(*newValue);
+                }
+                else if (parameterID == "xpos")
+                {
+                    mLastPositionTensor[0][0] = float(*newValue);
+                }
+                else if (parameterID == "ypos")
+                {
+                    mLastPositionTensor[0][1] = float(*newValue);
+                }
+
+                this->predictCoefficients();
+            });
+    }
+}
+
+void TorchWrapper::valueTreeChildAdded(juce::ValueTree &parentTree,
+                                       juce::ValueTree &childWhichHasBeenAdded)
+{
+}
+
+void TorchWrapper::valueTreeChildRemoved(
+    juce::ValueTree &parentTree, juce::ValueTree &childWhichHasBeenRemoved,
+    int indexFromWhichChildWasRemoved)
+{
+}
+
+void TorchWrapper::valueTreeChildOrderChanged(
+    juce::ValueTree &parentTreeWhoseChildrenHaveMoved, int oldIndex,
+    int newIndex)
+{
+}
+
+void TorchWrapper::valueTreeParentChanged(juce::ValueTree &treeWhoseParentHasChanged)
+{
+}
+
+
+
+#if 0
+void TorchWrapper::receivedNewShape(juce::Path &shape)
+{
+    mQueueThread.getIoService().post(
+        [this, shape]() { this->handleReceivedNewShape(shape); });
+}
+
+void TorchWrapper::receivedNewMaterial(const std::vector<float> &material)
+{
+    // We need to post this to the queue thread because this function is
+    // called from the main thread
+    // we pass a copy of the material vector to the lambda function
+    // TODO: check if we can only make one copy
+    // !This must be called from the MessagerManager thread, because we want
+    // !to avoid feedback update of the parameters
+    MessageManager::callAsync(
+        [this, material]()
+        {
+            juce::Logger::writeToLog("Updating material");
+
+            densityAttachment->remoteValueChanged(material[0]);
+            stiffnessAttachment->remoteValueChanged(material[1]);
+            poissonsRatioAttachment->remoteValueChanged(material[2]);
+            alphaAttachment->remoteValueChanged(material[3]);
+            betaAttachment->remoteValueChanged(material[4]);
+        });
+}
+
+void TorchWrapper::receivedNewPosition(const std::vector<float> &position)
+{
+    // We need to post this to the queue thread because this function is
+    // called from the main thread
+    // we pass a copy of the position vector to the lambda function
+    // TODO: check if we can only make one copy
+    // !This must be called from the MessagerManager thread, because we want
+    // !to avoid feedback update of the parameters
+    MessageManager::callAsync(
+        [this, position]()
+        {
+            juce::Logger::writeToLog("Updating position");
+
+            xposAttachment->remoteValueChanged(position[0]);
+            yposAttachment->remoteValueChanged(position[1]);
+        });
 }
 
 void TorchWrapper::parameterUpdate(const juce::String &parameterID, int idx,
@@ -394,3 +474,4 @@ void TorchWrapper::onClose()
     MessageManager::callAsync(
         [this]() { juce::Logger::writeToLog("Closing connection to UI"); });
 }
+#endif

@@ -15,6 +15,8 @@ import { useDrag } from '@use-gesture/react'
 import RandomPolygon from 'randompolys'
 import { useGlobalState } from './State'
 import useWebSocket, { ReadyState } from 'react-use-websocket'
+import { ParametersContext } from './JuceIntegration'
+import { observer } from 'mobx-react'
 
 import * as THREE from 'three'
 
@@ -23,7 +25,7 @@ import * as THREE from 'three'
 // https://stackoverflow.com/questions/67555786/custom-buffergeometry-in-react-three-fiber
 // https://github.com/bicarbon8/QuadSphere/blob/in-javascript/src/components/shapes.tsx
 
-const context = createContext()
+const context = createContext(null)
 const Circle = forwardRef(
 	({ children, opacity = 1, radius = 0.05, segments = 16, color = '#ff1050', ...props }, ref) => (
 		<mesh ref={ref} {...props}>
@@ -91,22 +93,12 @@ const Node = forwardRef(({ color = 'black', name, position = [0, 0, 0], ...props
 	)
 })
 
-export const Mesh = ({ws}) => {
-	const [endpoint, setEndpoint] = useGlobalState('endpoint')
-	const [hovered, setHover] = useState()
-	const [active, setActive] = useState(false)
+export const Mesh = observer(({ sendMessage }) => {
+	const parameters = useContext(ParametersContext)
 	const [selected, setSelected] = useState()
 	const [buttonClicked, setButtonClicked] = useState(false)
-	const [polygon, setPolygon] = useState(() => {
-		const count = 11
-		const bounds = {
-			topLeft: { x: -1, y: -1 },
-			bottomRight: { x: 1, y: 1 },
-		}
-		const epsilon = 10
-		const randomPoly = new RandomPolygon(count, bounds, epsilon)
-		return randomPoly.polygon
-	})
+
+	const [polygon, setPolygon] = useState()
 	const [shape, setShape] = useState(() => {
 		//     new THREE.Path(polygon)
 	})
@@ -126,23 +118,33 @@ export const Mesh = ({ws}) => {
 	}, [selected])
 
 	const regenerateMesh = () => {
-		const count = 11
+		const count = 10
 		const bounds = {
 			topLeft: { x: -1, y: -1 },
 			bottomRight: { x: 1, y: 1 },
 		}
 		const epsilon = 10
 		const randomPoly = new RandomPolygon(count, bounds, epsilon)
-		setPolygon(randomPoly.polygon)
+		// setPolygon(randomPoly.polygon)
+        sendMessage(JSON.stringify({ type: 'new_shape', shape: randomPoly.polygon }))
 	}
 
+	// useEffect(() => {
+		// setShape(new THREE.Shape(polygon))
+		// if connection is not open, do nothing
+		// console.log(ws)
+		// if (ws.current.readyState !== ReadyState.OPEN) return
+		// ws.current.send(JSON.stringify({ type: 'new_shape', shape: polygon }))
+        // sendMessage(JSON.stringify({ type: 'new_shape', shape: polygon }))
+	// }, [polygon])
+
 	useEffect(() => {
-		setShape(new THREE.Shape(polygon))
-        // if connection is not open, do nothing
-        console.log(ws)
-        if (ws.current.readyState !== ReadyState.OPEN) return
-        ws.current.send(JSON.stringify({ type: 'new_shape', shape: polygon }))
-	}, [polygon])
+		console.log('shape', shape)
+	}, [shape])
+
+	useEffect(() => {
+		setPolygon(parameters.vertices.values)
+	}, [parameters.vertices.values])
 
 	useControls({
 		'new shape': button(() => {
@@ -153,12 +155,6 @@ export const Mesh = ({ws}) => {
 	return (
 		<mesh
 			ref={mesh}
-			onClick={(event) => {
-				setSelected(event.faceIndex)
-				{
-					/* console.log(mesh.current.geometry) */
-				}
-			}}
 			onPointerMove={(event) => {
 				{
 					/* let poly = [...polygon]
@@ -167,14 +163,14 @@ export const Mesh = ({ws}) => {
 				}
 			}}
 		>
-			<shapeGeometry args={[shape]} />
+			<shapeGeometry args={[new THREE.Shape(polygon)]} />
 			{/* <Circle
                 color='blue' 
                 position={[0.5, 0.5, 1]} /> */}
-			<Nodes positions={polygon} />
+			{/* <Nodes positions={polygon} /> */}
 			{/* <planeGeometry attach="geometry" args={[1, 1]} /> */}
 			{/* <bufferGeometry attach="geometry" {...geo} /> */}
 			<meshStandardMaterial color='orange' />
 		</mesh>
 	)
-}
+})

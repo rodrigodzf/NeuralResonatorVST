@@ -7,11 +7,11 @@
 #include "RemoteParameterAttachment.h"
 
 #include <juce_gui_basics/juce_gui_basics.h>
-
+#include <juce_data_structures/juce_data_structures.h>
 #include <torch/script.h>
 #include <torch/torch.h>
 
-class TorchWrapper : public TorchWrapperIf
+class TorchWrapper : public TorchWrapperIf, private juce::ValueTree::Listener
 {
 public:
     enum class ModelType
@@ -40,6 +40,7 @@ public:
     bool startThread();
 
 protected:
+#if 0
     void onOpen() override;
     void onClose() override;
     void receivedNewShape(juce::Path& shape) override;
@@ -51,6 +52,19 @@ private:
                          float newValue, bool shouldSendToServer);
     void positionParameterUpdate(const juce::String& parameterID, int idx,
                                  float value, bool shouldSendToServer);
+
+#endif
+    void valueTreePropertyChanged(
+        juce::ValueTree& changedTree,
+        const juce::Identifier& changedProperty) override;
+
+    void valueTreeChildAdded(juce::ValueTree&, juce::ValueTree&) override;
+    void valueTreeChildRemoved(juce::ValueTree&, juce::ValueTree&,
+                               int) override;
+    void valueTreeChildOrderChanged(juce::ValueTree&, int, int) override;
+    void valueTreeParentChanged(juce::ValueTree&) override;
+    // void parameterChanged(const juce::String& parameterID,
+    //                       float newValue) override;
 
 private:
     torch::jit::Module mShapeEncoderNetwork;

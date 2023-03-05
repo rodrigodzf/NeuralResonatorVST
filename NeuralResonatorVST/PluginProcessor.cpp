@@ -1,7 +1,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
-
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -29,19 +28,60 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     // Get config file and index file path
     mConfigMap = HelperFunctions::getConfig();
     mIndexFile = HelperFunctions::saveLoadIndexFile();
+#if 1 
+    // TODO: Create polygon from vertices as helper function
+    // create a tree with the vertices
+    // This generates a polygon in the range [-0.5, 0.5]
+    // auto polygon = kac_core::geometry::generateConvexPolygon(10);
+
+    //generate 10 evenly spaced points on a circle with radius 0.5
+    std::vector<juce::Point<float>> polygon;
+    for (int i = 0; i < 10; i++)
+    {
+        float angle = 2 * juce::MathConstants<float>::pi * i / 10;
+        polygon.push_back(juce::Point<float>(0.5 * std::cos(angle),
+                                             0.5 * std::sin(angle)));
+    }
+
+    juce::ValueTree verticesTree("polygon");
+    verticesTree.setProperty("id", "vertices", nullptr);
+    for (auto &vertex : polygon)
+    {
+        juce::Logger::writeToLog("Vertex: " + juce::String(vertex.x) + ", " +
+                                 juce::String(vertex.y));
+        juce::ValueTree vertexTree("vertex");
+        vertexTree.setProperty("x", juce::var(vertex.x * 2.0f), nullptr);
+        vertexTree.setProperty("y", juce::var(vertex.y * 2.0f), nullptr);
+        verticesTree.appendChild(vertexTree, nullptr);
+    }
+
+    // juce::Logger::writeToLog("ParameterSyncer::ParameterSyncer: " +
+                            //  verticesTree.toXmlString());
+    // add the tree to the state
+    mParameters.state.appendChild(verticesTree, nullptr);
+    // juce::Logger::writeToLog("ParameterSyncer::ParameterSyncer: " +
+                            //  mParameters.state.toXmlString());
+#endif
 
     // initialize the torch wrapper
+    juce::Logger::writeToLog("Initializing torch wrapper");
     mTorchWrapperPtr.reset(new TorchWrapper(this, mParameters));
     mTorchWrapperPtr->loadModel(mConfigMap["encoder_path"].toStdString(),
                                 TorchWrapper::ModelType::ShapeEncoder);
     mTorchWrapperPtr->loadModel(mConfigMap["fc_path"].toStdString(),
                                 TorchWrapper::ModelType::FC);
 
-    // Initialize the server thread
-    mServerThreadPtr.reset(
-        new ServerThread(mTorchWrapperPtr->getTorchWrapperIfPtr()));
+    // Initialize the parameter syncer
+    juce::Logger::writeToLog("Initializing parameter syncer");
+    mParameterSyncerPtr.reset(new ParameterSyncer(mParameters));
 
-    mTorchWrapperPtr->setServerThreadIf(
+    // Initialize the server thread
+    juce::Logger::writeToLog("Initializing server thread");
+    mServerThreadPtr.reset(
+        new ServerThread(mParameterSyncerPtr->getParameterSyncerIfPtr()));
+
+    // Pass the server thread to the parameter syncer
+    mParameterSyncerPtr->setServerThreadIf(
         mServerThreadPtr->getServerThreadIfPtr());
 
     // Start the threads in order (from the bottom up)
@@ -57,6 +97,9 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
     // Stop the threads in reverse order (from the top down)
     mServerThreadPtr.reset();
     mServerThreadPtr = nullptr;
+
+    mParameterSyncerPtr.reset();
+    mParameterSyncerPtr = nullptr;
 
     mTorchWrapperPtr.reset();
     mTorchWrapperPtr = nullptr;
@@ -224,9 +267,9 @@ void AudioPluginAudioProcessor::getStateInformation(
     // block. You could do that either as raw data, or use the XML or
     // ValueTree classes as intermediaries to make it easy to save and load
     // complex data.
-    auto state = mParameters.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, destData);
+    // auto state = mParameters.copyState();
+    // std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    // copyXmlToBinary(*xml, destData);
 }
 
 void AudioPluginAudioProcessor::setStateInformation(const void* data,
@@ -235,11 +278,11 @@ void AudioPluginAudioProcessor::setStateInformation(const void* data,
     // You should use this method to restore your parameters from this memory
     // block, whose contents will have been created by the
     // getStateInformation() call.
-    std::unique_ptr<juce::XmlElement> xmlState(
-        getXmlFromBinary(data, sizeInBytes));
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(mParameters.state.getType()))
-            mParameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+    // std::unique_ptr<juce::XmlElement> xmlState(
+    //     getXmlFromBinary(data, sizeInBytes));
+    // if (xmlState.get() != nullptr)
+    //     if (xmlState->hasTagName(mParameters.state.getType()))
+    //         mParameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(

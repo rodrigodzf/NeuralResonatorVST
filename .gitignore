@@ -21,3 +21,6 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 
+# Clangd
+compile_commands.json
+.cache

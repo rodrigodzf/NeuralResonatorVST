@@ -4,7 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include "server_ws.hpp"
 
-#include "TorchWrapperIf.h"
+#include "ParameterSyncerIf.h"
 #include "ServerThreadIf.h"
 
 using WsServer = SimpleWeb::SocketServer<SimpleWeb::WS>;
@@ -16,16 +16,17 @@ class ServerThread : public juce::Thread,
                      public ServerThreadIf
 {
 public:
-    ServerThread(TorchWrapperIf *torchWrapperIf, unsigned short port = 8000);
+    ServerThread(ParameterSyncerIf *parameterSyncerIf,
+                 unsigned short port = 8000);
     ~ServerThread();
 
     void run() override;
 
     void sendMessage(const juce::String &message) override;
-    ServerThreadIf* getServerThreadIfPtr() override;
+    ServerThreadIf *getServerThreadIfPtr() override;
 
 private:
-    TorchWrapperIf *mTorchWrapperIf;
+    ParameterSyncerIf *mParameterSyncerIfPtr;
 
     WsServer mServer;
     std::vector<ConnectionPtr> mConnections;

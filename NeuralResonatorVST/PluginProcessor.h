@@ -6,6 +6,7 @@
 #include "TorchWrapper.h"
 #include "ProcessorIf.h"
 #include "Filterbank.h"
+#include "ParameterSyncer.h"
 //==============================================================================
 class AudioPluginAudioProcessor : public juce::AudioProcessor,
                                   public ProcessorIf
@@ -57,6 +58,7 @@ public:
 
     std::unique_ptr<ServerThread> mServerThreadPtr;
     std::unique_ptr<TorchWrapper> mTorchWrapperPtr;
+    std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
 
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
