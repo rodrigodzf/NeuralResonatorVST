@@ -1,7 +1,6 @@
 .vscode
 build
 dist
-unused
 
 ### react ###
 node_modules
