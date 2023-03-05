@@ -7,6 +7,8 @@ AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowAllArgumentsOnNextLine: false
 ColumnLimit: 78
 IndentWidth: 4
 SpacesInAngles: false
@@ -15,6 +17,10 @@ SpacesInContainerLiterals: false
 IndentFunctionDeclarationAfterType: true
 PenaltyBreakComment: 0
 BreakBeforeBraces: Allman
+UseTab: Never
+AlignAfterOpenBracket: BlockIndent
+BinPackArguments: false
+BinPackParameters: false
 # Contructor initializers
 BreakConstructorInitializersBeforeComma: true
 BreakConstructorInitializers: BeforeComma

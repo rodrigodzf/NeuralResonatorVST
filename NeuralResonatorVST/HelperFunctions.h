@@ -169,7 +169,6 @@ public:
             juce::Image(juce::Image::SingleChannel, width, height, true);
         juce::Graphics bufferGraphics(image);
         shape.draw(bufferGraphics, 1.0f);
-        return image;
 #endif
 #if 0
         juce::PNGImageFormat png;
@@ -186,6 +185,22 @@ public:
         }
         png.writeImageToStream(image, stream);
 #endif
+        return image;
+
+    }
+
+    static std::vector<juce::Point<float>> createCircle(
+        unsigned int nVertices = 10, float radius = 1.0f)
+    {
+        // generate 10 evenly spaced points on a circle with radius 0.5
+        std::vector<juce::Point<float>> polygon;
+        for (int i = 0; i < 10; i++)
+        {
+            float angle = 2 * juce::MathConstants<float>::pi * i / 10;
+            polygon.push_back(juce::Point<float>(radius * std::cos(angle),
+                                                 radius * std::sin(angle)));
+        }
+        return polygon;
     }
 
 private:
