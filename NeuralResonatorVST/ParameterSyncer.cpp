@@ -1,6 +1,6 @@
 #include "ParameterSyncer.h"
 #include "JuceHeader.h"
-
+#include "generate_polygon.hpp"
 ParameterSyncer::ParameterSyncer(juce::AudioProcessorValueTreeState& vtsRef)
     : juce::ValueTreeSynchroniser(vtsRef.state), mVTSRef(vtsRef)
 {
@@ -62,100 +62,24 @@ void ParameterSyncer::receivedParameterChange(const juce::var& parameter)
 void ParameterSyncer::receivedShapeChange(const juce::var& shape)
 {
     MessageManager::callAsync(
-        [this, shape]()
+        [this]()
         {
-            // mShouldSendToServer = false;
-            auto polygonTree = mVTSRef.state.getChildWithName("polygon");
-            // juce::Logger::writeToLog(
-            //     "ParameterSyncer::receivedShapeChange:polygon: " +
-            //     polygonTree.toXmlString()
-            // );
+            auto polygonTree = mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
+            auto polygon =
+                kac_core::geometry::PolygonGenerator::generateConvexPolygon(10
+                );
 
-            if (auto positions = shape.getProperty("shape", var()).getArray())
+            juce::Array<juce::var> vertices;
+
+            for (int i = 0; i < polygon.size(); ++i)
             {
-                auto numPositions = positions->size();
-
-                juce::Array<juce::var> vertexArray;
-
-                for (int i = 0; i < numPositions; i++)
-                {
-                    auto vertex = (*positions)[i];
-
-                    vertexArray.add(vertex["x"]);
-                    vertexArray.add(vertex["y"]);
-                }
-
-                auto value = polygonTree.getPropertyAsValue("value", nullptr, true);
-                value = vertexArray;
-#if 0
-
-                polygonTree.getNumChildren();
-                // check these are the same
-                jassert(numPositions == polygonTree.getNumChildren());
-
-                for (int i = 0; i < numPositions; i++)
-                {
-                    auto vertex = (*positions)[i];
-
-                    // get child with index i
-                    auto vertexTree = polygonTree.getChild(i);
-
-                    //! WARNING! Calling
-                    //! value.getValueSource().sendChangeMessage(true) will
-                    //! generate callbacks to Value::Listener::valueChanged,
-                    //! not ValueTree::Listener::valueTreePropertyChanged
-                    //! https://forum.juce.com/t/updating-dynamicobject-property-in-valuetree-listeners-not-triggered/49628/5
-                    auto valueX =
-                        vertexTree.getPropertyAsValue("x", nullptr, true);
-
-                    auto valueY =
-                        vertexTree.getPropertyAsValue("y", nullptr, true);
-
-                    // copy our vertex data into the vertex tree
-                    valueX = vertex["x"];
-                    valueY = vertex["y"];
-                }
-#endif
+                vertices.add(juce::var(polygon[i].x * 2.0f));
+                vertices.add(juce::var(polygon[i].y * 2.0f));
             }
+
+            polygonTree.setProperty("value", vertices, nullptr);
         }
     );
-
-    // juce::Logger::writeToLog(
-    //     "ParameterSyncer::receivedShapeChange: " +
-    //     mVTSRef.state.toXmlString());
-
-    // juce::Path path;
-    // int res = 64;
-    // parsedJson.getProperty("shape", {}).toString();
-    // if (auto positions =
-    //         parsedJson.getProperty("shape", var()).getArray())
-    // {
-    //     // get number of positions
-    //     auto numPositions = positions->size();
-
-    //     for (int i = 0; i < numPositions; i++)
-    //     {
-    //         auto position = (*positions)[i];
-    //         auto x = float(position.getProperty("x", var()));
-    //         auto y = float(position.getProperty("y", var()));
-
-    //         // the positions are in the range [-1, 1], so we need
-    //         to
-    //         // scale them to the range [0, res]
-    //         // and flip the y axis
-    //         x = (x + 1) * 0.5 * res;
-    //         y = res - ((y + 1) * 0.5 * res);
-
-    //         // start a new subpath if this is the first position
-    //         if (i == 0) { path.startNewSubPath(x, y); }
-    //         else { path.lineTo(x, y); }
-    //     }
-
-    //     // close the subpath
-    //     path.closeSubPath();
-
-    // }
-    // });
 }
 
 void ParameterSyncer::onOpen()

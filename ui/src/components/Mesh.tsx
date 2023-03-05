@@ -39,7 +39,8 @@ export const Mesh = observer(({ sendMessage }) => {
 
   useControls({
     'new shape': button(() => {
-      regenerateMesh()
+    //   regenerateMesh()
+      sendMessage(JSON.stringify({ type: 'new_shape' }))
     }),
   })
 

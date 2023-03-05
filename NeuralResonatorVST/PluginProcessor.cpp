@@ -1,6 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
+#include "generate_polygon.hpp"
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -384,7 +385,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout
 void AudioPluginAudioProcessor::createAndAppendValueTree()
 {
     // generate 10 evenly spaced points on a circle with radius 1
-    auto polygon = HelperFunctions::createCircle(10, 1.0f);
+    // auto polygon = HelperFunctions::createCircle(10, 1.0f);
+    auto polygon = kac_core::geometry::PolygonGenerator::generateConvexPolygon(10);
+
+    juce::Logger::writeToLog("Number of vertices: " +
+                             std::to_string(polygon.size()));
+    for(auto& vertex : polygon)
+    {
+        juce::Logger::writeToLog("Vertex: " + std::to_string(vertex.x) + ", " +
+                                 std::to_string(vertex.y));
+    }
 
     juce::ValueTree verticesTree("polygon");
     verticesTree.setProperty("id", "vertices", nullptr);
@@ -393,15 +403,8 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
 
     for (int i = 0; i < polygon.size(); ++i)
     {
-        // auto& vertex = polygon[i];
-        // juce::ValueTree vertexTree("vertex");
-        // vertexTree.setProperty("id", juce::var(i), nullptr);
-        // vertexTree.setProperty("x", juce::var(vertex.x), nullptr);
-        // vertexTree.setProperty("y", juce::var(vertex.y), nullptr);
-        // verticesTree.appendChild(vertexTree, nullptr);
-
-        vertices.add(juce::var(polygon[i].x));
-        vertices.add(juce::var(polygon[i].y));
+        vertices.add(juce::var(polygon[i].x * 2.0f));
+        vertices.add(juce::var(polygon[i].y * 2.0f));
     }
 
     verticesTree.setProperty("value", vertices, nullptr);
