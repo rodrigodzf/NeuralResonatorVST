@@ -89,8 +89,8 @@ export const applyChange = (
 			) {
 				performUpdate(() => {
 					const temp = subtree.children[oldIndex]
-					subtree.children[oldIndex] = subtree.children[newIndex]
-					subtree.children[newIndex] = temp
+					subtree.children[oldIndex] = subtree.children[newIndex]!
+					subtree.children[newIndex] = temp!
 				})
 				return true
 			}
@@ -117,7 +117,7 @@ const readSubTreeLocation = (valueTree: ValueTree, input: InputStream) => {
 
 		if (index > valueTree.children.length || index < 0) return new ValueTree()
 
-		valueTree = valueTree.children[index]
+		valueTree = valueTree.children[index]!
 	}
 
 	return valueTree

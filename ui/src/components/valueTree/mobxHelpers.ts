@@ -1,4 +1,5 @@
-import { configure, runInAction } from 'mobx'
+// import { configure, runInAction } from 'mobx'
+import { runInAction } from 'mobx'
 
 export const USE_MOBX = true
 

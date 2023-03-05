@@ -1,7 +1,6 @@
 import { makeAutoObservable } from 'mobx'
 import { JuceVariant, Vertex } from '../valueTree/InputStream'
 import { ValueTree } from '../valueTree/ValueTree'
-import { setParameter } from '../messages/pluginMessages'
 
 export class PolygonModel<T extends JuceVariant> {
 	constructor(public parameter: ValueTree) {

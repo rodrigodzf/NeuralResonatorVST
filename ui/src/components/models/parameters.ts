@@ -7,8 +7,7 @@
 // You shouldn't need to edit this manually - if you add a new parameter,
 // running the app in debug mode should be enough to update this.
 
-import { ParameterModel, PolygonModel } from './ParameterModel'
-import { Vertex } from '../valueTree/InputStream'
+import { ParameterModel } from './ParameterModel'
 
 export type ParametersType = {
 	density: ParameterModel<number>

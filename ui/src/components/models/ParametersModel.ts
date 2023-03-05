@@ -1,4 +1,4 @@
-import { makeAutoObservable, toJS } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 import { ParametersType, PARAMETER_IDS } from './parameters'
 import { ValueTree } from '../valueTree/ValueTree'
 import { createValueTreeSynchroniser } from '../valueTree/ValueTreeSynchroniser'
