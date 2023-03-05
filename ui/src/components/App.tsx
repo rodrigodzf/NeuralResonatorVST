@@ -2,8 +2,8 @@
 import { Canvas } from '@react-three/fiber'
 
 // src
-// import { Mesh } from './mesh'
-import { Panel } from './panel'
+import Mesh from './mesh'
+import Panel from './panel'
 import '../scss/App.scss'
 
 export default function App(): JSX.Element {
@@ -21,7 +21,7 @@ export default function App(): JSX.Element {
 			>
 				<ambientLight />
 				<pointLight position={[10, 10, 10]} />
-				{/* <Mesh /> */}
+				<Mesh />
 			</Canvas>
 		</>
 	)

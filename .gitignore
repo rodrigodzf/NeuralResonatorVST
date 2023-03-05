@@ -1,9 +1,11 @@
 .vscode
 build
+unused
 
 ### react ###
 .DS_*
 *.log
+dist
 logs
 **/*.backup.*
 **/*.back.*
