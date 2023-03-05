@@ -68,25 +68,23 @@ const App = observer(() => {
 	}, [])
 
 	return (
-		<>
-			<JuceIntegration>
-				{/* <ParamDebug/> */}
-				<Panel sendMessage={sendMessage} />
-				<Canvas
-					orthographic
-					camera={{
-						position: [0, 0, 10],
-						zoom: 100,
-						up: [0, 1, 0],
-						far: 10000,
-					}}
-				>
-					<ambientLight />
-					<pointLight position={[10, 10, 10]} />
-					<Mesh sendMessage={sendMessage} />
-				</Canvas>
-			</JuceIntegration>
-		</>
+		<JuceIntegration>
+			{/* <ParamDebug/> */}
+			<Panel sendMessage={sendMessage} />
+			<Canvas
+				orthographic
+				camera={{
+					position: [0, 0, 10],
+					zoom: 100,
+					up: [0, 1, 0],
+					far: 10000,
+				}}
+			>
+				<ambientLight />
+				<pointLight position={[10, 10, 10]} />
+				<Mesh sendMessage={sendMessage} />
+			</Canvas>
+		</JuceIntegration>
 	)
 })
 

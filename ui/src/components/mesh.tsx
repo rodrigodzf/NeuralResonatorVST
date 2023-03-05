@@ -1,6 +1,8 @@
 // dependencies
 import { button, useControls } from 'leva'
 import { observer } from 'mobx-react'
+// @ts-ignore
+import RandomPolygon from 'randompolys'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { Shape, Vector2 } from 'three'
 
@@ -10,18 +12,7 @@ import { ParametersContext } from './juceIntegration'
 export const Mesh = observer(({ sendMessage }: SendMessage) => {
 	const parameters = useContext(ParametersContext)
 	const mesh = useRef<THREE.Mesh>(null)
-	const [polygon, setPolygon] = useState<Vector2[]>()
-
-	// const regenerateMesh = () => {
-	// 	const count = 10
-	// 	const bounds = {
-	// 		topLeft: { x: -1, y: -1 },
-	// 		bottomRight: { x: 1, y: 1 },
-	// 	}
-	// 	const epsilon = 10
-	// 	const randomPoly = new RandomPolygon(count, bounds, epsilon)
-	// 	sendMessage(JSON.stringify({ type: 'new_shape', shape: randomPoly.polygon }))
-	// }
+	const [polygon, setPolygon] = useState<Vector2[] | null>(null)
 
 	useEffect(() => {
 		const flatVertices = [...parameters?.vertices.value!] // this is the array of vertices flattened
@@ -39,14 +30,13 @@ export const Mesh = observer(({ sendMessage }: SendMessage) => {
 
 	useControls({
 		'new shape': button(() => {
-			//   regenerateMesh()
 			sendMessage(JSON.stringify({ type: 'new_shape' }))
 		}),
 	})
 
 	return (
 		<mesh ref={mesh}>
-			<shapeGeometry args={[new Shape(polygon)]} />
+			<shapeGeometry args={[new Shape(polygon!)]} />
 			{/* <Nodes positions={polygon} /> */}
 			{/* <planeGeometry attach="geometry" args={[1, 1]} /> */}
 			{/* <bufferGeometry attach="geometry" {...geo} /> */}
