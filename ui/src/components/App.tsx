@@ -7,7 +7,7 @@ import useWebSocket from 'react-use-websocket'
 // src
 import { callbacks, JuceMessage, JuceIntegration } from './juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from './messages/callbackEventTypes'
-// import { Mesh } from './mesh'
+import { Mesh } from './mesh'
 import { Panel } from './panel'
 import '../scss/App.scss'
 
@@ -83,7 +83,7 @@ const App = observer(() => {
 				>
 					<ambientLight />
 					<pointLight position={[10, 10, 10]} />
-					{/* <Mesh sendMessage={sendMessage} /> */}
+					<Mesh sendMessage={sendMessage} />
 				</Canvas>
 			</JuceIntegration>
 		</>
