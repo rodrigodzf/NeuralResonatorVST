@@ -27,8 +27,9 @@ import '../scss/App.scss'
 
 const App = observer(() => {
 	// const ws = useRef<WebSocket | undefined>()
+    const endpoint = 'ws://localhost:8000/ui'
 
-	const { sendMessage } = useWebSocket('endpoint', {
+	const { sendMessage } = useWebSocket(endpoint, {
 		onOpen: () => console.log('ws opened'),
 		onClose: () => console.log('ws closed'),
 		onMessage: (e: WebSocketEventMap['message']) => {
