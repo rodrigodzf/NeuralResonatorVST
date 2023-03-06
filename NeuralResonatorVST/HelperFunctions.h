@@ -14,18 +14,21 @@ public:
      * @retval std::map<juce::String, juce::String>
      */
     static std::map<juce::String, juce::String> getConfig(
-        const juce::String &subDirectoryName = "NeuralResonatorVST",
-        const juce::String &configFileName = "config.json")
+        const juce::String& subDirectoryName = "NeuralResonatorVST",
+        const juce::String& configFileName = "config.json"
+    )
     {
         // load the config file
         juce::File configFile =
             juce::File::getSpecialLocation(
-                juce::File::SpecialLocationType::userApplicationDataDirectory)
+                juce::File::SpecialLocationType::userApplicationDataDirectory
+            )
                 .getChildFile(subDirectoryName)
                 .getChildFile(configFileName);
 
-        juce::Logger::writeToLog("Config file path: " +
-                                 configFile.getFullPathName());
+        juce::Logger::writeToLog(
+            "Config file path: " + configFile.getFullPathName()
+        );
 
         // Create parent directory if it doesn't exist
         if (!configFile.exists())
@@ -36,8 +39,8 @@ public:
         // if config file doesn't exist, create it
         if (!configFile.existsAsFile())
         {
-            juce::Logger::writeToLog(
-                "Config file doesn't exist, creating it");
+            juce::Logger::writeToLog("Config file doesn't exist, creating it"
+            );
             juce::FileOutputStream stream(configFile);
             stream << "{\n"
                    << "    \"encoder_path\": \"encoder.pt\",\n"
@@ -84,18 +87,21 @@ public:
      * @brief Save the index.html file to the user's home directory
      */
     static juce::File saveLoadIndexFile(
-        const juce::String &subDirectoryName = "NeuralResonatorVST",
-        const juce::String &indexFileName = "index.html")
+        const juce::String& subDirectoryName = "NeuralResonatorVST",
+        const juce::String& indexFileName = "index.html"
+    )
     {
         // create or load the index file
         juce::File indexFile =
             juce::File::getSpecialLocation(
-                juce::File::SpecialLocationType::userApplicationDataDirectory)
+                juce::File::SpecialLocationType::userApplicationDataDirectory
+            )
                 .getChildFile(subDirectoryName)
                 .getChildFile(indexFileName);
 
-        juce::Logger::writeToLog("Index file path: " +
-                                 indexFile.getFullPathName());
+        juce::Logger::writeToLog(
+            "Index file path: " + indexFile.getFullPathName()
+        );
 
         // Create parent directory if it doesn't exist
         if (!indexFile.exists())
@@ -123,17 +129,22 @@ public:
             if (block.getSize() != BinaryData::index_htmlSize)
             {
                 juce::Logger::writeToLog(
-                    "Index file is different, overwriting it");
+                    "Index file is different, overwriting it"
+                );
                 // if the size is different, overwrite the file
                 juce::FileOutputStream stream(
                     juce::File::getSpecialLocation(
                         juce::File::SpecialLocationType::
-                            userApplicationDataDirectory)
-                        .getChildFile("index.html"));
+                            userApplicationDataDirectory
+                    )
+                        .getChildFile("index.html")
+                );
 
                 // write the binary data to the file
-                stream.write(BinaryData::index_html,
-                             BinaryData::index_htmlSize);
+                stream.write(
+                    BinaryData::index_html,
+                    BinaryData::index_htmlSize
+                );
                 stream.flush();
             }
 
@@ -148,9 +159,11 @@ public:
         return indexFile;
     }
 
-    static juce::Image shapeToImage(const juce::Path &path,
-                                    const int width = 64,
-                                    const int height = 64)
+    static juce::Image shapeToImage(
+        const juce::Path& path,
+        const int width = 64,
+        const int height = 64
+    )
     {
 #if 1
 
@@ -185,26 +198,126 @@ public:
         png.writeImageToStream(image, stream);
 #endif
         return image;
-
     }
 
-    static std::vector<juce::Point<float>> createCircle(
-        unsigned int nVertices = 10, float radius = 1.0f)
+    static std::vector<juce::Point<float>>
+        createCircle(unsigned int nVertices = 10, float radius = 1.0f)
     {
         // generate 10 evenly spaced points on a circle with radius 0.5
         std::vector<juce::Point<float>> polygon;
         for (int i = 0; i < 10; i++)
         {
             float angle = 2 * juce::MathConstants<float>::pi * i / 10;
-            polygon.push_back(juce::Point<float>(radius * std::cos(angle),
-                                                 radius * std::sin(angle)));
+            polygon.push_back(juce::Point<float>(
+                radius * std::cos(angle),
+                radius * std::sin(angle)
+            ));
         }
         return polygon;
     }
 
-private:
-    juce::String mEncoderPath;
-    juce::String mFCPath;
-    juce::String mHost;
-    int mPort;
+    static juce::var convertToVar(const ValueTree& tree)
+    {
+        juce::var root(new juce::DynamicObject());
+
+        auto type = tree.getType();
+        root.getDynamicObject()->setProperty("type", type.toString());
+
+        for (int i = 0; i < tree.getNumProperties(); ++i)
+        {
+            const auto propName = tree.getPropertyName(i);
+            const var value = tree.getProperty(propName);
+
+            root.getDynamicObject()->setProperty(propName, value);
+        }
+
+        juce::Array<juce::var> children;
+        for (int i = 0; i < tree.getNumChildren(); ++i)
+        {
+            const auto& child = tree.getChild(i);
+            children.add(convertToVar(child));
+        }
+        if (children.size() > 0)
+        {
+            root.getDynamicObject()->setProperty("children", children);
+        }
+        return root;
+    }
+
+    static juce::ValueTree convertToValueTree(const juce::var& var)
+    {
+        auto* obj = var.getDynamicObject();
+        if (obj == nullptr)
+        {
+            juce::Logger::writeToLog(
+                "ValueTreeToVar::convertToValueTree: var has no dynamic "
+                "object"
+            );
+            jassertfalse;
+            return {};
+        }
+
+        auto type = obj->getProperty("type").toString();
+        auto root = juce::ValueTree(type);
+
+        for (int i = 0; i < obj->getProperties().size(); ++i)
+        {
+            const auto& propName = obj->getProperties().getName(i);
+            const auto& value = obj->getProperty(propName);
+
+            if (propName == juce::Identifier("children")) continue;
+            root.setProperty(propName, value, nullptr);
+        }
+
+        const auto& children = obj->getProperty("children");
+        for (int i = 0; i < children.size(); ++i)
+        {
+            const auto& child = children[i];
+            root.addChild(convertToValueTree(child), -1, nullptr);
+        }
+
+        return root;
+    }
 };
+
+// Tests
+#if 0
+
+    auto state = HelperFunctions::convertToVar(mParameters.state);
+
+    juce::Logger::writeToLog(juce::JSON::toString(state));
+    // write to 
+
+    auto newState = HelperFunctions::convertToValueTree(state);
+
+    // check that the new state is the same as the old state
+    juce::MemoryOutputStream stream(2048);
+    mParameters.state.writeToStream(stream);
+
+    juce::MemoryOutputStream stream2(2048);
+    newState.writeToStream(stream2);
+
+    stream.flush();
+    stream2.flush();
+
+    auto isEqual = stream.toString() == stream2.toString();
+
+    if (isEqual)
+    {
+        juce::Logger::writeToLog("The two states are equal");
+    }
+    else
+    {
+        juce::Logger::writeToLog("The two states are not equal");
+    }
+
+    
+
+    auto newState2 = HelperFunctions::convertToVar(newState);
+
+    juce::Logger::writeToLog(juce::JSON::toString(newState2));
+
+    // write as xml
+    juce::Logger::writeToLog(mParameters.state.toXmlString());
+
+#endif

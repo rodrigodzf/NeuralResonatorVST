@@ -37,7 +37,9 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     // Create and append the polygon valueTree to the parameter tree
     createAndAppendValueTree();
 
-    juce::Logger::writeToLog(mParameters.state.toXmlString());
+    juce::Logger::writeToLog(
+        juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state))
+    );
 
     // initialize the torch wrapper
     juce::Logger::writeToLog("Initializing torch wrapper");
@@ -257,9 +259,10 @@ void AudioPluginAudioProcessor::getStateInformation(
     // block. You could do that either as raw data, or use the XML or
     // ValueTree classes as intermediaries to make it easy to save and load
     // complex data.
-    // auto state = mParameters.copyState();
-    // std::unique_ptr<juce::XmlElement> xml(state.createXml());
-    // copyXmlToBinary(*xml, destData);
+    juce::Logger::writeToLog("getStateInformation");
+    auto state = mParameters.copyState();
+    MemoryOutputStream stream(destData, false);
+    state.writeToStream(stream);
 }
 
 void AudioPluginAudioProcessor::setStateInformation(
@@ -270,11 +273,9 @@ void AudioPluginAudioProcessor::setStateInformation(
     // You should use this method to restore your parameters from this memory
     // block, whose contents will have been created by the
     // getStateInformation() call.
-    // std::unique_ptr<juce::XmlElement> xmlState(
-    //     getXmlFromBinary(data, sizeInBytes));
-    // if (xmlState.get() != nullptr)
-    //     if (xmlState->hasTagName(mParameters.state.getType()))
-    //         mParameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+    juce::Logger::writeToLog("setStateInformation");
+    MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
+    mParameters.replaceState(ValueTree::readFromStream(stream));
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(
@@ -386,14 +387,18 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
 {
     // generate 10 evenly spaced points on a circle with radius 1
     // auto polygon = HelperFunctions::createCircle(10, 1.0f);
-    auto polygon = kac_core::geometry::PolygonGenerator::generateConvexPolygon(10);
+    auto polygon =
+        kac_core::geometry::PolygonGenerator::generateConvexPolygon(10);
 
-    juce::Logger::writeToLog("Number of vertices: " +
-                             std::to_string(polygon.size()));
-    for(auto& vertex : polygon)
+    juce::Logger::writeToLog(
+        "Number of vertices: " + std::to_string(polygon.size())
+    );
+    for (auto& vertex : polygon)
     {
-        juce::Logger::writeToLog("Vertex: " + std::to_string(vertex.x) + ", " +
-                                 std::to_string(vertex.y));
+        juce::Logger::writeToLog(
+            "Vertex: " + std::to_string(vertex.x) + ", " +
+            std::to_string(vertex.y)
+        );
     }
 
     juce::ValueTree verticesTree("polygon");
