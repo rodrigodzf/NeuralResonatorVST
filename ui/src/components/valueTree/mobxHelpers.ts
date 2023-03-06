@@ -1,6 +1,7 @@
-import { configure, runInAction } from "mobx";
+// import { configure, runInAction } from 'mobx'
+import { runInAction } from 'mobx'
 
-export const USE_MOBX = true;
+export const USE_MOBX = true
 
 // Sensible default to warn about missing observers/observables
 /*if (USE_MOBX)
@@ -9,5 +10,4 @@ export const USE_MOBX = true;
     reactionRequiresObservable: true,
   });*/
 
-export const performUpdate = (fn: () => void) =>
-  USE_MOBX ? runInAction(() => fn()) : fn();
+export const performUpdate = (fn: () => void) => (USE_MOBX ? runInAction(() => fn()) : fn())

@@ -1,9 +1,12 @@
 .vscode
 build
+dist
 
 ### react ###
+node_modules
 .DS_*
 *.log
+dist
 logs
 **/*.backup.*
 **/*.back.*

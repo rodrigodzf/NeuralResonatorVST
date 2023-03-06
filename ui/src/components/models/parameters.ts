@@ -7,8 +7,7 @@
 // You shouldn't need to edit this manually - if you add a new parameter,
 // running the app in debug mode should be enough to update this.
 
-import { ParameterModel, PolygonModel } from './ParameterModel'
-import { Vertex } from '../valueTree/InputStream'
+import { ParameterModel } from './ParameterModel'
 
 export type ParametersType = {
 	density: ParameterModel<number>
@@ -16,9 +15,18 @@ export type ParametersType = {
 	pratio: ParameterModel<number>
 	alpha: ParameterModel<number>
 	beta: ParameterModel<number>
-    xpos: ParameterModel<number>
-    ypos: ParameterModel<number>
-    vertices: ParameterModel<any>
+	xpos: ParameterModel<number>
+	ypos: ParameterModel<number>
+	vertices: ParameterModel<any>
 }
 
-export const PARAMETER_IDS = ['density', 'stiffness', 'pratio', 'alpha', 'beta', 'xpos', 'ypos', 'vertices']
+export const PARAMETER_IDS = [
+	'density',
+	'stiffness',
+	'pratio',
+	'alpha',
+	'beta',
+	'xpos',
+	'ypos',
+	'vertices',
+]

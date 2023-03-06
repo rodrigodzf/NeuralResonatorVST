@@ -1,4 +1,4 @@
-import { makeAutoObservable, toJS } from 'mobx'
+import { makeAutoObservable } from 'mobx'
 import { ParametersType, PARAMETER_IDS } from './parameters'
 import { ValueTree } from '../valueTree/ValueTree'
 import { createValueTreeSynchroniser } from '../valueTree/ValueTreeSynchroniser'
@@ -6,7 +6,7 @@ import { ParameterModel } from './ParameterModel'
 
 export class ParametersModel {
 	constructor(private valueTree: ValueTree, parameterIds: string[]) {
-        //console.log((this.valueTree.childrenWithProperty('id', 'vertices')!).properties.get('value')!)
+		//console.log((this.valueTree.childrenWithProperty('id', 'vertices')!).properties.get('value')!)
 
 		parameterIds.forEach((parameterId) => {
 			;(this as any)[parameterId] = new ParameterModel(
@@ -19,10 +19,7 @@ export class ParametersModel {
 }
 
 // Used to inject the parameter types, which are dynamically created fields
-export const makeParametersModel = <T>(
-	valueTree: ValueTree,
-	parameterIds: string[]
-) => {
+export const makeParametersModel = <T>(valueTree: ValueTree, parameterIds: string[]) => {
 	return new ParametersModel(valueTree, parameterIds) as ParametersModel & T
 }
 

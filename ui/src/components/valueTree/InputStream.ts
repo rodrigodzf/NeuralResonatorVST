@@ -3,10 +3,10 @@
  * to allow us to parse data out of the encoded ValueTree changes
  */
 
-import { ValueTree } from "./ValueTree"
+import { ValueTree } from './ValueTree'
 
 // For jest
-const TextDecoderImpl = typeof TextDecoder !== 'undefined' ? TextDecoder : 'undefined'
+// const TextDecoderImpl = typeof TextDecoder !== 'undefined' ? TextDecoder : 'undefined'
 
 enum VariantStreamMarkers {
 	varMarker_Int = 1,
@@ -21,7 +21,15 @@ enum VariantStreamMarkers {
 }
 export type Vertex = { x: number; y: number }
 
-export type JuceVariant = number | BigInt | string | boolean | undefined | ValueTree | Vertex |JuceVariant[]
+export type JuceVariant =
+	| number
+	| BigInt
+	| string
+	| boolean
+	| undefined
+	| ValueTree
+	| Vertex
+	| JuceVariant[]
 
 export class InputStream {
 	constructor(private data: Uint8Array) {}
@@ -42,7 +50,7 @@ export class InputStream {
 	readByte = (): number => {
 		const byte = this.data[this.readPosition]
 		this.incrementReadPosition(1)
-		return byte
+		return byte || 0
 	}
 
 	readInt = (): number => {
@@ -120,12 +128,13 @@ export class InputStream {
 				return array
 			default:
 				this.incrementReadPosition(numBytes - 1)
+				return
 		}
 	}
 
 	private makeInt32 = (bytes: number[] | Uint8Array): number => {
 		// from ByteOrder::makeInt
-		return bytes[0] | (bytes[1] << 8) | (bytes[2] << 16) | (bytes[3] << 24)
+		return bytes[0]! | (bytes[1]! << 8) | (bytes[2]! << 16) | (bytes[3]! << 24)
 	}
 
 	private makeInt64 = (bytes: Uint8Array): BigInt => {

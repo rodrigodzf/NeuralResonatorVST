@@ -4,7 +4,7 @@
  * is read-only, i.e. it can only receive updates, not send them.
  */
 
-import { registerCallback } from '../juceCommunication'
+import { registerCallback } from '../juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from '../messages/callbackEventTypes'
 import { InputStream } from './InputStream'
 import { performUpdate } from './mobxHelpers'
@@ -89,8 +89,8 @@ export const applyChange = (
 			) {
 				performUpdate(() => {
 					const temp = subtree.children[oldIndex]
-					subtree.children[oldIndex] = subtree.children[newIndex]
-					subtree.children[newIndex] = temp
+					subtree.children[oldIndex] = subtree.children[newIndex]!
+					subtree.children[newIndex] = temp!
 				})
 				return true
 			}
@@ -117,7 +117,7 @@ const readSubTreeLocation = (valueTree: ValueTree, input: InputStream) => {
 
 		if (index > valueTree.children.length || index < 0) return new ValueTree()
 
-		valueTree = valueTree.children[index]
+		valueTree = valueTree.children[index]!
 	}
 
 	return valueTree
