@@ -152,13 +152,12 @@ public:
                                     const int width = 64,
                                     const int height = 64)
     {
-#if 0
+#if 1
 
         juce::Image image(juce::Image::SingleChannel, width, height, true);
         juce::Graphics g(image);
         g.setColour(juce::Colours::white);
-        g.fillPath(shape);
-        return image;
+        g.fillPath(path);
 #else
         // draw the shape to an image
         juce::DrawablePath shape;
