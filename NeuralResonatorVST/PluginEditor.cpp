@@ -1,9 +1,11 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "ParameterSyncer.h"
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
-    AudioPluginAudioProcessor& p)
+    AudioPluginAudioProcessor &p
+)
     : AudioProcessorEditor(&p), processorRef(p)
 {
     // init browser
@@ -16,7 +18,12 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     juce::String url = "file://" + processorRef.mIndexFile.getFullPathName();
 #endif
     setOpaque(true);
-    mBrowserPtr.reset(new BrowserComponent());
+    mParameterSyncerPtr.reset(new ParameterSyncer(processorRef.mParameters));
+    mBrowserPtr.reset(
+        new BrowserComponent(mParameterSyncerPtr->getParameterSyncerIfPtr())
+    );
+    // Pass the server thread to the parameter syncer
+    mParameterSyncerPtr->setServerThreadIf(mBrowserPtr->getServerThreadIfPtr());
     addAndMakeVisible(mBrowserPtr.get());
     mBrowserPtr->goToURL(url);
     setSize(400, 400);
@@ -25,12 +32,13 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
 
 //==============================================================================
-void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
+void AudioPluginAudioProcessorEditor::paint(juce::Graphics &g)
 {
     // (Our component is opaque, so we must completely fill the background
     // with a solid colour)
-    g.fillAll(getLookAndFeel().findColour(
-        juce::ResizableWindow::backgroundColourId));
+    g.fillAll(
+        getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId)
+    );
 }
 
 void AudioPluginAudioProcessorEditor::resized()

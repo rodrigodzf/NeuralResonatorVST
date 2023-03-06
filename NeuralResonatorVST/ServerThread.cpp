@@ -65,11 +65,11 @@ void ServerThread::onMessage(std::shared_ptr<WsServer::Connection> connection,
     }
     if (messageType == "new_parameter")
     {
-        mParameterSyncerIfPtr->receivedParameterChange(parsedJson);
+        // mParameterSyncerIfPtr->receivedParameterChange(parsedJson);
     }
     else if (messageType == "new_shape")
     {
-        mParameterSyncerIfPtr->receivedShapeChange(parsedJson);
+        // mParameterSyncerIfPtr->receivedShapeChange(parsedJson);
     }
     
 #if 0

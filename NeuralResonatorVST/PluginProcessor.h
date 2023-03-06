@@ -60,6 +60,8 @@ public:
     std::unique_ptr<TorchWrapper> mTorchWrapperPtr;
     std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
 
+    // TODO: maybe make this private and add a getter
+    juce::AudioProcessorValueTreeState mParameters;
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout(
     );
@@ -67,7 +69,6 @@ private:
 
 private:
     std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
-    juce::AudioProcessorValueTreeState mParameters;
     Filterbank mFilterbank;
 
 private:

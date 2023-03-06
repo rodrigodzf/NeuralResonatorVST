@@ -16,14 +16,17 @@ public:
 protected:
     void stateChanged(const void* encodedChange,
                       size_t encodedChangeSize) override;
+    
     /**
-     * @brief  receivedParameterChange
-     * @note   called when a parameter change is received from the server,
-     * from the server thread
+     * @brief  Received a message from the server.
+     * @note   
+     * @param  message: 
      * @retval None
      */
-    void receivedParameterChange(const juce::var& parameter) override;
-    void receivedShapeChange(const juce::var& shape) override;
+    void receivedMessage(const juce::var& message) override;
+
+    void receivedParameterChange(const juce::var& parameter);
+    void receivedShapeChange(const juce::var& shape);
 
     void onOpen() override;
     void onClose() override;

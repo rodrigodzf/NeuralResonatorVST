@@ -1,9 +1,11 @@
 import { useControls } from 'leva'
 import { observer } from 'mobx-react'
 import { useContext, useEffect } from 'react'
+import { sendMessageToJuce } from './juceCommunication'
 import { ParametersContext } from './JuceIntegration'
+import { setParameter } from './messages/pluginMessages'
 
-const Panel = observer(({ sendMessage }) => {
+const Panel = observer(() => {
   const parameters = useContext(ParametersContext)!
 
   const [, set] = useControls(() => ({
@@ -13,8 +15,8 @@ const Panel = observer(({ sendMessage }) => {
       max: 1,
       step: 0.01,
       onChange: (value) => {
-        sendMessage(JSON.stringify({ type: 'new_parameter', id: 'density', value: value }))
-      },
+        setParameter('density', value)
+    },
     },
     stiffnessUi: {
       value: 0.5,
@@ -22,7 +24,7 @@ const Panel = observer(({ sendMessage }) => {
       max: 1,
       step: 0.01,
       onChange: (value) => {
-        sendMessage(JSON.stringify({ type: 'new_parameter', id: 'stiffness', value: value }))
+        setParameter('stiffness', value)
       },
     },
     pratioUi: {
@@ -31,7 +33,7 @@ const Panel = observer(({ sendMessage }) => {
       max: 1,
       step: 0.01,
       onChange: (value) => {
-        sendMessage(JSON.stringify({ type: 'new_parameter', id: 'pratio', value: value }))
+        setParameter('pratio', value)
       },
     },
     alphaUi: {
@@ -40,7 +42,7 @@ const Panel = observer(({ sendMessage }) => {
       max: 1,
       step: 0.01,
       onChange: (value) => {
-        sendMessage(JSON.stringify({ type: 'new_parameter', id: 'alpha', value: value }))
+        setParameter('alpha', value)
       },
     },
     betaUi: {
@@ -49,7 +51,7 @@ const Panel = observer(({ sendMessage }) => {
       max: 1,
       step: 0.01,
       onChange: (value) => {
-        sendMessage(JSON.stringify({ type: 'new_parameter', id: 'beta', value: value }))
+        setParameter('beta', value)
       },
     },
   }))

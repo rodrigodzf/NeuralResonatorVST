@@ -32,36 +32,37 @@ const App = observer(() => {
   const [endpoint, setEndpoint] = useGlobalState('endpoint')
   const ws = useRef<WebSocket | undefined>()
 
-  const { sendMessage } = useWebSocket(endpoint, {
-    onOpen: () => console.log('ws opened'),
-    onClose: () => console.log('ws closed'),
-    onMessage: (event) => {
-      console.log('ws message')
-      const message: JuceMessage<any> = {
-        eventType: VALUE_TREE_STATE_CHANGE,
-        data: {
-          treeId: 'PARAMETERS',
-          changes: [event.data],
-        },
-      }
 
-      try {
-        const existingCallbacks = callbacks.get(message.eventType)
+//   const { sendMessage } = useWebSocket(endpoint, {
+//     onOpen: () => console.log('ws opened'),
+//     onClose: () => console.log('ws closed'),
+//     onMessage: (event) => {
+//       console.log('ws message')
+//       const message: JuceMessage<any> = {
+//         eventType: VALUE_TREE_STATE_CHANGE,
+//         data: {
+//           treeId: 'PARAMETERS',
+//           changes: [event.data],
+//         },
+//       }
 
-        if (existingCallbacks) {
-          existingCallbacks.forEach((cb) => cb(message.data))
-        } else {
-          console.log(`No callbacks registered for event type "${message.eventType}"`, {
-            message,
-          })
-        }
-      } catch (e) {
-        console.error('Error handling message from JUCE', { e, message })
-        throw e
-      }
-    },
-    shouldReconnect: (closeEvent) => false,
-  })
+//       try {
+//         const existingCallbacks = callbacks.get(message.eventType)
+
+//         if (existingCallbacks) {
+//           existingCallbacks.forEach((cb) => cb(message.data))
+//         } else {
+//           console.log(`No callbacks registered for event type "${message.eventType}"`, {
+//             message,
+//           })
+//         }
+//       } catch (e) {
+//         console.error('Error handling message from JUCE', { e, message })
+//         throw e
+//       }
+//     },
+//     shouldReconnect: (closeEvent) => false,
+//   })
 
   // componentDidMount
   useLayoutEffect(() => {
@@ -75,7 +76,7 @@ const App = observer(() => {
     <>
       <JuceIntegration>
         {/* <ParamDebug/> */}
-        <Panel sendMessage={sendMessage} />
+        <Panel />
         <Canvas
           orthographic
           camera={{
@@ -87,7 +88,7 @@ const App = observer(() => {
         >
           <ambientLight />
           <pointLight position={[10, 10, 10]} />
-          <Mesh sendMessage={sendMessage} />
+          {/* <Mesh sendMessage={sendMessage} /> */}
         </Canvas>
       </JuceIntegration>
     </>

@@ -36,7 +36,38 @@ void ParameterSyncer::stateChanged(
     // juce::Logger::writeToLog(
     // "ParameterSyncer::stateChanged: sending to "
     // "server");
-    mServerThreadIfPtr->sendMessage(changesAsBase64);
+
+    // build message
+    auto* dataObj = new juce::DynamicObject();
+    dataObj->setProperty("treeId", "PARAMETERS");
+    dataObj->setProperty("changes", changesAsBase64);
+
+    auto* obj = new juce::DynamicObject();
+    obj->setProperty("eventType", "valueTreeStateChange");
+    obj->setProperty("data", dataObj);
+
+    //! WARNING: This is limited to 1024 characters
+    auto message = juce::JSON::toString(juce::var(obj), true);
+
+    mServerThreadIfPtr->sendMessage(message);
+}
+
+void ParameterSyncer::receivedMessage(const juce::var& message)
+{
+    juce::Logger::writeToLog(
+        "ParameterSyncer::receivedMessage: " + message.toString()
+    );
+    auto messageType = message.getProperty("eventType", {}).toString();
+    auto data = message.getProperty("data", juce::var());
+
+    // After the page is loaded, the client sends "init" message to the
+    // server to request the full state tree
+    if (messageType == "init") { sendFullSyncCallback(); }
+    else if (messageType == "new_parameter")
+    {
+        receivedParameterChange(data);
+    }
+    else if (messageType == "new_shape") { receivedShapeChange(data); }
 }
 
 void ParameterSyncer::receivedParameterChange(const juce::var& parameter)
@@ -64,7 +95,8 @@ void ParameterSyncer::receivedShapeChange(const juce::var& shape)
     MessageManager::callAsync(
         [this]()
         {
-            auto polygonTree = mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
+            auto polygonTree =
+                mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
             auto polygon =
                 kac_core::geometry::PolygonGenerator::generateConvexPolygon(10
                 );

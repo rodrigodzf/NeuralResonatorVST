@@ -26,7 +26,9 @@ private:
     // access the processor object that created it.
     AudioPluginAudioProcessor &processorRef;
     std::unique_ptr<BrowserComponent> mBrowserPtr;
+    std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
-        AudioPluginAudioProcessorEditor)
+        AudioPluginAudioProcessorEditor
+    )
 };

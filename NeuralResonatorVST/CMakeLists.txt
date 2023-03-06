@@ -73,7 +73,7 @@ target_compile_definitions(
     PRIVATE
     JUCE_WEB_BROWSER=1  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
-    JUCE_DEBUG=0
+    JUCE_DEBUG=1
     JUCE_VST3_CAN_REPLACE_VST2=0
     BROWSER_DEV_SERVER=$<BOOL:${BROWSER_DEV_SERVER}>
 )

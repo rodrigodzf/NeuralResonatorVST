@@ -6,8 +6,9 @@ class ParameterSyncerIf
 {
 public:
     virtual ParameterSyncerIf* getParameterSyncerIfPtr() = 0;
-    virtual void receivedParameterChange(const juce::var& parameter) = 0;
-    virtual void receivedShapeChange(const juce::var& shape) = 0;
+    virtual void receivedMessage(const juce::var& message) = 0;
+    // virtual void receivedParameterChange(const juce::var& parameter) = 0;
+    // virtual void receivedShapeChange(const juce::var& shape) = 0;
     virtual void onOpen() = 0;
     virtual void onClose() = 0;
 };
