@@ -10,6 +10,7 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
 option(ASIO_STANDALONE "Use standalone ASIO" ON)
 option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
+option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON)
 
 add_subdirectory(third_party/juce)
 set(ASIO_PATH third_party/asio/asio)
