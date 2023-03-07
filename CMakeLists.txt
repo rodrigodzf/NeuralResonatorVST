@@ -19,7 +19,6 @@ set(SIMPLE_WEBSOCKET_SERVER_PATH third_party/simple-websocket-server)
 # list(APPEND CMAKE_PREFIX_PATH "/Users/diaz/mambaforge/envs/modal/lib/python3.10/site-packages/torch")
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-add_subdirectory(third_party/torchplugins/src/common/torchwrapper)
 
 # Silent cpp warnings
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")

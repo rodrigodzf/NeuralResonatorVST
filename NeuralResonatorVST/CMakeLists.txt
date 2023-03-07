@@ -136,7 +136,7 @@ target_link_libraries(
     juce::juce_recommended_lto_flags
     # juce::juce_recommended_warning_flags
     juce::juce_audio_utils
-    torchwrapper
+    ${TORCH_LIBRARIES}
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
