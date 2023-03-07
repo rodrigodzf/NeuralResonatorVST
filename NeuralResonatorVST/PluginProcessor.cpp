@@ -262,9 +262,9 @@ void AudioPluginAudioProcessor::getStateInformation(
     // ValueTree classes as intermediaries to make it easy to save and load
     // complex data.
     juce::Logger::writeToLog("getStateInformation");
-    auto state = mParameters.copyState();
-    MemoryOutputStream stream(destData, false);
-    state.writeToStream(stream);
+    // auto state = mParameters.copyState();
+    // MemoryOutputStream stream(destData, false);
+    // state.writeToStream(stream);
 }
 
 void AudioPluginAudioProcessor::setStateInformation(
@@ -276,8 +276,9 @@ void AudioPluginAudioProcessor::setStateInformation(
     // block, whose contents will have been created by the
     // getStateInformation() call.
     juce::Logger::writeToLog("setStateInformation");
-    MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
-    mParameters.replaceState(ValueTree::readFromStream(stream));
+    //! Warning: this seems to delete the callbacks
+    // MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
+    // mParameters.replaceState(ValueTree::readFromStream(stream));
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(
