@@ -29,6 +29,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2) => any }> = ({ poi
 		// change position if mouse is down
 		const changePosition = (e: MouseEvent) => {
 			if (mouseDown) {
+				// updatePosition({x_window: e.clientX, y_window: e.clientY})
 				onDrag(
 					new Vector2(
 						(e.clientX - window.innerWidth / 2) / 100,

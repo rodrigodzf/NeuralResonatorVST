@@ -68,7 +68,7 @@ const App = observer(() => {
 
 	// update polygon coordinates
 	// const parameters: ParametersModelType | undefined = useContext(ParametersContext)
-	const [polygon, setPolygon] = useState<Vector2[] | null>([
+	const [polygon, _] = useState<Vector2[] | null>([
 		new Vector2(1, 0.3),
 		new Vector2(0.3, 0.5),
 		new Vector2(0.6, -0.3),
@@ -98,9 +98,9 @@ const App = observer(() => {
 					polygon={polygon}
 					onChange={(V: Vector2[]) => {
 						// replace this setState with a call to the websocket to do a round trip
-						// vertex => vertices => app => websocket => app => vertices => vertex
+						// Polygon => App => websocket => App => Polygon
 						console.log(V[2])
-						setPolygon(V)
+						sendMessage(JSON.stringify({ type: 'update_shape', value: V }))
 					}}
 				/>
 			)}
