@@ -22,7 +22,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 	// calculate position from Vector2
 	function relativePosition(point: Vector2): { x_window: number; y_window: number } {
 		return {
-			x_window: 100 * point.x + window.innerWidth / 2,
+			x_window: 100 * point.x + (window.innerWidth * 0.625) / 2,
 			y_window: 100 * -1 * point.y + window.innerHeight / 2,
 		}
 	}
@@ -35,7 +35,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 				updatePosition({ x_window: e.clientX, y_window: e.clientY })
 				onDrag(
 					new Vector2(
-						(e.clientX - window.innerWidth / 2) / 100,
+						(e.clientX - (window.innerWidth * 0.625) / 2) / 100,
 						((e.clientY - window.innerHeight / 2) * -1) / 100,
 					),
 					false,
@@ -47,7 +47,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 			if (mouseDown) {
 				onDrag(
 					new Vector2(
-						(position.x_window - window.innerWidth / 2) / 100,
+						(position.x_window - (window.innerWidth * 0.625) / 2) / 100,
 						((position.y_window - window.innerHeight / 2) * -1) / 100,
 					),
 					true,
@@ -106,7 +106,7 @@ export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) =>
 				{_polygon && (
 					<mesh ref={mesh}>
 						<shapeGeometry args={[new Shape(_polygon)]} />
-						<meshStandardMaterial color='orange' />
+						<meshStandardMaterial color='#2F7DF6' />
 					</mesh>
 				)}
 			</Canvas>
@@ -116,7 +116,7 @@ export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) =>
 						key={i}
 						point={v}
 						onDrag={(v: Vector2, callback: boolean) => {
-							let tmp = _polygon
+							let tmp = [..._polygon]
 							tmp[i] = v
 							console.log(`I should be updating the mesh! ${tmp[2]!.x} ${tmp[2]!.y}`)
 							updatePolygon(tmp)
