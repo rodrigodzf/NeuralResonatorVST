@@ -99,7 +99,7 @@ const App = observer(() => {
 					onChange={(V: Vector2[]) => {
 						// replace this setState with a call to the websocket to do a round trip
 						// Polygon => App => websocket => App => Polygon
-						console.log(V[2])
+						console.log(`I should be updating the sound! ${V[2]!.x} ${V[2]!.y}`)
 						sendMessage(JSON.stringify({ type: 'update_shape', value: V }))
 					}}
 				/>

@@ -3,7 +3,10 @@ import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import { Shape, Vector2 } from 'three'
 
-const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean) => any }> = ({ point, onDrag }) => {
+const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean) => any }> = ({
+	point,
+	onDrag,
+}) => {
 	/*
 	A handle for a single vertex.
 	*/
@@ -29,11 +32,11 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 		// change position if mouse is down
 		const changePosition = (e: MouseEvent) => {
 			if (mouseDown) {
-				updatePosition({x_window: e.clientX, y_window: e.clientY})
+				updatePosition({ x_window: e.clientX, y_window: e.clientY })
 				onDrag(
 					new Vector2(
-						(position.x_window - window.innerWidth / 2) / 100,
-						((position.y_window - window.innerHeight / 2) * -1) / 100,
+						(e.clientX - window.innerWidth / 2) / 100,
+						((e.clientY - window.innerHeight / 2) * -1) / 100,
 					),
 					false,
 				)
@@ -41,7 +44,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 		}
 		// release mouse is mouse down
 		const releasePoint = () => {
-			if (mouseDown){
+			if (mouseDown) {
 				onDrag(
 					new Vector2(
 						(position.x_window - window.innerWidth / 2) / 100,
@@ -83,7 +86,9 @@ export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) =>
 	// where am i
 	const [_polygon, updatePolygon] = useState<Vector2[]>(polygon)
 	// update Polygon from prop
-	useEffect(() => {updatePolygon(polygon)}, [polygon])
+	useEffect(() => {
+		updatePolygon(polygon)
+	}, [polygon])
 	const mesh = useRef<THREE.Mesh>(null)
 	return (
 		<>
@@ -113,6 +118,7 @@ export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) =>
 						onDrag={(v: Vector2, callback: boolean) => {
 							let tmp = _polygon
 							tmp[i] = v
+							console.log(`I should be updating the mesh! ${tmp[2]!.x} ${tmp[2]!.y}`)
 							updatePolygon(tmp)
 							callback && onChange(tmp)
 						}}
