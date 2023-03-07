@@ -29,17 +29,21 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2) => any }> = ({ poi
 		// change position if mouse is down
 		const changePosition = (e: MouseEvent) => {
 			if (mouseDown) {
-				// updatePosition({x_window: e.clientX, y_window: e.clientY})
-				onDrag(
-					new Vector2(
-						(e.clientX - window.innerWidth / 2) / 100,
-						((e.clientY - window.innerHeight / 2) * -1) / 100,
-					),
-				)
+				updatePosition({ x_window: e.clientX, y_window: e.clientY })
 			}
 		}
 		// release mouse is mouse down
-		const releasePoint = () => setMouseDown(false)
+		const releasePoint = () => {
+			if (mouseDown) {
+				onDrag(
+					new Vector2(
+						(position.x_window - window.innerWidth / 2) / 100,
+						((position.y_window - window.innerHeight / 2) * -1) / 100,
+					),
+				)
+			}
+			setMouseDown(false)
+		}
 		window.addEventListener('mousemove', changePosition)
 		window.addEventListener('mouseup', releasePoint)
 		return () => {
