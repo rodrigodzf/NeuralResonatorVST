@@ -10,3 +10,6 @@
 	path = third_party/simple-websocket-server
 	url = https://gitlab.com/eidheim/Simple-WebSocket-Server.git
     branch = master
+[submodule "third_party/kac_core"]
+	path = third_party/kac_core
+	url = https://github.com/lewiswolf/kac_core.git

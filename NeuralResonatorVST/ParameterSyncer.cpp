@@ -1,6 +1,8 @@
+#include <random>
+#include <time.h>
 #include "ParameterSyncer.h"
 #include "JuceHeader.h"
-#include "generate_polygon.hpp"
+#include <kac_core.hpp>
 ParameterSyncer::ParameterSyncer(juce::AudioProcessorValueTreeState& vtsRef)
     : juce::ValueTreeSynchroniser(vtsRef.state), mVTSRef(vtsRef)
 {
@@ -64,10 +66,12 @@ void ParameterSyncer::receivedShapeChange(const juce::var& shape)
     MessageManager::callAsync(
         [this]()
         {
-            auto polygonTree = mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
+            auto polygonTree =
+                mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
+            std::default_random_engine random_engine =
+                std::default_random_engine(time(NULL));
             auto polygon =
-                kac_core::geometry::PolygonGenerator::generateConvexPolygon(10
-                );
+                kac_core::geometry::generateConvexPolygon(10, random_engine);
 
             juce::Array<juce::var> vertices;
 
