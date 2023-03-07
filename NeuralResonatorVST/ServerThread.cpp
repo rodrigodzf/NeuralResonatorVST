@@ -2,12 +2,24 @@
 
 using namespace juce;
 
-ServerThread::ServerThread(ParameterSyncerIf *parameterSyncerIf,
-                           unsigned short port)
+ServerThread::ServerThread(
+    ParameterSyncerIf *parameterSyncerIf,
+    unsigned short port
+)
     : Thread("Server Thread"), mParameterSyncerIfPtr(parameterSyncerIf)
 {
-    mServer.config.port = port;
     addListener(this);
+
+    mServer.config.port = port;
+    auto &endpoint = mServer.endpoint["^/ui/?$"];
+
+    endpoint.on_message = [this](auto connection, auto in_message)
+    { this->onMessage(connection, in_message); };
+
+    endpoint.on_open = [this](auto connection) { this->onOpen(connection); };
+    endpoint.on_close =
+        [this](auto connection, int status, const std::string &reason)
+    { this->onClose(connection, status, reason); };
 }
 
 ServerThread::~ServerThread()
@@ -24,31 +36,25 @@ void ServerThread::exitSignalSent()
 
 void ServerThread::run()
 {
-    auto &endpoint = mServer.endpoint["^/ui/?$"];
-
-    endpoint.on_message = [this](auto connection, auto in_message)
-    { this->onMessage(connection, in_message); };
-
-    endpoint.on_open = [this](auto connection) { this->onOpen(connection); };
-    endpoint.on_close =
-        [this](auto connection, int status, const std::string &reason)
-    { this->onClose(connection, status, reason); };
-
     // Start server and receive assigned port when server is listening for
     // requests
     mServer.start(
         [](unsigned short port)
         {
-            juce::Logger::writeToLog("WS Server Started: Listening on port " +
-                                     juce::String(port));
-        });
+            juce::Logger::writeToLog(
+                "WS Server Started: Listening on port " + juce::String(port)
+            );
+        }
+    );
 
     // Wait for server to stop
     juce::Logger::writeToLog("WS Server: Stopped");
 }
 
-void ServerThread::onMessage(std::shared_ptr<WsServer::Connection> connection,
-                             std::shared_ptr<WsServer::InMessage> in_message)
+void ServerThread::onMessage(
+    std::shared_ptr<WsServer::Connection> connection,
+    std::shared_ptr<WsServer::InMessage> in_message
+)
 {
     auto out_message = in_message->string();
 
@@ -71,7 +77,7 @@ void ServerThread::onMessage(std::shared_ptr<WsServer::Connection> connection,
     {
         mParameterSyncerIfPtr->receivedShapeChange(parsedJson);
     }
-    
+
 #if 0
     auto parsedJson = JSON::parse(out_message);
     auto messageType = parsedJson.getProperty("type", {}).toString();
@@ -164,8 +170,11 @@ void ServerThread::onOpen(ConnectionPtr connection)
     mParameterSyncerIfPtr->onOpen();
 }
 
-void ServerThread::onClose(ConnectionPtr connection, int status,
-                           const juce::String &reason)
+void ServerThread::onClose(
+    ConnectionPtr connection,
+    int status,
+    const juce::String &reason
+)
 {
     std::stringstream ss;
     ss << connection.get();
@@ -194,9 +203,11 @@ void ServerThread::sendMessage(const juce::String &message)
             {
                 if (ec)
                 {
-                    Logger::writeToLog("Server: Error sending message. " +
-                                       ec.message());
+                    Logger::writeToLog(
+                        "Server: Error sending message. " + ec.message()
+                    );
                 }
-            });
+            }
+        );
     }
 }

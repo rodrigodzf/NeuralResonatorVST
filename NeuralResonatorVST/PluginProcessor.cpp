@@ -390,16 +390,16 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
     auto polygon =
         kac_core::geometry::PolygonGenerator::generateConvexPolygon(10);
 
-    juce::Logger::writeToLog(
-        "Number of vertices: " + std::to_string(polygon.size())
-    );
-    for (auto& vertex : polygon)
-    {
-        juce::Logger::writeToLog(
-            "Vertex: " + std::to_string(vertex.x) + ", " +
-            std::to_string(vertex.y)
-        );
-    }
+    // juce::Logger::writeToLog(
+    //     "Number of vertices: " + std::to_string(polygon.size())
+    // );
+    // for (auto& vertex : polygon)
+    // {
+    //     juce::Logger::writeToLog(
+    //         "Vertex: " + std::to_string(vertex.x) + ", " +
+    //         std::to_string(vertex.y)
+    //     );
+    // }
 
     juce::ValueTree verticesTree("polygon");
     verticesTree.setProperty("id", "vertices", nullptr);

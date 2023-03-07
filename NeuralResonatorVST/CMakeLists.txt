@@ -17,7 +17,7 @@ juce_add_plugin(${PLUGIN_NAME}
     # NEEDS_MIDI_OUTPUT TRUE/FALSE              # Does the plugin need midi output?
     # IS_MIDI_EFFECT TRUE/FALSE                 # Is this plugin a MIDI effect?
     # EDITOR_WANTS_KEYBOARD_FOCUS TRUE/FALSE    # Does the editor need keyboard focus?
-    # COPY_PLUGIN_AFTER_BUILD TRUE/FALSE        # Should the plugin be installed to a default location after building?
+    COPY_PLUGIN_AFTER_BUILD TRUE                # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Diaz               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE NRes                            # A unique four-character plugin id with at least one upper-case character
     FORMATS ${FORMATS}                          # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
@@ -73,7 +73,7 @@ target_compile_definitions(
     PRIVATE
     JUCE_WEB_BROWSER=1  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
     JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
-    JUCE_DEBUG=0
+    # JUCE_DEBUG=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     BROWSER_DEV_SERVER=$<BOOL:${BROWSER_DEV_SERVER}>
 )
@@ -87,6 +87,8 @@ if (ASIO_STANDALONE)
         ${PLUGIN_NAME}
         PRIVATE
         USE_STANDALONE_ASIO
+        -DASIO_STANDALONE
+        -D_WEBSOCKETPP_CPP11_STL_
     )
     find_path(ASIO_PATH asio.hpp REQUIRED)
     cmake_path(ABSOLUTE_PATH ASIO_PATH BASE_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -113,6 +115,7 @@ else()
         ${PLUGIN_NAME}
         PUBLIC
         ${SIMPLE_WEBSOCKET_SERVER_PATH}
+        "/Users/diaz/projects/NeuralResonatorVST/third_party/websocketpp"
     )
 endif()
 
