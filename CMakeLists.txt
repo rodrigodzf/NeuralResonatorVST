@@ -20,6 +20,9 @@ set(SIMPLE_WEBSOCKET_SERVER_PATH third_party/simple-websocket-server)
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
+# kac core
+add_subdirectory(third_party/kac_core)
+
 # Silent cpp warnings
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_options(/W0)

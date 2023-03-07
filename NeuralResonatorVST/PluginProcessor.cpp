@@ -1,7 +1,9 @@
+#include <random>
+#include <time.h>
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
-#include "generate_polygon.hpp"
+#include <kac_core.hpp>
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
@@ -387,8 +389,9 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
 {
     // generate 10 evenly spaced points on a circle with radius 1
     // auto polygon = HelperFunctions::createCircle(10, 1.0f);
-    auto polygon =
-        kac_core::geometry::PolygonGenerator::generateConvexPolygon(10);
+    auto polygon = kac_core::geometry::normalisePolygon(
+        kac_core::geometry::generateConvexPolygon(10)
+    );
 
     // juce::Logger::writeToLog(
     //     "Number of vertices: " + std::to_string(polygon.size())
@@ -408,8 +411,8 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
 
     for (int i = 0; i < polygon.size(); ++i)
     {
-        vertices.add(juce::var(polygon[i].x * 2.0f));
-        vertices.add(juce::var(polygon[i].y * 2.0f));
+        vertices.add(juce::var((polygon[i].x * 2.0f) - 1.));
+        vertices.add(juce::var((polygon[i].y * 2.0f) - 1.));
     }
 
     verticesTree.setProperty("value", vertices, nullptr);

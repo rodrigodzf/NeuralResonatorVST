@@ -33,7 +33,7 @@ if (NOT EXISTS ${MINIFIED_UI_PATH})
     # if not, build it
     message(STATUS "Building UI")
     execute_process(
-        COMMAND npm i
+        COMMAND npm i --include=dev
         COMMAND npm run build
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ui
         COMMAND_ERROR_IS_FATAL ANY
@@ -131,6 +131,7 @@ target_link_libraries(
     OpenSSL::SSL
     juce::juce_gui_extra
     BinaryData
+	kac_core
     PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
