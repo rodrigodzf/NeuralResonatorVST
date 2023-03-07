@@ -391,8 +391,9 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
     // auto polygon = HelperFunctions::createCircle(10, 1.0f);
     std::default_random_engine random_engine =
         std::default_random_engine(time(NULL));
-    auto polygon =
-        kac_core::geometry::generateConvexPolygon(10, random_engine);
+    auto polygon = kac_core::geometry::normalisePolygon(
+        kac_core::geometry::generateConvexPolygon(10, random_engine)
+    );
 
     // juce::Logger::writeToLog(
     //     "Number of vertices: " + std::to_string(polygon.size())
@@ -412,8 +413,8 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
 
     for (int i = 0; i < polygon.size(); ++i)
     {
-        vertices.add(juce::var(polygon[i].x * 2.0f));
-        vertices.add(juce::var(polygon[i].y * 2.0f));
+        vertices.add(juce::var((polygon[i].x * 2.0f) - 1.));
+        vertices.add(juce::var((polygon[i].y * 2.0f) - 1.));
     }
 
     verticesTree.setProperty("value", vertices, nullptr);

@@ -70,15 +70,16 @@ void ParameterSyncer::receivedShapeChange(const juce::var& shape)
                 mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
             std::default_random_engine random_engine =
                 std::default_random_engine(time(NULL));
-            auto polygon =
-                kac_core::geometry::generateConvexPolygon(10, random_engine);
+            auto polygon = kac_core::geometry::normalisePolygon(
+                kac_core::geometry::generateConvexPolygon(10, random_engine)
+            );
 
             juce::Array<juce::var> vertices;
 
             for (int i = 0; i < polygon.size(); ++i)
             {
-                vertices.add(juce::var(polygon[i].x * 2.0f));
-                vertices.add(juce::var(polygon[i].y * 2.0f));
+                vertices.add(juce::var((polygon[i].x * 2.0f) - 1.));
+                vertices.add(juce::var((polygon[i].y * 2.0f) - 1.));
             }
 
             polygonTree.setProperty("value", vertices, nullptr);
