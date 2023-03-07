@@ -1,13 +1,15 @@
 // dependencies
 import { Canvas } from '@react-three/fiber'
 import { observer } from 'mobx-react'
-import { useLayoutEffect } from 'react'
+import { useContext, useEffect, useLayoutEffect, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
+import { Vector2 } from 'three'
 
 // src
-import { callbacks, JuceMessage, JuceIntegration } from './juceIntegration'
+import { callbacks, JuceMessage, JuceIntegration, ParametersContext } from './juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from './messages/callbackEventTypes'
-import { Mesh } from './mesh'
+import { ParametersModelType } from './models/ParametersModel'
+import { Mesh, Vertices } from './polygon'
 import { Panel } from './panel'
 import '../scss/App.scss'
 
@@ -26,9 +28,8 @@ import '../scss/App.scss'
 // )
 
 const App = observer(() => {
-	// const ws = useRef<WebSocket | undefined>()
-    const endpoint = 'ws://localhost:8000/ui'
-
+	// web socket communication
+	const endpoint = 'ws://localhost:8000/ui'
 	const { sendMessage } = useWebSocket(endpoint, {
 		onOpen: () => console.log('ws opened'),
 		onClose: () => console.log('ws closed'),
@@ -41,17 +42,13 @@ const App = observer(() => {
 					changes: [e.data],
 				},
 			}
-
 			try {
 				const existingCallbacks = callbacks.get(message.eventType)
-
-				if (existingCallbacks) {
-					existingCallbacks.forEach((cb) => cb(message.data))
-				} else {
-					console.log(`No callbacks registered for event type "${message.eventType}"`, {
-						message,
-					})
-				}
+				existingCallbacks
+					? existingCallbacks.forEach((cb) => cb(message.data))
+					: console.log(`No callbacks registered for event type "${message.eventType}"`, {
+							message,
+					  })
 			} catch (e) {
 				console.error('Error handling message from JUCE', { e, message })
 				throw e
@@ -68,6 +65,25 @@ const App = observer(() => {
 		}
 	}, [])
 
+	// update polygon coordinates
+	const parameters: ParametersModelType | undefined = useContext(ParametersContext)
+	const [polygon, setPolygon] = useState<Vector2[] | null>(null)
+	useEffect(() => {
+		if (parameters?.vertices) {
+			const flatVertices = [...parameters.vertices.value] // this is the array of vertices flattened
+			console.log('vertices changed', flatVertices)
+			// convert the array of vertices to an array of Vector2
+			// the array of vertices is a flat array of x,y,x,y,x,y
+			const vertices: Vector2[] = []
+			for (let i = 0; i < flatVertices.length; i += 2) {
+				vertices.push(new Vector2(flatVertices[i], flatVertices[i + 1]))
+			}
+			setPolygon(vertices)
+		}
+	}, [parameters?.vertices])
+
+	console.log(polygon)
+
 	return (
 		<JuceIntegration>
 			{/* <ParamDebug/> */}
@@ -83,7 +99,12 @@ const App = observer(() => {
 			>
 				<ambientLight />
 				<pointLight position={[10, 10, 10]} />
-				<Mesh sendMessage={sendMessage} />
+				{polygon && (
+					<>
+						<Mesh polygon={polygon} />
+						<Vertices polygon={polygon} />
+					</>
+				)}
 			</Canvas>
 		</JuceIntegration>
 	)
