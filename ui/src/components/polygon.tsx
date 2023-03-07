@@ -1,21 +1,9 @@
 // dependencies
+import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import { Shape, Vector2 } from 'three'
 
-export const Mesh = ({ polygon }: { polygon: Vector2[] }): JSX.Element => {
-	/*
-	Body of the polygon.
-	*/
-	const mesh = useRef<THREE.Mesh>(null)
-	return (
-		<mesh ref={mesh}>
-			<shapeGeometry args={[new Shape(polygon)]} />
-			<meshStandardMaterial color='orange' />
-		</mesh>
-	)
-}
-
-const Vertex: React.FC<{ point: Vector2, onDrag: (v: Vector2) => any }> = ({ point, onDrag }) => {
+const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2) => any }> = ({ point, onDrag }) => {
 	/*
 	A handle for a single vertex.
 	*/
@@ -41,10 +29,12 @@ const Vertex: React.FC<{ point: Vector2, onDrag: (v: Vector2) => any }> = ({ poi
 		// change position if mouse is down
 		const changePosition = (e: MouseEvent) => {
 			if (mouseDown) {
-				onDrag(new Vector2(
-					(e.clientX - (window.innerWidth / 2)) / 100.,
-					(e.clientY - (window.innerHeight / 2)) * -1 / 100.,
-				))
+				onDrag(
+					new Vector2(
+						(e.clientX - window.innerWidth / 2) / 100,
+						((e.clientY - window.innerHeight / 2) * -1) / 100,
+					),
+				)
 			}
 		}
 		// release mouse is mouse down
@@ -69,31 +59,41 @@ const Vertex: React.FC<{ point: Vector2, onDrag: (v: Vector2) => any }> = ({ poi
 	)
 }
 
-export const Vertices = ({
+export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) => any }> = ({
 	polygon,
 	onChange,
-}: {
-	polygon: Vector2[]
-	onChange: (V: Vector2[]) => any
 }): JSX.Element => {
 	/*
-	All vertices.
+	Body of the polygon.
 	*/
-	// update polygon from prop
-	const [_polygon, updatePolygon] = useState<Vector2[]>(polygon)
-	useEffect(() => {
-		console.log(polygon)
-		updatePolygon(polygon)
-	}, [polygon])
+	const mesh = useRef<THREE.Mesh>(null)
 	return (
 		<>
-			{_polygon &&
-				_polygon.map((v: Vector2, i: number) => (
+			<Canvas
+				orthographic
+				camera={{
+					position: [0, 0, 10],
+					zoom: 100,
+					up: [0, 1, 0],
+					far: 10000,
+				}}
+			>
+				<ambientLight />
+				<pointLight position={[10, 10, 10]} />
+				{polygon && (
+					<mesh ref={mesh}>
+						<shapeGeometry args={[new Shape(polygon)]} />
+						<meshStandardMaterial color='orange' />
+					</mesh>
+				)}
+			</Canvas>
+			{polygon &&
+				polygon.map((v: Vector2, i: number) => (
 					<Vertex
 						key={i}
 						point={v}
 						onDrag={(v: Vector2) => {
-							let tmp = _polygon
+							let tmp = polygon
 							tmp[i] = v
 							onChange(tmp)
 						}}

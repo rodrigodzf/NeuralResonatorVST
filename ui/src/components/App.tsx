@@ -1,7 +1,6 @@
 // dependencies
-import { Canvas } from '@react-three/fiber'
 import { observer } from 'mobx-react'
-import {  useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 // import { useContext, useEffect, useLayoutEffect, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
 import { Vector2 } from 'three'
@@ -11,7 +10,7 @@ import { callbacks, JuceIntegration, JuceMessage } from './juceIntegration'
 // import { callbacks, JuceIntegration, JuceMessage, ParametersContext } from './juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from './messages/callbackEventTypes'
 // import { ParametersModelType } from './models/ParametersModel'
-import { Mesh, Vertices } from './polygon'
+import { Polygon } from './polygon'
 import { Panel } from './panel'
 import '../scss/App.scss'
 
@@ -94,24 +93,17 @@ const App = observer(() => {
 		<JuceIntegration>
 			{/* <ParamDebug/> */}
 			<Panel sendMessage={sendMessage} />
-			<Canvas
-				orthographic
-				camera={{
-					position: [0, 0, 10],
-					zoom: 100,
-					up: [0, 1, 0],
-					far: 10000,
-				}}
-			>
-				<ambientLight />
-				<pointLight position={[10, 10, 10]} />
-				{polygon && <Mesh polygon={polygon} />}
-			</Canvas>
-			{polygon && <Vertices polygon={polygon} onChange={(V: Vector2[]) => {
-				// replace this setState with a call to the websocket to do a round trip
-				// vertex => vertices => app => websocket => app => vertices => vertex
-				setPolygon(V)
-			}} />}
+			{polygon && (
+				<Polygon
+					polygon={polygon}
+					onChange={(V: Vector2[]) => {
+						// replace this setState with a call to the websocket to do a round trip
+						// vertex => vertices => app => websocket => app => vertices => vertex
+						console.log(V[2])
+						setPolygon(V)
+					}}
+				/>
+			)}
 		</JuceIntegration>
 	)
 })
