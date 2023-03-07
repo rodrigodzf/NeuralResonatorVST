@@ -1,15 +1,13 @@
 // dependencies
 import { button, useControls } from 'leva'
 import { observer } from 'mobx-react'
-// @ts-ignore
-import RandomPolygon from 'randompolys'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { Shape, Vector2 } from 'three'
 
 // src
 import { ParametersContext } from './juceIntegration'
 
-export const Mesh = observer(({ sendMessage }: SendMessage) => {
+export const Mesh = observer(({ sendMessage }: SendMessage): JSX.Element => {
 	const parameters = useContext(ParametersContext)
 	const mesh = useRef<THREE.Mesh>(null)
 	const [polygon, setPolygon] = useState<Vector2[] | null>(null)
@@ -21,8 +19,8 @@ export const Mesh = observer(({ sendMessage }: SendMessage) => {
 		// convert the array of vertices to an array of Vector2
 		// the array of vertices is a flat array of x,y,x,y,x,y
 		const vertices: Vector2[] = []
-		for (let i = 0; i < flatVertices.length; i += 2) {
-			vertices.push({ x: flatVertices[i], y: flatVertices[i + 1] } as Vector2)
+		for (let i = 0; i < flatVertices.length; i += 2) {			
+			vertices.push(new Vector2(flatVertices[i], flatVertices[i + 1]))
 		}
 
 		setPolygon(vertices)

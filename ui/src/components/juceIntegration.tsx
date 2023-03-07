@@ -1,4 +1,7 @@
+// dependencies
 import { createContext, useEffect, useRef, useState } from 'react'
+
+// src
 import { makeConnectedParametersModel, ParametersModelType } from './models/ParametersModel'
 
 export const ParametersContext = createContext<ParametersModelType | undefined>(undefined)
@@ -9,7 +12,7 @@ export interface JuceMessage<T> {
 	data?: T
 }
 
-export const registerCallback = <T extends Function>(eventType: string, handler: T) => {
+export const registerCallback = <T extends Function>(eventType: string, handler: T): void => {
 	const existingCallbacks = callbacks.get(eventType)
 	existingCallbacks ? existingCallbacks.push(handler) : callbacks.set(eventType, [handler])
 }

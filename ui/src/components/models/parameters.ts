@@ -17,7 +17,7 @@ export type ParametersType = {
 	beta: ParameterModel<number>
 	xpos: ParameterModel<number>
 	ypos: ParameterModel<number>
-	vertices: ParameterModel<any>
+	vertices: ParameterModel<number[]>
 }
 
 export const PARAMETER_IDS = [
