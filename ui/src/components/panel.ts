@@ -25,7 +25,7 @@ export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => 
 
 	// sliders
 	const [, set] = useControls(() => ({
-		densityUi: {
+		density: {
 			value: 0.5,
 			min: 0,
 			max: 1,
@@ -34,7 +34,7 @@ export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => 
 				sendMessage(JSON.stringify({ type: 'new_parameter', id: 'density', value: value }))
 			},
 		},
-		stiffnessUi: {
+		stiffness: {
 			value: 0.5,
 			min: 0,
 			max: 1,
@@ -45,7 +45,7 @@ export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => 
 				)
 			},
 		},
-		pratioUi: {
+		pratio: {
 			value: 0.5,
 			min: 0,
 			max: 1,
@@ -54,7 +54,7 @@ export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => 
 				sendMessage(JSON.stringify({ type: 'new_parameter', id: 'pratio', value: value }))
 			},
 		},
-		alphaUi: {
+		alpha: {
 			value: 0.5,
 			min: 0,
 			max: 1,
@@ -63,7 +63,7 @@ export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => 
 				sendMessage(JSON.stringify({ type: 'new_parameter', id: 'alpha', value: value }))
 			},
 		},
-		betaUi: {
+		beta: {
 			value: 0.5,
 			min: 0,
 			max: 1,
