@@ -1,14 +1,16 @@
 // dependencies
 import { Canvas } from '@react-three/fiber'
 import { observer } from 'mobx-react'
-import { useContext, useEffect, useLayoutEffect, useState } from 'react'
+import {  useLayoutEffect, useState } from 'react'
+// import { useContext, useEffect, useLayoutEffect, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
 import { Vector2 } from 'three'
 
 // src
-import { callbacks, JuceMessage, JuceIntegration, ParametersContext } from './juceIntegration'
+import { callbacks, JuceIntegration, JuceMessage } from './juceIntegration'
+// import { callbacks, JuceIntegration, JuceMessage, ParametersContext } from './juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from './messages/callbackEventTypes'
-import { ParametersModelType } from './models/ParametersModel'
+// import { ParametersModelType } from './models/ParametersModel'
 import { Mesh, Vertices } from './polygon'
 import { Panel } from './panel'
 import '../scss/App.scss'
@@ -66,21 +68,25 @@ const App = observer(() => {
 	}, [])
 
 	// update polygon coordinates
-	const parameters: ParametersModelType | undefined = useContext(ParametersContext)
-	const [polygon, setPolygon] = useState<Vector2[] | null>(null)
-	useEffect(() => {
-		if (parameters?.vertices) {
-			const flatVertices = [...parameters.vertices.value] // this is the array of vertices flattened
-			console.log('vertices changed', flatVertices)
-			// convert the array of vertices to an array of Vector2
-			// the array of vertices is a flat array of x,y,x,y,x,y
-			const vertices: Vector2[] = []
-			for (let i = 0; i < flatVertices.length; i += 2) {
-				vertices.push(new Vector2(flatVertices[i], flatVertices[i + 1]))
-			}
-			setPolygon(vertices)
-		}
-	}, [parameters?.vertices])
+	// const parameters: ParametersModelType | undefined = useContext(ParametersContext)
+	const [polygon, setPolygon] = useState<Vector2[] | null>([
+		new Vector2(1, 0.3),
+		new Vector2(0.3, 0.5),
+		new Vector2(0.6, -0.3),
+	])
+	// useEffect(() => {
+	// 	if (parameters?.vertices) {
+	// 		const flatVertices = [...parameters.vertices.value] // this is the array of vertices flattened
+	// 		console.log('vertices changed', flatVertices)
+	// 		// convert the array of vertices to an array of Vector2
+	// 		// the array of vertices is a flat array of x,y,x,y,x,y
+	// 		const vertices: Vector2[] = []
+	// 		for (let i = 0; i < flatVertices.length; i += 2) {
+	// 			vertices.push(new Vector2(flatVertices[i], flatVertices[i + 1]))
+	// 		}
+	// 		setPolygon(vertices)
+	// 	}
+	// }, [parameters?.vertices])
 
 	console.log(polygon)
 
@@ -99,13 +105,13 @@ const App = observer(() => {
 			>
 				<ambientLight />
 				<pointLight position={[10, 10, 10]} />
-				{polygon && (
-					<>
-						<Mesh polygon={polygon} />
-						<Vertices polygon={polygon} />
-					</>
-				)}
+				{polygon && <Mesh polygon={polygon} />}
 			</Canvas>
+			{polygon && <Vertices polygon={polygon} onChange={(V: Vector2[]) => {
+				// replace this setState with a call to the websocket to do a round trip
+				// vertex => vertices => app => websocket => app => vertices => vertex
+				setPolygon(V)
+			}} />}
 		</JuceIntegration>
 	)
 })
