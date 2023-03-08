@@ -15,13 +15,13 @@ jobs:
   macos-build:
     runs-on: macos-latest
     steps:
+      - name: Install dependencies
+        run: |
+          brew install openssl@3
+          brew untap local/openssl
       - name: Check out code
         uses: actions/checkout@v2
       - run: git submodule update --init --recursive
-      - name: Install dependencies
-        run: |
-          brew uninstall openssl@3
-          brew untap local/openssl
       - name: Setup torch
         run: |
           curl -L https://anaconda.org/pytorch/pytorch/1.13.1/download/osx-arm64/pytorch-1.13.1-py3.9_0.tar.bz2 | tar -xv
