@@ -1,32 +1,47 @@
 // dependencies
 import { observer } from 'mobx-react'
-import { useLayoutEffect, useState } from 'react'
-// import { useContext, useEffect, useLayoutEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
 import { Vector2 } from 'three'
 
 // src
-import { callbacks, JuceIntegration, JuceMessage } from './juceIntegration'
-// import { callbacks, JuceIntegration, JuceMessage, ParametersContext } from './juceIntegration'
+import { callbacks, JuceIntegration, JuceMessage, ParametersContext } from './juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from './messages/callbackEventTypes'
-// import { ParametersModelType } from './models/ParametersModel'
+import { ParametersModelType } from './models/ParametersModel'
 import { Polygon } from './polygon'
 import { Panel } from './panel'
 import '../scss/App.scss'
+import { convertArrayToVector2, convertVector2ToArray } from './vectorUtils'
 
-// const ParamDebug = () => {
-//   const parameters = useContext(ParametersContext)!
-//   return (
-//     console.log('density', parameters.density.value),
-//     (<ParameterSlider parameter={parameters.density} />)
-//   )
-// }
+const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void }) => {
+	// update polygon coordinates
+	const parameters: ParametersModelType | undefined = useContext(ParametersContext)
+	const [polygon, setPolygon] = useState<Vector2[] | null>()
 
-// const ParameterSlider: React.FC<{ parameter: ParameterModel<number> }> = observer(
-// 	({ parameter }) => {
-// 		return parameter ? <h1>{parameter.value}</h1> : null
-// 	},
-// )
+	useEffect(() => {
+		if (parameters?.vertices.value) {
+			console.log('new polygon')
+			const flatVertices = [...parameters.vertices.value] // this is the array of vertices flattened
+			setPolygon(convertArrayToVector2(flatVertices))
+		}
+	}, [parameters?.vertices.value])
+
+	return (
+		<>
+			<Panel sendMessage={sendMessage} />
+			{polygon && (
+				<Polygon
+					polygon={polygon}
+					onChange={(V: Vector2[]) => {
+						const flatVertices = convertVector2ToArray(V)
+						console.log('sending vertices', flatVertices)
+						sendMessage(JSON.stringify({ type: 'update_shape', value: flatVertices }))
+					}}
+				/>
+			)}
+		</>
+	)
+})
 
 const App = observer(() => {
 	// web socket communication
@@ -58,52 +73,9 @@ const App = observer(() => {
 		shouldReconnect: (_: WebSocketEventMap['close']): boolean => false,
 	})
 
-	// componentDidMount
-	useLayoutEffect(() => {
-		console.log('ws mounted')
-		return () => {
-			console.log('ws unmounted')
-		}
-	}, [])
-
-	// update polygon coordinates
-	// const parameters: ParametersModelType | undefined = useContext(ParametersContext)
-	const [polygon, _] = useState<Vector2[] | null>([
-		new Vector2(1, 0.3),
-		new Vector2(0.3, 0.5),
-		new Vector2(0.6, -0.3),
-	])
-	// useEffect(() => {
-	// 	if (parameters?.vertices) {
-	// 		const flatVertices = [...parameters.vertices.value] // this is the array of vertices flattened
-	// 		console.log('vertices changed', flatVertices)
-	// 		// convert the array of vertices to an array of Vector2
-	// 		// the array of vertices is a flat array of x,y,x,y,x,y
-	// 		const vertices: Vector2[] = []
-	// 		for (let i = 0; i < flatVertices.length; i += 2) {
-	// 			vertices.push(new Vector2(flatVertices[i], flatVertices[i + 1]))
-	// 		}
-	// 		setPolygon(vertices)
-	// 	}
-	// }, [parameters?.vertices])
-
-	console.log(polygon)
-
 	return (
 		<JuceIntegration>
-			{/* <ParamDebug/> */}
-			<Panel sendMessage={sendMessage} />
-			{polygon && (
-				<Polygon
-					polygon={polygon}
-					onChange={(V: Vector2[]) => {
-						// replace this setState with a call to the websocket to do a round trip
-						// Polygon => App => websocket => App => Polygon
-						console.log(`I should be updating the sound! ${V[2]!.x} ${V[2]!.y}`)
-						sendMessage(JSON.stringify({ type: 'update_shape', value: V }))
-					}}
-				/>
-			)}
+			<Internal sendMessage={sendMessage} />
 		</JuceIntegration>
 	)
 })

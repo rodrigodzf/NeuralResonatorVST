@@ -24,6 +24,7 @@ protected:
      */
     void receivedParameterChange(const juce::var& parameter) override;
     void receivedShapeChange(const juce::var& shape) override;
+    void receivedShapeUpdate(const juce::var& shape) override;
 
     void onOpen() override;
     void onClose() override;

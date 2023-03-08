@@ -35,7 +35,6 @@ export class PolygonModel<T extends JuceVariant> {
 export class ParameterModel<T extends JuceVariant> {
 	constructor(public parameter: ValueTree) {
 		makeAutoObservable(this)
-		console.log('ParameterModel::constructor', this.id)
 	}
 
 	get id() {
