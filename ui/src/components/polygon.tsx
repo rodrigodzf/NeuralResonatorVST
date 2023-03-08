@@ -16,9 +16,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 		relativePosition(point),
 	)
 	// update position from prop
-	useEffect(() => {
-		updatePosition(relativePosition(point))
-	}, [point])
+	useEffect(() => updatePosition(relativePosition(point)), [point])
 	// calculate position from Vector2
 	function relativePosition(point: Vector2): { x_window: number; y_window: number } {
 		return {
