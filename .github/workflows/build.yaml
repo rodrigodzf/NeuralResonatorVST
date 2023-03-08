@@ -15,6 +15,7 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
   OPENSSL_ROOT_DIR: $(brew --prefix openssl@3)
+  OPENSSL_INCLUDE_DIR: $(brew --prefix openssl@3)/include
 
 jobs:
   macos-build:
@@ -23,7 +24,8 @@ jobs:
       - name: Install dependencies
         run: |
           brew install openssl@3
-          echo "${{env.OPENSSL_ROOT_DIR}}"
+          brew link --force openssl@3
+          ls "${{env.OPENSSL_ROOT_DIR}}"
 
       - name: Check out code
         uses: actions/checkout@v2
