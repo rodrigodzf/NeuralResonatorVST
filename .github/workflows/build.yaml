@@ -18,7 +18,6 @@ jobs:
       - name: Install dependencies
         run: |
           brew install openssl@3
-          brew untap local/openssl
       - name: Check out code
         uses: actions/checkout@v2
       - run: git submodule update --init --recursive
