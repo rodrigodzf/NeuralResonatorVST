@@ -11,6 +11,11 @@ on:
   push:
     tags:
       - "v*"
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  OPENSSL_ROOT_DIR: $(brew --prefix openssl@3)
+
 jobs:
   macos-build:
     runs-on: macos-latest
@@ -18,6 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install openssl@3
+          echo "${{env.OPENSSL_ROOT_DIR}}"
 
       - name: Check out code
         uses: actions/checkout@v2
@@ -31,7 +37,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/lib/python3.9/site-packages/torch -DCMAKE_BUILD_TYPE=Release -DOPENSSL_ROOT_DIR=/opt/homebrew/opt/openssl@3
+          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/lib/python3.9/site-packages/torch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           make -j
 
   # AutomaticRelease:
