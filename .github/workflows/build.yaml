@@ -20,7 +20,7 @@ jobs:
       - run: git submodule update --init --recursive
       - name: Install dependencies
         run: |
-          brew uninstall openssl@3.0.7
+          brew uninstall openssl@3
           brew untap local/openssl
       - name: Setup torch
         run: |
