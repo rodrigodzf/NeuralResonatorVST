@@ -23,8 +23,9 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          brew install openssl@3
-          brew link --force openssl@3
+          brew install openssl
+          brew link --force openssl
+          pkg-config --modversion openssl
           ls "${{env.OPENSSL_ROOT_DIR}}"
 
       - name: Check out code
