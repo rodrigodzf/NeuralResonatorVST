@@ -109,51 +109,16 @@ public:
             indexFile.getParentDirectory().createDirectory();
         }
 
-        // if the index file doesn't exist, create it
-        if (!indexFile.existsAsFile())
+        // Create a file output stream to write the binary data to
+        // overwrite the file if it already exists
+        juce::FileOutputStream stream(indexFile);
+        if (stream.openedOk())
         {
-            // Create a file output stream to write the binary data to
-            juce::FileOutputStream stream(indexFile);
-
+            stream.setPosition(0);
+            stream.truncate();
             // write the binary data to the file
             stream.write(BinaryData::index_html, BinaryData::index_htmlSize);
             stream.flush();
-        }
-        else
-        {
-            // if the index file exists, check that it's the same as the one
-            // in the binary data
-            juce::FileInputStream stream(indexFile);
-            juce::MemoryBlock block;
-            stream.readIntoMemoryBlock(block);
-            if (block.getSize() != BinaryData::index_htmlSize)
-            {
-                juce::Logger::writeToLog(
-                    "Index file is different, overwriting it"
-                );
-                // if the size is different, overwrite the file
-                juce::FileOutputStream stream(
-                    juce::File::getSpecialLocation(
-                        juce::File::SpecialLocationType::
-                            userApplicationDataDirectory
-                    )
-                        .getChildFile("index.html")
-                );
-
-                // write the binary data to the file
-                stream.write(
-                    BinaryData::index_html,
-                    BinaryData::index_htmlSize
-                );
-                stream.flush();
-            }
-
-            // check that the file exists (this should always be true)
-            if (!indexFile.existsAsFile())
-            {
-                juce::Logger::writeToLog("Index file doesn't exist");
-                jassertfalse;
-            }
         }
 
         return indexFile;
