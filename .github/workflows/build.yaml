@@ -1,0 +1,42 @@
+name: build
+on:
+  push:
+    tags:
+      - "v*"
+jobs:
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - run: git submodule update --init --recursive
+      - name: Install dependencies
+        run: |
+          brew uninstall openssl@3.0.7
+          brew untap local/openssl
+      - name: Setup torch
+        run: |
+          curl -L https://anaconda.org/pytorch/pytorch/1.13.1/download/osx-arm64/pytorch-1.13.1-py3.9_0.tar.bz2 | tar -xv
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/lib/python3.9/site-packages/torch -DCMAKE_BUILD_TYPE=Release
+          make -j
+
+  # AutomaticRelease:
+  #   runs-on: macos-build
+  #   needs: [arm64-build, x86_64-build]
+  #   steps:
+  #     - name: Download build binaries
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: torchplugins
+  #     - name: Automated Release
+  #       uses: "marvinpinto/action-automatic-releases@latest"
+  #       with:
+  #         repo_token: "${{ secrets.GITHUB_TOKEN }}"
+  #         prerelease: false
+  #         files: |
+  #           torchplugins_macOS_x86_64.tar.gz
+  #           torchplugins_macOS_arm64.tar.gz
