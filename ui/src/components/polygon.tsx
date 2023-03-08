@@ -118,7 +118,7 @@ export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) =>
 						onDrag={(v: Vector2, callback: boolean) => {
 							let tmp = [..._polygon]
 							tmp[i] = v
-							console.log(`I should be updating the mesh! ${tmp[2]!.x} ${tmp[2]!.y}`)
+							// console.log(`I should be updating the mesh! ${tmp[2]!.x} ${tmp[2]!.y}`)
 							callback ? onChange(tmp) : updatePolygon(tmp)
 						}}
 					/>
