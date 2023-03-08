@@ -90,21 +90,11 @@ void ParameterSyncer::receivedShapeUpdate(const juce::var& shape)
     MessageManager::callAsync(
         [this, shape]()
         {
-            juce::Logger::writeToLog("ParameterSyncer::receivedShapeUpdate");
+            DBG("ParameterSyncer::receivedShapeUpdate");
             auto polygonTree =
                 mVTSRef.state.getChildWithName("polygon");
 
             auto vertices = shape["value"];
-
-            // print the vertices
-            for (int i = 0; i < vertices.size(); ++i)
-            {
-                juce::Logger::writeToLog(
-                    "ParameterSyncer::receivedShapeUpdate::vertex: " +
-                    vertices[i].toString()
-                );
-            }
-
             polygonTree.setProperty("value", vertices, nullptr);
         }
     );

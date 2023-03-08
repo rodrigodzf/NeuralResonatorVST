@@ -56,9 +56,9 @@ public:
     std::map<juce::String, juce::String> mConfigMap;
     juce::File mIndexFile;
 
-    std::unique_ptr<ServerThread> mServerThreadPtr;
     std::unique_ptr<TorchWrapper> mTorchWrapperPtr;
     std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
+    juce::AudioProcessorValueTreeState mParameters;
 
 private:
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout(
@@ -67,7 +67,6 @@ private:
 
 private:
     std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
-    juce::AudioProcessorValueTreeState mParameters;
     Filterbank mFilterbank;
 
 private:
