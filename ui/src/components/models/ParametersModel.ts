@@ -26,7 +26,6 @@ export const makeParametersModel = <T>(valueTree: ValueTree, parameterIds: strin
 // Default way to create a parameters model hooked up to the AudioProcessorValueTreeState.
 // Promise resolves once the initial value tree sync has arrived
 export const makeConnectedParametersModel = async <T = ParametersModelType>(
-	callback: Function = () => {},
 	parameterIds = PARAMETER_IDS,
 	treeId: string = 'PARAMETERS',
 ) => {
@@ -34,7 +33,7 @@ export const makeConnectedParametersModel = async <T = ParametersModelType>(
 		const valueTree = new ValueTree()
 
 		createValueTreeSynchroniser(treeId, valueTree, () => {
-			const parametersModel = makeParametersModel<T>(valueTree, parameterIds, callback)
+			const parametersModel = makeParametersModel<T>(valueTree, parameterIds)
 			resolve(parametersModel)
 		})
 	})

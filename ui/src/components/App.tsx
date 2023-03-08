@@ -1,34 +1,51 @@
 // dependencies
-import { Canvas } from '@react-three/fiber'
 import { observer } from 'mobx-react'
-import { useLayoutEffect } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
+import { Vector2 } from 'three'
 
 // src
-import { callbacks, JuceMessage, JuceIntegration } from './juceIntegration'
+import { callbacks, JuceIntegration, JuceMessage, ParametersContext } from './juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from './messages/callbackEventTypes'
-import { Mesh } from './mesh'
+import { ParametersModelType } from './models/ParametersModel'
+import { Polygon } from './polygon'
 import { Panel } from './panel'
 import '../scss/App.scss'
+import { convertArrayToVector2, convertVector2ToArray } from './vectorUtils'
 
-// const ParamDebug = () => {
-//   const parameters = useContext(ParametersContext)!
-//   return (
-//     console.log('density', parameters.density.value),
-//     (<ParameterSlider parameter={parameters.density} />)
-//   )
-// }
+const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void }) => {
+	// update polygon coordinates
+	const parameters: ParametersModelType | undefined = useContext(ParametersContext)
+	const [polygon, setPolygon] = useState<Vector2[] | null>()
 
-// const ParameterSlider: React.FC<{ parameter: ParameterModel<number> }> = observer(
-// 	({ parameter }) => {
-// 		return parameter ? <h1>{parameter.value}</h1> : null
-// 	},
-// )
+	useEffect(() => {
+		if (parameters?.vertices.value) {
+			console.log('new polygon')
+			const flatVertices = [...parameters.vertices.value] // this is the array of vertices flattened
+			setPolygon(convertArrayToVector2(flatVertices))
+		}
+	}, [parameters?.vertices.value])
+
+	return (
+		<>
+			<Panel sendMessage={sendMessage} />
+			{polygon && (
+				<Polygon
+					polygon={polygon}
+					onChange={(V: Vector2[]) => {
+						const flatVertices = convertVector2ToArray(V)
+						console.log('sending vertices', flatVertices)
+						sendMessage(JSON.stringify({ type: 'update_shape', value: flatVertices }))
+					}}
+				/>
+			)}
+		</>
+	)
+})
 
 const App = observer(() => {
-	// const ws = useRef<WebSocket | undefined>()
-    const endpoint = 'ws://localhost:8000/ui'
-
+	// web socket communication
+	const endpoint = 'ws://localhost:8000/ui'
 	const { sendMessage } = useWebSocket(endpoint, {
 		onOpen: () => console.log('ws opened'),
 		onClose: () => console.log('ws closed'),
@@ -41,17 +58,13 @@ const App = observer(() => {
 					changes: [e.data],
 				},
 			}
-
 			try {
 				const existingCallbacks = callbacks.get(message.eventType)
-
-				if (existingCallbacks) {
-					existingCallbacks.forEach((cb) => cb(message.data))
-				} else {
-					console.log(`No callbacks registered for event type "${message.eventType}"`, {
-						message,
-					})
-				}
+				existingCallbacks
+					? existingCallbacks.forEach((cb) => cb(message.data))
+					: console.log(`No callbacks registered for event type "${message.eventType}"`, {
+							message,
+					  })
 			} catch (e) {
 				console.error('Error handling message from JUCE', { e, message })
 				throw e
@@ -60,31 +73,9 @@ const App = observer(() => {
 		shouldReconnect: (_: WebSocketEventMap['close']): boolean => false,
 	})
 
-	// componentDidMount
-	useLayoutEffect(() => {
-		console.log('ws mounted')
-		return () => {
-			console.log('ws unmounted')
-		}
-	}, [])
-
 	return (
 		<JuceIntegration>
-			{/* <ParamDebug/> */}
-			<Panel sendMessage={sendMessage} />
-			<Canvas
-				orthographic
-				camera={{
-					position: [0, 0, 10],
-					zoom: 100,
-					up: [0, 1, 0],
-					far: 10000,
-				}}
-			>
-				<ambientLight />
-				<pointLight position={[10, 10, 10]} />
-				<Mesh sendMessage={sendMessage} />
-			</Canvas>
+			<Internal sendMessage={sendMessage} />
 		</JuceIntegration>
 	)
 })

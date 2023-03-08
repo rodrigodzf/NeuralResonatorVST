@@ -77,6 +77,10 @@ void ServerThread::onMessage(
     {
         mParameterSyncerIfPtr->receivedShapeChange(parsedJson);
     }
+    else if (messageType == "update_shape")
+    {
+        mParameterSyncerIfPtr->receivedShapeUpdate(parsedJson);
+    }
 
 #if 0
     auto parsedJson = JSON::parse(out_message);

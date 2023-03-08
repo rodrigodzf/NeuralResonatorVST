@@ -35,9 +35,9 @@ void ParameterSyncer::stateChanged(
     // juce::Logger::writeToLog("ParameterSyncer::stateChanged: " +
     //  mVTSRef.state.toXmlString());
 
-    // juce::Logger::writeToLog(
-    // "ParameterSyncer::stateChanged: sending to "
-    // "server");
+    juce::Logger::writeToLog(
+    "ParameterSyncer::stateChanged: sending to "
+    "server");
     mServerThreadIfPtr->sendMessage(changesAsBase64);
 }
 
@@ -78,6 +78,31 @@ void ParameterSyncer::receivedShapeChange(const juce::var& shape)
             {
                 vertices.add(juce::var((polygon[i].x * 2.0f) - 1.));
                 vertices.add(juce::var((polygon[i].y * 2.0f) - 1.));
+            }
+
+            polygonTree.setProperty("value", vertices, nullptr);
+        }
+    );
+}
+
+void ParameterSyncer::receivedShapeUpdate(const juce::var& shape)
+{
+    MessageManager::callAsync(
+        [this, shape]()
+        {
+            juce::Logger::writeToLog("ParameterSyncer::receivedShapeUpdate");
+            auto polygonTree =
+                mVTSRef.state.getChildWithName("polygon");
+
+            auto vertices = shape["value"];
+
+            // print the vertices
+            for (int i = 0; i < vertices.size(); ++i)
+            {
+                juce::Logger::writeToLog(
+                    "ParameterSyncer::receivedShapeUpdate::vertex: " +
+                    vertices[i].toString()
+                );
             }
 
             polygonTree.setProperty("value", vertices, nullptr);
