@@ -1,27 +1,49 @@
 name: build
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Test workflow'  
   push:
     tags:
       - "v*"
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  OPENSSL_ROOT_DIR: /usr/local/opt/openssl@3
+  OPENSSL_INCLUDE_DIR: /usr/local/opt/openssl@3/include
+  OPENSSL_CRYPTO_LIBRARY: /usr/local/opt/openssl@3/lib/libcrypto.dylib
+
 jobs:
   macos-build:
     runs-on: macos-latest
     steps:
+      - name: Install dependencies
+        run: |
+          brew install openssl
+          brew link --force openssl
+          export PKG_CONFIG_PATH="${{env.OPENSSL_ROOT_DIR}}/lib/pkgconfig"
+          pkg-config --modversion openssl
+          ls "${{env.OPENSSL_ROOT_DIR}}"
+
       - name: Check out code
         uses: actions/checkout@v2
       - run: git submodule update --init --recursive
-      - name: Install dependencies
-        run: |
-          brew uninstall openssl@3.0.7
-          brew untap local/openssl
+
       - name: Setup torch
         run: |
-          curl -L https://anaconda.org/pytorch/pytorch/1.13.1/download/osx-arm64/pytorch-1.13.1-py3.9_0.tar.bz2 | tar -xv
+          curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.13.1.zip -o libtorch.zip
+          unzip libtorch.zip
+
       - name: Build
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/lib/python3.9/site-packages/torch -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/libtorch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           make -j
 
   # AutomaticRelease:
