@@ -4,6 +4,7 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
+		"@react-three/drei": "^9.57.1",
 		"@react-three/fiber": "^8.11.9",
 		"leva": "^0.9.34",
 		"mobx": "^6.8.0",
