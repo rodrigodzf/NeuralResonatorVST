@@ -55,37 +55,14 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
         TorchWrapper::ModelType::FC
     );
 
-    // Initialize the parameter syncer
-    juce::Logger::writeToLog("Initializing parameter syncer");
-    mParameterSyncerPtr.reset(new ParameterSyncer(mParameters));
-
-    // Initialize the server thread
-    juce::Logger::writeToLog("Initializing server thread");
-    mServerThreadPtr.reset(
-        new ServerThread(mParameterSyncerPtr->getParameterSyncerIfPtr())
-    );
-
-    // Pass the server thread to the parameter syncer
-    mParameterSyncerPtr->setServerThreadIf(
-        mServerThreadPtr->getServerThreadIfPtr()
-    );
-
     // Start the threads in order (from the bottom up)
     mQueueThread.startThread();
     mTorchWrapperPtr->startThread();
-    mServerThreadPtr->startThread();
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 {
     juce::Logger::writeToLog("AudioPluginAudioProcessor destructor");
-
-    // Stop the threads in reverse order (from the top down)
-    mServerThreadPtr.reset();
-    mServerThreadPtr = nullptr;
-
-    mParameterSyncerPtr.reset();
-    mParameterSyncerPtr = nullptr;
 
     mTorchWrapperPtr.reset();
     mTorchWrapperPtr = nullptr;
@@ -249,6 +226,7 @@ bool AudioPluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
 {
+    juce::Logger::writeToLog("AudioPluginAudioProcessor::createEditor");
     return new AudioPluginAudioProcessorEditor(*this);
 }
 
@@ -261,10 +239,10 @@ void AudioPluginAudioProcessor::getStateInformation(
     // block. You could do that either as raw data, or use the XML or
     // ValueTree classes as intermediaries to make it easy to save and load
     // complex data.
-    juce::Logger::writeToLog("getStateInformation");
-    // auto state = mParameters.copyState();
-    // MemoryOutputStream stream(destData, false);
-    // state.writeToStream(stream);
+    MemoryOutputStream stream(destData, false);
+    auto str = juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state));
+    DBG("AudioPluginAudioProcessor::getStateInformation: " << str);
+    stream.writeString(str);
 }
 
 void AudioPluginAudioProcessor::setStateInformation(
@@ -275,10 +253,13 @@ void AudioPluginAudioProcessor::setStateInformation(
     // You should use this method to restore your parameters from this memory
     // block, whose contents will have been created by the
     // getStateInformation() call.
-    juce::Logger::writeToLog("setStateInformation");
-    //! Warning: this seems to delete the callbacks
-    // MemoryInputStream stream(data, static_cast<size_t>(sizeInBytes), false);
-    // mParameters.replaceState(ValueTree::readFromStream(stream));
+    //! Warning: this seems to delete the callbacks if not handled properly
+    MemoryInputStream stream(data, size_t (sizeInBytes), true);
+    auto jsonAsStr = stream.readEntireStreamAsString();
+    DBG("AudioPluginAudioProcessor::setStateInformation: " << jsonAsStr);
+    juce::Logger::writeToLog(jsonAsStr);
+    auto json = juce::JSON::parse(jsonAsStr);
+    mParameters.replaceState(HelperFunctions::convertToValueTree(json));    
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(

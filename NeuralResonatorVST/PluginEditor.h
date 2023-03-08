@@ -1,5 +1,5 @@
 #pragma once
-
+#include "ParameterSyncer.h"
 #include "PluginProcessor.h"
 #include "ConsoleLogger.h"
 #include "BrowserComponent.h"
@@ -22,6 +22,8 @@ private:
     void onNewPosition(const std::vector<float> &position);
 
 private:
+    std::unique_ptr<ServerThread> mServerThreadPtr;
+    std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     AudioPluginAudioProcessor &processorRef;

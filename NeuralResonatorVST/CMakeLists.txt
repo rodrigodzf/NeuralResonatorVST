@@ -85,9 +85,6 @@ target_compile_definitions(
 )
 
 if (ASIO_STANDALONE)
-    # for the wss server we need openssl
-    find_package(OpenSSL REQUIRED)
-    message(STATUS "OpenSSL found at ${OPENSSL_INCLUDE_DIR}")
 
     target_compile_definitions(
         ${PLUGIN_NAME}

@@ -16,6 +16,23 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #pragma message("Using local file for UI")
     juce::String url = "file://" + processorRef.mIndexFile.getFullPathName();
 #endif
+
+    // Initialize the parameter syncer
+    juce::Logger::writeToLog("Initializing parameter syncer");
+    mParameterSyncerPtr.reset(new ParameterSyncer(processorRef.mParameters));
+
+    // Initialize the server thread
+    juce::Logger::writeToLog("Initializing server thread");
+    mServerThreadPtr.reset(
+        new ServerThread(mParameterSyncerPtr->getParameterSyncerIfPtr())
+    );
+    mServerThreadPtr->startThread();
+
+    // Pass the server thread to the parameter syncer
+    mParameterSyncerPtr->setServerThreadIf(
+        mServerThreadPtr->getServerThreadIfPtr()
+    );
+
     setOpaque(true);
     mBrowserPtr.reset(new BrowserComponent());
     addAndMakeVisible(mBrowserPtr.get());
@@ -23,7 +40,19 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     setSize(800, 400);
 }
 
-AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() {}
+AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() 
+{
+    // Stop the threads in reverse order (from the top down)
+    mServerThreadPtr.reset();
+    mServerThreadPtr = nullptr;
+
+    mParameterSyncerPtr.reset();
+    mParameterSyncerPtr = nullptr;
+
+    mBrowserPtr.reset();
+    mBrowserPtr = nullptr;
+
+}
 
 //==============================================================================
 void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)

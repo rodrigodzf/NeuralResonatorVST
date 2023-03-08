@@ -1,0 +1,64 @@
+name: build
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Test workflow'  
+  push:
+    tags:
+      - "v*"
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  OPENSSL_ROOT_DIR: /usr/local/opt/openssl@3
+  OPENSSL_INCLUDE_DIR: /usr/local/opt/openssl@3/include
+  OPENSSL_CRYPTO_LIBRARY: /usr/local/opt/openssl@3/lib/libcrypto.dylib
+
+jobs:
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          brew install openssl
+          brew link --force openssl
+          export PKG_CONFIG_PATH="${{env.OPENSSL_ROOT_DIR}}/lib/pkgconfig"
+          pkg-config --modversion openssl
+          ls "${{env.OPENSSL_ROOT_DIR}}"
+
+      - name: Check out code
+        uses: actions/checkout@v2
+      - run: git submodule update --init --recursive
+
+      - name: Setup torch
+        run: |
+          curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.13.1.zip -o libtorch.zip
+          unzip libtorch.zip
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/libtorch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          make -j
+
+  # AutomaticRelease:
+  #   runs-on: macos-build
+  #   needs: [arm64-build, x86_64-build]
+  #   steps:
+  #     - name: Download build binaries
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: torchplugins
+  #     - name: Automated Release
+  #       uses: "marvinpinto/action-automatic-releases@latest"
+  #       with:
+  #         repo_token: "${{ secrets.GITHUB_TOKEN }}"
+  #         prerelease: false
+  #         files: |
+  #           torchplugins_macOS_x86_64.tar.gz
+  #           torchplugins_macOS_arm64.tar.gz

@@ -12,9 +12,12 @@ option(ASIO_STANDALONE "Use standalone ASIO" ON)
 option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON)
 
-add_subdirectory(third_party/juce)
-set(ASIO_PATH third_party/asio/asio)
-set(SIMPLE_WEBSOCKET_SERVER_PATH third_party/simple-websocket-server)
+# Dependencies
+
+# OpenSSL
+# for the wss server we need openssl
+find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL found at ${OPENSSL_INCLUDE_DIR}")
 
 # Torch
 # list(APPEND CMAKE_PREFIX_PATH "/Users/diaz/mambaforge/envs/modal/lib/python3.10/site-packages/torch")
@@ -23,6 +26,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 # kac core
 add_subdirectory(third_party/kac_core)
+
+# JUCE
+add_subdirectory(third_party/juce)
+set(ASIO_PATH third_party/asio/asio)
+set(SIMPLE_WEBSOCKET_SERVER_PATH third_party/simple-websocket-server)
 
 # Silent cpp warnings
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
