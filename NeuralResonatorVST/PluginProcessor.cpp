@@ -239,16 +239,10 @@ void AudioPluginAudioProcessor::getStateInformation(
     // block. You could do that either as raw data, or use the XML or
     // ValueTree classes as intermediaries to make it easy to save and load
     // complex data.
-    juce::Logger::writeToLog("AudioPluginAudioProcessor::getStateInformation");
     MemoryOutputStream stream(destData, false);
-
     auto str = juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state));
-    
-
+    DBG("AudioPluginAudioProcessor::getStateInformation: " << str);
     stream.writeString(str);
-    juce::Logger::writeToLog(str);
-
-    // juce::JSON::writeToStream(stream, str);
 }
 
 void AudioPluginAudioProcessor::setStateInformation(
@@ -259,20 +253,13 @@ void AudioPluginAudioProcessor::setStateInformation(
     // You should use this method to restore your parameters from this memory
     // block, whose contents will have been created by the
     // getStateInformation() call.
-    juce::Logger::writeToLog("AudioPluginAudioProcessor::setStateInformation");
-    //! Warning: this seems to delete the callbacks
-
+    //! Warning: this seems to delete the callbacks if not handled properly
     MemoryInputStream stream(data, size_t (sizeInBytes), true);
-    // auto json = juce::JSON::parse(stream.readEntireStreamAsString());
     auto jsonAsStr = stream.readEntireStreamAsString();
+    DBG("AudioPluginAudioProcessor::setStateInformation: " << jsonAsStr);
     juce::Logger::writeToLog(jsonAsStr);
     auto json = juce::JSON::parse(jsonAsStr);
-
-    const juce::MessageManagerLock lock;
-    mParameters.state = HelperFunctions::convertToValueTree(json);
-    // auto tree = ValueTree::readFromData(data, size_t (sizeInBytes));
-    // auto json = HelperFunctions::convertToVar(tree);
-    
+    mParameters.replaceState(HelperFunctions::convertToValueTree(json));    
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(
