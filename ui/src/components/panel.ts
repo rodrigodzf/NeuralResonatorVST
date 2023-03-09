@@ -77,19 +77,19 @@ export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => 
 
 	// this comes from the ws
 	useEffect(() => {
-		set({density: parameters!.density.value})
+		set({ density: parameters!.density.value })
 	}, [parameters!.density.value])
 	useEffect(() => {
-		set({stiffness: parameters!.stiffness.value})
+		set({ stiffness: parameters!.stiffness.value })
 	}, [parameters!.stiffness.value])
 	useEffect(() => {
-		set({pratio: parameters!.pratio.value})
+		set({ pratio: parameters!.pratio.value })
 	}, [parameters!.pratio.value])
 	useEffect(() => {
-		set({alpha: parameters!.alpha.value})
+		set({ alpha: parameters!.alpha.value })
 	}, [parameters!.alpha.value])
 	useEffect(() => {
-		set({beta: parameters!.beta.value})
+		set({ beta: parameters!.beta.value })
 	}, [parameters!.beta.value])
 
 	return null
