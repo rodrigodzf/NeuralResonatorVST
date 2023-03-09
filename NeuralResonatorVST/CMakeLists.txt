@@ -17,7 +17,7 @@ juce_add_plugin(${PLUGIN_NAME}
     # NEEDS_MIDI_OUTPUT TRUE/FALSE              # Does the plugin need midi output?
     # IS_MIDI_EFFECT TRUE/FALSE                 # Is this plugin a MIDI effect?
     # EDITOR_WANTS_KEYBOARD_FOCUS TRUE/FALSE    # Does the editor need keyboard focus?
-    COPY_PLUGIN_AFTER_BUILD TRUE                # Should the plugin be installed to a default location after building?
+    COPY_PLUGIN_AFTER_BUILD FALSE               # Should the plugin be installed to a default location after building?
     PLUGIN_MANUFACTURER_CODE Diaz               # A four-character manufacturer id with at least one upper-case character
     PLUGIN_CODE NRes                            # A unique four-character plugin id with at least one upper-case character
     FORMATS ${FORMATS}                          # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
@@ -138,4 +138,47 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     #     PRIVATE
     #     -fsanitize=address
     # )
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+
+    get_target_property(
+        JUCE_PLUGIN_ARTEFACT_FILE_AU
+        ${PLUGIN_NAME}_AU
+        JUCE_PLUGIN_ARTEFACT_FILE
+    )
+
+    get_target_property(
+        JUCE_PLUGIN_ARTEFACT_FILE_VST3
+        ${PLUGIN_NAME}_VST3
+        JUCE_PLUGIN_ARTEFACT_FILE        
+    )
+    message(STATUS "JUCE_PLUGIN_ARTEFACT_FILE_AU: ${JUCE_PLUGIN_ARTEFACT_FILE_AU}")
+    message(STATUS "JUCE_PLUGIN_ARTEFACT_FILE_VST3: ${JUCE_PLUGIN_ARTEFACT_FILE_VST3}")
+
+    set(TORCH_LIBS
+        ${TORCH_INSTALL_PREFIX}/lib/libtorch.dylib
+        ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.dylib
+        ${TORCH_INSTALL_PREFIX}/lib/libc10.dylib
+    )
+
+    add_custom_command(
+        TARGET ${PLUGIN_NAME}_AU
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        ARGS -E copy ${TORCH_LIBS} "${JUCE_PLUGIN_ARTEFACT_FILE_AU}/Contents/MacOS/"
+        COMMENT "Copy Torch Libraries to AU"
+        VERBATIM
+    )
+
+    add_custom_command(
+        TARGET ${PLUGIN_NAME}_VST3
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        ARGS -E copy ${TORCH_LIBS} "${JUCE_PLUGIN_ARTEFACT_FILE_VST3}/Contents/MacOS/"
+        COMMENT "Copy Torch Libraries to VST3"
+        VERBATIM
+    )
+
+    juce_enable_copy_plugin_step(${PLUGIN_NAME})
 endif()
