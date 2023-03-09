@@ -19,7 +19,7 @@ env:
   OPENSSL_CRYPTO_LIBRARY: /usr/local/opt/openssl@3/lib/libcrypto.dylib
 
 jobs:
-  macos-build:
+  arm64-build:
     runs-on: macos-latest
     steps:
       - name: Install dependencies
@@ -36,6 +36,37 @@ jobs:
 
       - name: Setup torch
         run: |
+          curl -L https://anaconda.org/pytorch/pytorch/1.13.1/download/osx-arm64/pytorch-1.13.1-py3.9_0.tar.bz2 | tar -xv
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/lib/python3.9/site-packages/torch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_OSX_ARCHITECTURES=arm64
+          make -j
+
+      - name: Package
+        run: |
+          mkdir -p NeuralResonator
+          cp -r ~/Library/Audio/Plug-Ins/VST3/NeuralResonator.vst3 NeuralResonator
+          cp -r ~/Library/Audio/Plug-Ins/Components/NeuralResonator.component NeuralResonator
+          tar -czvf NeuralResonator_macOS_arm64.tar.gz NeuralResonator
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: NeuralResonator
+          path: NeuralResonator_macOS_arm64.tar.gz
+
+  x86_64-build:
+    runs-on: macos-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - run: git submodule update --init --recursive
+
+      - name: Setup torch
+        run: |
           curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.13.1.zip -o libtorch.zip
           unzip libtorch.zip
 
@@ -46,19 +77,32 @@ jobs:
           cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/libtorch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           make -j
 
-  # AutomaticRelease:
-  #   runs-on: macos-build
-  #   needs: [arm64-build, x86_64-build]
-  #   steps:
-  #     - name: Download build binaries
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: torchplugins
-  #     - name: Automated Release
-  #       uses: "marvinpinto/action-automatic-releases@latest"
-  #       with:
-  #         repo_token: "${{ secrets.GITHUB_TOKEN }}"
-  #         prerelease: false
-  #         files: |
-  #           torchplugins_macOS_x86_64.tar.gz
-  #           torchplugins_macOS_arm64.tar.gz
+      - name: Package
+        run: |
+          mkdir -p NeuralResonator
+          cp -r ~/Library/Audio/Plug-Ins/VST3/NeuralResonator.vst3 NeuralResonator
+          cp -r ~/Library/Audio/Plug-Ins/Components/NeuralResonator.component NeuralResonator
+          tar -czvf NeuralResonator_macOS_x86_64.tar.gz NeuralResonator
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: NeuralResonator
+          path: NeuralResonator_macOS_x86_64.tar.gz
+  
+  release:
+    runs-on: ubuntu-latest
+    needs: [x86_64-build]
+    steps:
+      - name: Download build binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: NeuralResonator
+      - name: Automated Release
+        uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            NeuralResonator_macOS_x86_64.tar.gz
+            NeuralResonator_macOS_arm64.tar.gz
