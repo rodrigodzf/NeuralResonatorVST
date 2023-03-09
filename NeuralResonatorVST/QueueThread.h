@@ -3,7 +3,8 @@
 #include <thread>
 #include <mutex>
 #include <memory>
-#include "asio_compatibility.hpp"
+#include <asio.hpp>
+#include <asio/steady_timer.hpp>
 #include <juce_core/juce_core.h>
 
 // TODO: Maybe replace all with bool MessageManager::callAsync (std::function<void()> fn)

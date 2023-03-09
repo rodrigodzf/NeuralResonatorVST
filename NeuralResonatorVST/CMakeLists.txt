@@ -91,7 +91,6 @@ if (ASIO_STANDALONE)
         PRIVATE
         USE_STANDALONE_ASIO
         -DASIO_STANDALONE
-        -D_WEBSOCKETPP_CPP11_STL_
     )
     find_path(ASIO_PATH asio.hpp REQUIRED)
     cmake_path(ABSOLUTE_PATH ASIO_PATH BASE_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -105,21 +104,6 @@ if (ASIO_STANDALONE)
             ${ASIO_PATH}/include
         )
     endif()
-endif()
-
-find_path(SIMPLE_WEBSOCKET_SERVER_PATH server_ws.hpp REQUIRED)
-if (NOT SIMPLE_WEBSOCKET_SERVER_PATH)
-    message(FATAL_ERROR "Simple Websocket Server not found")
-else()
-    cmake_path(ABSOLUTE_PATH SIMPLE_WEBSOCKET_SERVER_PATH BASE_DIRECTORY ${PROJECT_SOURCE_DIR})
-    message(STATUS "Simple Websocket Server found at ${SIMPLE_WEBSOCKET_SERVER_PATH}")
-
-    target_include_directories(
-        ${PLUGIN_NAME}
-        PUBLIC
-        ${SIMPLE_WEBSOCKET_SERVER_PATH}
-        "/Users/diaz/projects/NeuralResonatorVST/third_party/websocketpp"
-    )
 endif()
 
 target_include_directories(

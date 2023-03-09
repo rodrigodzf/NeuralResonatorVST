@@ -2,7 +2,7 @@
 
 #include <juce_core/juce_core.h>
 #include <juce_gui_basics/juce_gui_basics.h>
-#include "server_ws.hpp"
+#include "simple_ws_server/server_ws.hpp"
 
 #include "ParameterSyncerIf.h"
 #include "ServerThreadIf.h"
