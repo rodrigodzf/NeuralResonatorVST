@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
-		"@react-three/fiber": "^8.11.10",
+		"@react-three/fiber": "^8.12.0",
 		"leva": "^0.9.34",
 		"mobx": "^6.8.0",
 		"mobx-react": "^7.6.0",
