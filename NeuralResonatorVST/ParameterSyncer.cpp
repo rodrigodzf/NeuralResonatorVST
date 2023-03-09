@@ -64,12 +64,12 @@ void ParameterSyncer::receivedParameterChange(const juce::var& parameter)
 void ParameterSyncer::receivedShapeChange(const juce::var& shape)
 {
     MessageManager::callAsync(
-        [this]()
+        [this, shape]()
         {
             auto polygonTree =
                 mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
             auto polygon = kac_core::geometry::normalisePolygon(
-                kac_core::geometry::generateConvexPolygon(10)
+                kac_core::geometry::generateConvexPolygon(float(shape["value"]))
             );
 
             juce::Array<juce::var> vertices;

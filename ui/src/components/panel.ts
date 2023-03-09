@@ -71,7 +71,7 @@ export const Panel = observer(({ sendMessage }: { sendMessage: (msg: string) => 
 			},
 		},
 		'new shape': button(() => {
-			sendMessage(JSON.stringify({ type: 'new_shape' }))
+			sendMessage(JSON.stringify({ type: 'new_shape', value: 16 })) //TODO: make this a slider
 		}),
 	}))
 
