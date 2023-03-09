@@ -84,38 +84,10 @@ target_compile_definitions(
     BROWSER_DEV_SERVER=$<BOOL:${BROWSER_DEV_SERVER}>
 )
 
-if (ASIO_STANDALONE)
-
-    target_compile_definitions(
-        ${PLUGIN_NAME}
-        PRIVATE
-        USE_STANDALONE_ASIO
-        -DASIO_STANDALONE
-    )
-    find_path(ASIO_PATH asio.hpp REQUIRED)
-    cmake_path(ABSOLUTE_PATH ASIO_PATH BASE_DIRECTORY ${PROJECT_SOURCE_DIR})
-    if(NOT ASIO_PATH)
-        message(FATAL_ERROR "Standalone Asio not found")
-    else()
-        message(STATUS "Standalone Asio found at ${ASIO_PATH}")
-        target_include_directories(
-            ${PLUGIN_NAME}
-            PRIVATE
-            ${ASIO_PATH}/include
-        )
-    endif()
-endif()
-
-target_include_directories(
-    ${PLUGIN_NAME}
-    INTERFACE
-    ${OPENSSL_INCLUDE_DIR}
-)
-
 target_link_libraries(
     ${PLUGIN_NAME}
     PRIVATE
-    OpenSSL::SSL
+    asio
     juce::juce_gui_extra
     BinaryData
 	kac_core
@@ -153,8 +125,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         ${PLUGIN_NAME}_VST3
         JUCE_PLUGIN_ARTEFACT_FILE        
     )
-    message(STATUS "JUCE_PLUGIN_ARTEFACT_FILE_AU: ${JUCE_PLUGIN_ARTEFACT_FILE_AU}")
-    message(STATUS "JUCE_PLUGIN_ARTEFACT_FILE_VST3: ${JUCE_PLUGIN_ARTEFACT_FILE_VST3}")
 
     set(TORCH_LIBS
         ${TORCH_INSTALL_PREFIX}/lib/libtorch.dylib

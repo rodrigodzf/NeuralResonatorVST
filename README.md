@@ -23,23 +23,6 @@ sudo apt install libasound2-dev libjack-jackd2-dev \
     libglu1-mesa-dev mesa-common-dev
 ```
 
-Additionally we need openssl:
-
-For **Linux**:
-
-```bash
-sudo apt install libssl-dev
-```
-For **Mac**:
-
-From [here](https://stackoverflow.com/a/29792635)
-
-```bash
-brew install openssl
-brew link --force openssl
-pkg-config --modversion openssl
-```
-
 Then we can build the project:
 
 ```bash
