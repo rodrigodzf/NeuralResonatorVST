@@ -3,7 +3,8 @@
 
 //==============================================================================
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
-    AudioPluginAudioProcessor& p)
+    AudioPluginAudioProcessor& p
+)
     : AudioProcessorEditor(&p), processorRef(p)
 {
     // init browser
@@ -36,7 +37,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     mBrowserPtr.reset(new BrowserComponent());
     addAndMakeVisible(mBrowserPtr.get());
     mBrowserPtr->goToURL(url);
-    setSize(400, 400);
+    setSize(800, 400);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor() 
@@ -58,8 +59,9 @@ void AudioPluginAudioProcessorEditor::paint(juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background
     // with a solid colour)
-    g.fillAll(getLookAndFeel().findColour(
-        juce::ResizableWindow::backgroundColourId));
+    g.fillAll(
+        getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId)
+    );
 }
 
 void AudioPluginAudioProcessorEditor::resized()

@@ -1,3 +1,9 @@
+// var
+
+$background: #fe746e;
+$foreground: #2f7df6;
+$accent: #eefa5a;
+
 // animation
 
 @keyframes App-logo-spin {
@@ -12,8 +18,7 @@
 // src
 
 html,
-body,
-#root {
+body {
 	height: 100%;
 	width: 100%;
 	margin: 0;
@@ -24,6 +29,12 @@ body,
 	-webkit-text-size-adjust: 100%;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	background-color: $background;
+}
+
+#root {
+	height: 100%;
+	width: 62.5%;
 }
 
 canvas {
@@ -33,7 +44,6 @@ canvas {
 	padding: 0;
 	overflow: hidden;
 	font-family: inherit;
-	background-color: red;
 }
 
 code {

@@ -22,6 +22,14 @@ jobs:
   arm64-build:
     runs-on: macos-latest
     steps:
+      - name: Install dependencies
+        run: |
+          brew install openssl
+          brew link --force openssl
+          export PKG_CONFIG_PATH="${{env.OPENSSL_ROOT_DIR}}/lib/pkgconfig"
+          pkg-config --modversion openssl
+          ls "${{env.OPENSSL_ROOT_DIR}}"
+
       - name: Check out code
         uses: actions/checkout@v3
         with:
