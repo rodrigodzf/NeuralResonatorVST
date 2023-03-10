@@ -83,6 +83,7 @@ public:
         return configMap;
     }
 
+#if 0
     /**
      * @brief Save the index.html file to the user's home directory
      */
@@ -123,7 +124,7 @@ public:
 
         return indexFile;
     }
-
+#endif
     static juce::Image shapeToImage(
         const juce::Path& path,
         const int width = 64,
