@@ -72,7 +72,7 @@ void TorchWrapper::loadModel(
                 jassertfalse;
                 return;
             }
-            juce::Logger::writeToLog("Model loaded successfully");
+            juce::Logger::writeToLog("Model: " + modelPath + " loaded successfully!");
         }
     );
 }

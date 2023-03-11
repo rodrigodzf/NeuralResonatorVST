@@ -3,6 +3,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
+#include "juce_core/system/juce_PlatformDefs.h"
 #include <kac_core.hpp>
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
@@ -32,10 +33,6 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     juce::Logger::setCurrentLogger(mFileLoggerPtr.get());
     juce::Logger::writeToLog("AudioPluginAudioProcessor constructor");
 
-    // Get config file and index file path
-    mConfigMap = HelperFunctions::getConfig();
-    mIndexFile = HelperFunctions::saveLoadIndexFile();
-
     // Create and append the polygon valueTree to the parameter tree
     createAndAppendValueTree();
 
@@ -43,15 +40,54 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
         juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state))
     );
 
+    // location of the index.html file inside the plugin bundle
+    mIndexFile =
+        juce::File::getSpecialLocation(
+            juce::File::SpecialLocationType::currentApplicationFile)
+            .getChildFile("Contents")
+            .getChildFile("Resources")
+            .getChildFile("index.html")
+            .getFullPathName();
+    
+    // check that the index file exists
+    if (!juce::File(mIndexFile).existsAsFile()) {
+        juce::Logger::writeToLog("index.html not found");
+    }
+
+    // location of the pretrained models inside the plugin bundle
+    auto encoderPath =
+        juce::File::getSpecialLocation(
+            juce::File::SpecialLocationType::currentApplicationFile)
+            .getChildFile("Contents")
+            .getChildFile("Resources")
+            .getChildFile("encoder.pt")
+            .getFullPathName();
+
+    auto fcPath =
+        juce::File::getSpecialLocation(
+            juce::File::SpecialLocationType::currentApplicationFile)
+            .getChildFile("Contents")
+            .getChildFile("Resources")
+            .getChildFile("model_wrap.pt")
+            .getFullPathName();
+    
+    // check that the models exist
+    if (!juce::File(encoderPath).existsAsFile()) {
+        juce::Logger::writeToLog("encoder.pt not found");
+    }
+    if (!juce::File(fcPath).existsAsFile()) {
+        juce::Logger::writeToLog("model_wrap.pt not found");
+    }
+
     // initialize the torch wrapper
     juce::Logger::writeToLog("Initializing torch wrapper");
     mTorchWrapperPtr.reset(new TorchWrapper(this, mParameters));
     mTorchWrapperPtr->loadModel(
-        mConfigMap["encoder_path"].toStdString(),
+        encoderPath.toStdString(),
         TorchWrapper::ModelType::ShapeEncoder
     );
     mTorchWrapperPtr->loadModel(
-        mConfigMap["fc_path"].toStdString(),
+        fcPath.toStdString(),
         TorchWrapper::ModelType::FC
     );
 

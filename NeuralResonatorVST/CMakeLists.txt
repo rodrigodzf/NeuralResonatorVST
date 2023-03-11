@@ -48,17 +48,17 @@ if (NOT EXISTS ${MINIFIED_UI_PATH})
 endif()
 
 # Add any resources you need to this target
-juce_add_binary_data(
-    BinaryData
-    SOURCES
-    ${MINIFIED_UI_PATH}
-)
+# juce_add_binary_data(
+#     BinaryData
+#     SOURCES
+#     ${MINIFIED_UI_PATH}
+# )
 
-set_target_properties(
-    BinaryData 
-    PROPERTIES
-    POSITION_INDEPENDENT_CODE TRUE
-)
+# set_target_properties(
+#     BinaryData 
+#     PROPERTIES
+#     POSITION_INDEPENDENT_CODE TRUE
+# )
 
 juce_generate_juce_header(${PLUGIN_NAME})
 
@@ -89,7 +89,7 @@ target_link_libraries(
     PRIVATE
     asio
     juce::juce_gui_extra
-    BinaryData
+    # BinaryData
 	kac_core
     PUBLIC
     juce::juce_recommended_config_flags
@@ -148,6 +148,36 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         ARGS -E copy ${TORCH_LIBS} "${JUCE_PLUGIN_ARTEFACT_FILE_VST3}/Contents/MacOS/"
         COMMENT "Copy Torch Libraries to VST3"
         VERBATIM
+    )
+
+    # copy the pretrained models
+    set(
+        PRETRAINED_MODELS_PATH
+        ${CMAKE_SOURCE_DIR}/pretrained/encoder.pt
+        ${CMAKE_SOURCE_DIR}/pretrained/model_wrap.pt
+        CACHE INTERNAL "Path to the pretrained models"
+    )
+
+    # Copy pretrained models to the plugin bundle
+    target_sources(${PLUGIN_NAME}_AU PRIVATE ${PRETRAINED_MODELS_PATH})
+    target_sources(${PLUGIN_NAME}_VST3 PRIVATE ${PRETRAINED_MODELS_PATH})
+    target_sources(${PLUGIN_NAME}_Standalone PRIVATE ${PRETRAINED_MODELS_PATH})
+
+    set_source_files_properties(
+        ${PRETRAINED_MODELS_PATH}
+        PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources"
+    )
+
+    # Copy the minified ui to the plugin bundle
+    target_sources(${PLUGIN_NAME}_AU PRIVATE ${MINIFIED_UI_PATH})
+    target_sources(${PLUGIN_NAME}_VST3 PRIVATE ${MINIFIED_UI_PATH})
+    target_sources(${PLUGIN_NAME}_Standalone PRIVATE ${MINIFIED_UI_PATH})
+
+    set_source_files_properties(
+        ${MINIFIED_UI_PATH}
+        PROPERTIES
+        MACOSX_PACKAGE_LOCATION "Resources"
     )
 
     juce_enable_copy_plugin_step(${PLUGIN_NAME})
