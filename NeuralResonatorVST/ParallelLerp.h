@@ -28,11 +28,15 @@ class ParallelLerp
 		template<size_t N>
 		bool setValues(T const (&values)[N]);
 
+		bool setValue(T value, unsigned int index);
+
 		bool setTargets(const T* targets, unsigned int nValues);
 		template<typename A>
 		bool setTargets(std::vector<T,A> const& targets);
 		template<size_t N>
 		bool setTargets(T const (&targets)[N]);
+
+		bool setTarget(T target, unsigned int index);
 
 		void setDelta(unsigned int delta);
 
@@ -43,7 +47,7 @@ class ParallelLerp
 		const T* getValuesPtr();
 		unsigned int getNValues();
 
-		T etTarget(unsigned int index);
+		T getTarget(unsigned int index);
 
 		Lerp<T>* getInterpolator(unsigned int index);
 
@@ -225,4 +229,23 @@ T ParallelLerp<T>::getTarget(unsigned int index)
 	if(index >= m_interpolators.size())
 		return T();
 	return m_interpolators[index]->getTarget();
+}
+
+template<typename T>
+bool ParallelLerp<T>::setValue(T value, unsigned int index)
+{
+	if(index >= m_interpolators.size())
+		return false;
+	m_interpolators[index]->setValue(value);
+	m_values[index] = value;
+	return true;
+}
+
+template<typename T>
+bool ParallelLerp<T>::setTarget(T target, unsigned int index)
+{
+	if(index >= m_interpolators.size())
+		return false;
+	m_interpolators[index]->setTarget(target);
+	return true;
 }
