@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <juce_core/juce_core.h>
 
 #define N_COEFFICIENTS_TWO_POLE 5
 template <typename T>
@@ -47,9 +48,14 @@ public:
         return coefficients;
     }
 
-    const T* get_coefficients_ptr() { return m_coeff; }
+    T* get_coefficients_ptr() { return &m_coeff[0]; }
 
-    const T& get_coefficients_ref() { return *m_coeff; }
+    const T& get_coefficients_ref() { return m_coeff; }
+
+    T get_coefficient(unsigned int index)
+    {
+	    return m_coeff[index];
+    }
 
     T process(T x)
     {
