@@ -382,22 +382,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "xpos",                          // parameterID
         "X Position",                    // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f,
+            -1.0f,
             1.0f,
             0.01f
         ),    // min, max, interval
-        0.5f  // default value
+        0.0f  // default value
     ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "ypos",                          // parameterID
         "Y Position",                    // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f,
+            -1.0f,
             1.0f,
             0.01f
         ),    // min, max, interval
-        0.5f  // default value
+        0.0f  // default value
     ));
 
     return layout;

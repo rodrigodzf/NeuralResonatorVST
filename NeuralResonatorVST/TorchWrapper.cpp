@@ -252,13 +252,22 @@ void TorchWrapper::valueTreePropertyChanged(
                     {
                         mLastMaterialTensor[0][4] = float(*newValue);
                     }
+                    // the ui lives in the coordinate space where the origin is in the 
+                    // centre of the screen, and the range is approximately -1 to 1 in both x and y
+                    // directions. with the y axis pointing up.
+                    // the neural network lives in the coordinate space where the origin is in the
+                    // TOP LEFT corner and the range is 0 to 1 in both x and y
+                    // directions.
+                    // we need to convert the values from the ui to the values that the neural
+                    // network expects.
                     else if (parameterID == "xpos")
-                    {
-                        mLastPositionTensor[0][0] = float(*newValue);
+                    {   
+                        mLastPositionTensor[0][0] = (float(*newValue) + 1.0f) * 0.5f;
                     }
                     else if (parameterID == "ypos")
-                    {
-                        mLastPositionTensor[0][1] = float(*newValue);
+                    {   
+                        // the y axis is flipped, so we need to invert the value
+                        mLastPositionTensor[0][1] = 1.0f - ((float(*newValue) + 1.0f) * 0.5f);
                     }
 
                     this->predictCoefficients();
@@ -268,6 +277,8 @@ void TorchWrapper::valueTreePropertyChanged(
     }
     else if (treeType == "polygon")
     {
+        juce::Logger::writeToLog("TorchWrapper::Polygon changed");
+
         if (auto *flattenedVertices =
                 changedTree.getPropertyPointer(changedProperty))
         {
@@ -302,8 +313,6 @@ void TorchWrapper::valueTreePropertyChanged(
 
                     // handle the path
                     this->handleReceivedNewShape(path);
-
-                    this->predictCoefficients();
                 }
             );
         }
