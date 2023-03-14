@@ -3,9 +3,10 @@ import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import { Shape, Vector2 } from 'three'
 
-const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean) => any }> = ({
+const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean) => any; className?: string;  }> = ({
 	point,
 	onDrag,
+	className = '',
 }) => {
 	/*
 	A handle for a single vertex.
@@ -63,7 +64,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 
 	return (
 		<div
-			className='vertex'
+			className={`vertex ${className}`}
 			style={{
 				top: `${position.y_window - 5}px`,
 				left: `${position.x_window - 5}px`,
@@ -73,21 +74,23 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 	)
 }
 
-export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) => any }> = ({
-	polygon,
-	onChange,
-}): JSX.Element => {
+export const Polygon: React.FC<{
+	polygon: Vector2[]
+	listener: Vector2
+	onPolygonChange: (V: Vector2[]) => any
+	onListenerChange: (V: Vector2) => any
+}> = ({ polygon, listener, onPolygonChange, onListenerChange }): JSX.Element => {
 	/*
 	Body of the polygon.
 	*/
 
 	// where am i
-	const [_polygon, updatePolygon] = useState<Vector2[]>(polygon)
-	// update Polygon from prop
-	useEffect(() => {
-		updatePolygon(polygon)
-	}, [polygon])
 	const mesh = useRef<THREE.Mesh>(null)
+	const [_polygon, updatePolygon] = useState<Vector2[]>(polygon)
+	const [_listener, updateListener] = useState<Vector2>(listener)
+	// update Polygon from prop
+	useEffect(() => updatePolygon(polygon), [polygon])
+	useEffect(() => updateListener(listener), [listener])
 	return (
 		<>
 			<Canvas
@@ -117,10 +120,15 @@ export const Polygon: React.FC<{ polygon: Vector2[]; onChange: (V: Vector2[]) =>
 							let tmp = [..._polygon]
 							tmp[i] = v
 							// console.log(`I should be updating the mesh! ${tmp[2]!.x} ${tmp[2]!.y}`)
-							callback ? onChange(tmp) : updatePolygon(tmp)
+							callback ? onPolygonChange(tmp) : updatePolygon(tmp)
 						}}
 					/>
 				))}
+			<Vertex
+				className='listener'
+				point={listener}
+				onDrag={(v: Vector2, _) => onListenerChange(v)}
+			/>
 		</>
 	)
 }

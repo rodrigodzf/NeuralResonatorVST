@@ -17,6 +17,7 @@ const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void
 	// update polygon coordinates
 	const parameters: ParametersModelType | undefined = useContext(ParametersContext)
 	const [polygon, setPolygon] = useState<Vector2[] | null>()
+	const [strike, setStrike] = useState<Vector2 | null>()
 
 	useEffect(() => {
 		if (parameters?.vertices.value) {
@@ -26,16 +27,26 @@ const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void
 		}
 	}, [parameters?.vertices.value])
 
+	useEffect(() => {
+		if (parameters?.xpos.value && parameters?.ypos.value)  {
+			setStrike(new Vector2(parameters.xpos.value, parameters.ypos.value))
+		}
+	}, [parameters?.xpos.value, parameters?.ypos.value])
+
 	return (
 		<>
 			<Panel sendMessage={sendMessage} />
-			{polygon && (
+			{polygon && strike && (
 				<Polygon
 					polygon={polygon}
-					onChange={(V: Vector2[]) => {
+					listener={strike}
+					onPolygonChange={(V: Vector2[]) => {
 						const flatVertices = convertVector2ToArray(V)
 						console.log('sending vertices', flatVertices)
 						sendMessage(JSON.stringify({ type: 'update_shape', value: flatVertices }))
+					}}
+					onListenerChange={(V: Vector2) => {
+						// ...
 					}}
 				/>
 			)}

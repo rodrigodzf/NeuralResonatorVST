@@ -30,6 +30,7 @@ body {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	background-color: $background;
+	user-select: none !important;
 }
 
 #root {
@@ -44,10 +45,15 @@ canvas {
 	padding: 0;
 	overflow: hidden;
 	font-family: inherit;
+	cursor: normal !important;
 }
 
 code {
 	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+#leva__root {
+	user-select: none !important;
 }
 
 // .App {
