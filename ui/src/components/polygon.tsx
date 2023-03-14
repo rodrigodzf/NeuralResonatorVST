@@ -3,6 +3,8 @@ import { Canvas } from '@react-three/fiber'
 import { useEffect, useRef, useState } from 'react'
 import { Shape, Vector2 } from 'three'
 
+const zoom: number = 180
+
 const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean) => any; className?: string;  }> = ({
 	point,
 	onDrag,
@@ -21,8 +23,8 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 	// calculate position from Vector2
 	function relativePosition(point: Vector2): { x_window: number; y_window: number } {
 		return {
-			x_window: 100 * point.x + (window.innerWidth * 0.625) / 2,
-			y_window: 100 * -1 * point.y + window.innerHeight / 2,
+			x_window: zoom * point.x + (window.innerWidth * 0.625) / 2,
+			y_window: zoom * -1 * point.y + window.innerHeight / 2,
 		}
 	}
 	// handle movement of points
@@ -34,8 +36,8 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 				updatePosition({ x_window: e.clientX, y_window: e.clientY })
 				onDrag(
 					new Vector2(
-						(e.clientX - (window.innerWidth * 0.625) / 2) / 100,
-						((e.clientY - window.innerHeight / 2) * -1) / 100,
+						(e.clientX - (window.innerWidth * 0.625) / 2) / zoom,
+						((e.clientY - window.innerHeight / 2) * -1) / zoom,
 					),
 					false,
 				)
@@ -46,8 +48,8 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 			if (mouseDown) {
 				onDrag(
 					new Vector2(
-						(e.clientX - (window.innerWidth * 0.625) / 2) / 100,
-						((e.clientY - window.innerHeight / 2) * -1) / 100,
+						(e.clientX - (window.innerWidth * 0.625) / 2) / zoom,
+						((e.clientY - window.innerHeight / 2) * -1) / zoom,
 					),
 					true,
 				)
@@ -97,7 +99,7 @@ export const Polygon: React.FC<{
 				orthographic
 				camera={{
 					position: [0, 0, 10],
-					zoom: 100,
+					zoom,
 					up: [0, 1, 0],
 					far: 10000,
 				}}
