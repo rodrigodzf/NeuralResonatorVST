@@ -22,6 +22,7 @@ AlignAfterOpenBracket: BlockIndent
 BinPackArguments: false
 BinPackParameters: false
 # Contructor initializers
+PackConstructorInitializers: Never
 BreakConstructorInitializersBeforeComma: true
 BreakConstructorInitializers: BeforeComma
 IndentAccessModifiers: false

@@ -6,6 +6,7 @@
 #include <asio.hpp>
 #include <asio/steady_timer.hpp>
 #include <juce_core/juce_core.h>
+#include "HelperFunctions.h"
 
 // TODO: Maybe replace all with bool MessageManager::callAsync (std::function<void()> fn)
 
@@ -24,7 +25,7 @@ public:
     
     bool startThread()
     {
-        juce::Logger::writeToLog("Starting thread: " + getThreadName());
+        JLOG("Starting thread: " + getThreadName());
         return Thread::startThread();
     }
     
@@ -32,7 +33,7 @@ public:
     {
         std::lock_guard<std::mutex> lock(mMutex);
         mWorkPtr.reset();
-        juce::Logger::writeToLog("Closing Thread: " + getThreadName());
+        JLOG("Closing Thread: " + getThreadName());
 
     }
     asio::io_service& getIoService()

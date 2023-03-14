@@ -22,7 +22,9 @@ public:
 
     TorchWrapper(
         ProcessorIf* processorPtr,
-        juce::AudioProcessorValueTreeState& vts
+        juce::AudioProcessorValueTreeState& vts,
+        const juce::String& fcModelPath,
+        const juce::String& shapeEncoderModelPath
     );
     ~TorchWrapper();
 
@@ -55,6 +57,7 @@ protected:
         override;
     void valueTreeChildOrderChanged(juce::ValueTree&, int, int) override;
     void valueTreeParentChanged(juce::ValueTree&) override;
+    void valueTreeRedirected(juce::ValueTree&) override;
 
 private:
     torch::jit::Module mShapeEncoderNetwork;
