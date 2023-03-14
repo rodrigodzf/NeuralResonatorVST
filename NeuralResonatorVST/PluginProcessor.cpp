@@ -328,10 +328,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "Density",                       // parameter name
         juce::NormalisableRange<float>(  // range
             0.0f,
-            1.0f,
+            2.0f,
             0.01f
         ),    // min, max, interval
-        0.5f  // default value
+        1.0f  // default value
     ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
@@ -349,8 +349,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "pratio",                        // parameterID
         "Poisson Ratio",                 // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f,
-            1.0f,
+            -0.3f,
+            1.3f,
             0.01f
         ),    // min, max, interval
         0.5f  // default value
@@ -360,8 +360,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "alpha",                         // parameterID
         "Alpha",                         // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f,
-            1.0f,
+           -0.5f,
+            1.5f,
             0.01f
         ),    // min, max, interval
         0.5f  // default value
@@ -371,8 +371,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "beta",                          // parameterID
         "Beta",                          // parameter name
         juce::NormalisableRange<float>(  // range
-            0.0f,
-            1.0f,
+            -0.5f,
+            1.5f,
             0.01f
         ),    // min, max, interval
         0.5f  // default value

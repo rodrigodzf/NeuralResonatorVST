@@ -10,8 +10,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     // init browser
 #if BROWSER_DEV_SERVER
 #pragma message("Using dev server for UI")
-    juce::String url = "http://" + processorRef.mConfigMap["host"] + ":" +
-                       processorRef.mConfigMap["port"];
+    juce::String url = "http://localhost:3000";
 #else
 #pragma message("Using local file for UI")
     juce::String url = "file://" + processorRef.mIndexFile.getFullPathName();
