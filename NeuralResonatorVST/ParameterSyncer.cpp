@@ -36,8 +36,9 @@ void ParameterSyncer::stateChanged(
     //  mVTSRef.state.toXmlString());
 
     juce::Logger::writeToLog(
-    "ParameterSyncer::stateChanged: sending to "
-    "server");
+        "ParameterSyncer::stateChanged: sending to "
+        "server"
+    );
     mServerThreadIfPtr->sendMessage(changesAsBase64);
 }
 
@@ -69,7 +70,10 @@ void ParameterSyncer::receivedShapeChange(const juce::var& shape)
             auto polygonTree =
                 mVTSRef.state.getOrCreateChildWithName("polygon", nullptr);
             auto polygon = kac_core::geometry::normalisePolygon(
-                kac_core::geometry::generateConvexPolygon(float(shape["value"]))
+                kac_core::geometry::generateConvexPolygon(float(shape["value"]
+                ))
+                // kac_core::geometry::generateIrregularStar(float(shape["value"])
+                // kac_core::geometry::generatePolygon(float(shape["value"])
             );
 
             juce::Array<juce::var> vertices;
@@ -91,10 +95,90 @@ void ParameterSyncer::receivedShapeUpdate(const juce::var& shape)
         [this, shape]()
         {
             DBG("ParameterSyncer::receivedShapeUpdate");
-            auto polygonTree =
-                mVTSRef.state.getChildWithName("polygon");
-
+            auto polygonTree = mVTSRef.state.getChildWithName("polygon");
             auto vertices = shape["value"];
+            // change list to T::Polygon
+            kac_core::types::Polygon P;
+            int N = vertices.size() / 2;
+            for (int i = 0; i < vertices.size(); i += 2)
+            {
+                P.push_back(kac_core::types::Point(
+                    double(vertices[i]),
+                    double(vertices[i + 1])
+                ));
+            }
+            // 2 opt loop
+            std::vector<std::pair<int, int>> indices;
+            std::string intersection_type = "";
+            bool intersections = true;
+            while (intersections)
+            {
+            Search_loop:
+                for (int i = 0; i < N - 2; i++)
+                {
+                    for (int j = i + 1; j < N; j++)
+                    {
+                        // collect indices of lines which should be crossed
+                        intersection_type =
+                            kac_core::geometry::lineIntersection(
+                                T::Line(P[i], P[i + 1]),
+                                T::Line(P[j], P[(j + 1) % N])
+                            )
+                                .first;
+                        if (intersection_type == "none" ||
+                            intersection_type == "vertex")
+                        {
+                            continue;
+                        }
+                        else if (intersection_type == "intersect")
+                        {
+                            indices.push_back(std::make_pair(i + 1, j + 1));
+                        }
+                        else if (intersection_type == "adjacent")
+                        {
+                            indices.push_back(std::make_pair(i, j));
+                        }
+                        else if (intersection_type == "colinear")
+                        {
+                            int min_i = 0 ? P[i].x < P[i + 1].x : 1;
+                            int max_j = 0 ? P[j].x > P[j + 1].x : 1;
+                            std::reverse(
+                                P.begin() + i + min_i,
+                                P.begin() + j + max_j
+                            );
+                            // restart loop
+                            indices.clear();
+                            goto Search_loop;
+                        }
+                    }
+                }
+                if (indices.size() > 0)
+                {
+                    // randomly swap one pair
+                    std::pair<int, int> swap = indices
+                        [abs(uniform_distribution(random_engine)) %
+                         indices.size()];
+                    std::reverse(
+                        P.begin() + swap.first,
+                        P.begin() + swap.second
+                    );
+                    // restart loop
+                    indices.clear();
+                    goto Search_loop;
+                }
+                else
+                {
+                    // close loop
+                    intersections = false;
+                }
+            }
+            // convert back to list
+            for (int n = 0; n < N; n++)
+            {
+                vertices[2 * n] = juce::var(P[n].x);
+                vertices[(2 * n) + 1] = juce::var(P[n].y);
+            }
+            // update
             polygonTree.setProperty("value", vertices, nullptr);
         }
     );
