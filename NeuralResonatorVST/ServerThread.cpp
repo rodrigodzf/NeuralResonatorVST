@@ -71,14 +71,20 @@ void ServerThread::onMessage(
     }
     if (messageType == "new_parameter")
     {
+        juce::Logger::writeToLog("Server: received new parameter");
+
         mParameterSyncerIfPtr->receivedParameterChange(parsedJson);
     }
     else if (messageType == "new_shape")
     {
-        mParameterSyncerIfPtr->receivedShapeChange(parsedJson);
+        juce::Logger::writeToLog("Server: received new shape");
+
+        mParameterSyncerIfPtr->receivedNewShape(parsedJson);
     }
     else if (messageType == "update_shape")
     {
+        juce::Logger::writeToLog("Server: received shape update");
+
         mParameterSyncerIfPtr->receivedShapeUpdate(parsedJson);
     }
 

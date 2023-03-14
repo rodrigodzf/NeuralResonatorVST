@@ -62,7 +62,7 @@ void ParameterSyncer::receivedParameterChange(const juce::var& parameter)
     );
 }
 
-void ParameterSyncer::receivedShapeChange(const juce::var& shape)
+void ParameterSyncer::receivedNewShape(const juce::var& shape)
 {
     MessageManager::callAsync(
         [this, shape]()
