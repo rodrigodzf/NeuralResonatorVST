@@ -46,7 +46,8 @@ const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void
 						sendMessage(JSON.stringify({ type: 'update_shape', value: flatVertices }))
 					}}
 					onListenerChange={(V: Vector2) => {
-						// ...
+						sendMessage(JSON.stringify({ type: 'new_parameter', id: 'xpos', value: V.x }))
+						sendMessage(JSON.stringify({ type: 'new_parameter', id: 'ypos', value: V.y }))
 					}}
 				/>
 			)}
