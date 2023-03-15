@@ -5,6 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 # verbose
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Change this option to ON if you want to build the AudioPluginHost for example
 # (practical to debug the plugin processor directly from your IDE)
 option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
@@ -50,6 +52,12 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin"
         -Wno-shadow
         -Wno-deprecated-declarations
     )
+    set(CMAKE_MACOSX_RPATH TRUE)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+    set(CMAKE_INSTALL_RPATH "@loader_path")
+    # set(CMAKE_SKIP_BUILD_RPATH FALSE)
+    set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 endif()
 
 add_subdirectory(NeuralResonatorVST)
