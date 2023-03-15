@@ -28,10 +28,8 @@ const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void
 	}, [parameters?.vertices.value])
 
 	useEffect(() => {
-		if (parameters?.xpos.value && parameters?.ypos.value)  {
-			setStrike(new Vector2(parameters.xpos.value, parameters.ypos.value))
-		}
-	}, [parameters?.xpos.value, parameters?.ypos.value])
+        setStrike(new Vector2(parameters!.xpos.value, parameters!.ypos.value))
+	}, [parameters!.xpos.value, parameters!.ypos.value])
 
 	return (
 		<>
