@@ -213,7 +213,7 @@ void AudioPluginAudioProcessor::processBlock(
     juce::MidiBuffer& midiMessages
 )
 {
-    juce::ignoreUnused(midiMessages);
+    // juce::ignoreUnused(midiMessages);
 
     // juce::ScopedNoDenormals noDenormals;
     // auto totalNumInputChannels = getTotalNumInputChannels();
@@ -235,6 +235,26 @@ void AudioPluginAudioProcessor::processBlock(
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
     // https://forum.juce.com/t/1-most-common-programming-mistake-that-we-see-on-the-forum/26013
+
+    // if we receive any midi message and the
+    // buffer is empty, then create a buffer 
+    // with an impulse
+    if (midiMessages.getNumEvents() > 0)
+    {
+        // get midi on
+        for (const auto &midi : midiMessages)
+        {
+            if (midi.getMessage().isNoteOn())
+            {
+                // JLOG("Midi note on");
+                // check if the buffer is empty
+                buffer.clear();
+                buffer.setSample(0, 0, 1.0f);
+                buffer.setSample(1, 0, 1.0f);
+                break;
+            }
+        }
+    }
 
     // Process samples
     mFilterbank.processBuffer(buffer);
@@ -337,8 +357,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "pratio",                        // parameterID
         "Poisson Ratio",                 // parameter name
         juce::NormalisableRange<float>(  // range
-            -0.3f,
-            1.3f,
+            -0.5f,
+            1.5f,
             0.01f
         ),    // min, max, interval
         0.5f  // default value
