@@ -6,9 +6,12 @@
 
 TorchWrapper::TorchWrapper(
     ProcessorIf *processorPtr,
-    juce::AudioProcessorValueTreeState &vtsRef
+    juce::AudioProcessorValueTreeState &vtsRef,
+    const juce::String &fcModelPath,
+    const juce::String &encoderModelPath
 )
-    : mProcessorPtr(processorPtr), mVts(vtsRef)
+    : mVts(vtsRef)
+    , mProcessorPtr(processorPtr)
 {
     mCoefficients.resize(32 * 2 * 6);
 
@@ -17,7 +20,17 @@ TorchWrapper::TorchWrapper(
     mLastMaterialTensor = torch::full({1, 5}, 0.5f, options);
     mLastPositionTensor = torch::full({1, 2}, 0.5f, options);
 
+    // load the models
+    loadModel(encoderModelPath.toStdString(), ModelType::ShapeEncoder);
+    loadModel(fcModelPath.toStdString(), ModelType::FC);
+
+    // do the first prediction to initialize the coefficients
+    // and to avoid a delay when the first shape is received
+    valueTreeRedirected(mVts.state);
+
+    // add the listener for future changes
     mVts.state.addListener(this);
+
 }
 
 TorchWrapper::~TorchWrapper()
@@ -36,45 +49,37 @@ void TorchWrapper::loadModel(
     const std::string &deviceString
 )
 {
-    // TODO: check that the file exists
+    //! We need to read the models on the contructor
+    //! because the state will be updated immediately
+    //! after the constructor is called (usually)
+    //! doing it in a thread does not guarantee that
+    //! the models will be loaded before the state
 
-    mQueueThread.getIoService().post(
-        [this, modelPath, modelType, deviceString]()
+    auto device = torch::Device(deviceString);
+    try
+    {
+        // Deserialize the ScriptModule from a file using
+        if (modelType == ModelType::ShapeEncoder)
         {
-            auto device = torch::Device(deviceString);
-            try
-            {
-                // Deserialize the ScriptModule from a file using
-                // torch::jit::load()
-
-                if (modelType == ModelType::ShapeEncoder)
-                {
-                    mShapeEncoderNetwork =
-                        torch::jit::load(modelPath, device);
-                    mShapeEncoderNetwork.eval();
-                }
-                else if (modelType == ModelType::FC)
-                {
-                    mFCNetwork = torch::jit::load(modelPath, device);
-                    mFCNetwork.eval();
-                }
-                else
-                {
-                    juce::Logger::writeToLog("Model type not recognized");
-                }
-            }
-            catch (const c10::Error &e)
-            {
-                juce::Logger::writeToLog(
-                    "Error loading model: " + modelPath + " " +
-                    std::string(e.what())
-                );
-                jassertfalse;
-                return;
-            }
-            juce::Logger::writeToLog("Model: " + modelPath + " loaded successfully!");
+            mShapeEncoderNetwork = torch::jit::load(modelPath, device);
+            mShapeEncoderNetwork.eval();
         }
-    );
+        else if (modelType == ModelType::FC)
+        {
+            mFCNetwork = torch::jit::load(modelPath, device);
+            mFCNetwork.eval();
+        }
+        else { JLOG("Model type not recognized"); }
+    }
+    catch (const c10::Error &e)
+    {
+        JLOG(
+            "Error loading model: " + modelPath + " " + std::string(e.what())
+        );
+        jassertfalse;
+        return;
+    }
+    JLOG("Model: " + modelPath + " loaded successfully!");
 }
 
 void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
@@ -129,36 +134,34 @@ void TorchWrapper::handleReceivedNewShape(const juce::Path shape)
     }
     catch (const c10::Error &e)
     {
-        juce::Logger::writeToLog(
-            "Error processing image: " + std::string(e.what())
-        );
+        JLOG("Error processing image: " + std::string(e.what()));
         jassertfalse;
     }
 
     if (!mFeaturesReady) { mFeaturesReady = true; }
 
     predictCoefficients();
-    DBG("Predicted shape features");
+    JLOG("Predicted shape features");
 }
 
 void TorchWrapper::predictCoefficients()
 {
-    DBG("Predicting coefficients");
+    JLOG("Predicting coefficients");
     if (!mFeaturesReady)
     {
-        juce::Logger::writeToLog("Features not ready");
+        JLOG("Features not ready");
         return;
     }
 
     if (!mLastMaterialTensor.numel())
     {
-        juce::Logger::writeToLog("Material tensor not initialized");
+        JLOG("Material tensor not initialized");
         return;
     }
 
     if (!mLastPositionTensor.numel())
     {
-        juce::Logger::writeToLog("Position tensor not initialized");
+        JLOG("Position tensor not initialized");
         return;
     }
 
@@ -192,9 +195,7 @@ void TorchWrapper::predictCoefficients()
     }
     catch (const c10::Error &e)
     {
-        juce::Logger::writeToLog(
-            "Error processing image: " + std::string(e.what())
-        );
+        JLOG("Error processing image: " + std::string(e.what()));
         jassertfalse;
     }
     mProcessorPtr->coefficentsChanged(mCoefficients);
@@ -223,9 +224,7 @@ void TorchWrapper::valueTreePropertyChanged(
     {
         auto parameterID = changedTree.getProperty("id").toString();
 
-        juce::Logger::writeToLog(
-            "TorchWrapper::Parameter changed: " + parameterID
-        );
+        JLOG("TorchWrapper::Parameter changed: " + parameterID);
 
         if (auto *newValue = changedTree.getPropertyPointer(changedProperty))
         {
@@ -252,22 +251,26 @@ void TorchWrapper::valueTreePropertyChanged(
                     {
                         mLastMaterialTensor[0][4] = float(*newValue);
                     }
-                    // the ui lives in the coordinate space where the origin is in the 
-                    // centre of the screen, and the range is approximately -1 to 1 in both x and y
-                    // directions. with the y axis pointing up.
-                    // the neural network lives in the coordinate space where the origin is in the
-                    // TOP LEFT corner and the range is 0 to 1 in both x and y
+                    // the ui lives in the coordinate space where the origin
+                    // is in the centre of the screen, and the range is
+                    // approximately -1 to 1 in both x and y directions. with
+                    // the y axis pointing up. the neural network lives in the
+                    // coordinate space where the origin is in the TOP LEFT
+                    // corner and the range is 0 to 1 in both x and y
                     // directions.
-                    // we need to convert the values from the ui to the values that the neural
-                    // network expects.
+                    // we need to convert the values from the ui to the values
+                    // that the neural network expects.
                     else if (parameterID == "xpos")
-                    {   
-                        mLastPositionTensor[0][0] = (float(*newValue) + 1.0f) * 0.5f;
+                    {
+                        mLastPositionTensor[0][0] =
+                            (float(*newValue) + 1.0f) * 0.5f;
                     }
                     else if (parameterID == "ypos")
-                    {   
-                        // the y axis is flipped, so we need to invert the value
-                        mLastPositionTensor[0][1] = 1.0f - ((float(*newValue) + 1.0f) * 0.5f);
+                    {
+                        // the y axis is flipped, so we need to invert the
+                        // value
+                        mLastPositionTensor[0][1] =
+                            1.0f - ((float(*newValue) + 1.0f) * 0.5f);
                     }
 
                     this->predictCoefficients();
@@ -277,7 +280,7 @@ void TorchWrapper::valueTreePropertyChanged(
     }
     else if (treeType == "polygon")
     {
-        juce::Logger::writeToLog("TorchWrapper::Polygon changed");
+        JLOG("TorchWrapper::Polygon changed");
 
         if (auto *flattenedVertices =
                 changedTree.getPropertyPointer(changedProperty))
@@ -307,7 +310,7 @@ void TorchWrapper::valueTreePropertyChanged(
                     // close the subpath
                     path.closeSubPath();
 
-                    // juce::Logger::writeToLog(
+                    // JLOG(
                     //     "TorchWrapper::polygon changed: " + path.toString()
                     // );
 
@@ -319,13 +322,11 @@ void TorchWrapper::valueTreePropertyChanged(
     }
     else
     {
-        juce::Logger::writeToLog(
-            "TorchWrapper::Unknown tree type changed: " + treeType
-        );
+        JLOG("TorchWrapper::Unknown tree type changed: " + treeType);
 
         //         else if (parameterID == "vertices")
         // {
-        //     juce::Logger::writeToLog("Vertices changed");
+        //     JLOG("Vertices changed");
         // }
     }
 }
@@ -357,4 +358,82 @@ void TorchWrapper::valueTreeParentChanged(
     juce::ValueTree &treeWhoseParentHasChanged
 )
 {
+}
+
+void TorchWrapper::valueTreeRedirected(juce::ValueTree &redirectedTree)
+{
+    JLOG(
+        "TorchWrapper::valueTreeRedirected " +
+        redirectedTree.getType().toString()
+    );
+
+    auto treeType = redirectedTree.getType().toString();
+
+    // for each child of the tree, get the id and value and set the tensor
+    // accordingly
+    for (int i = 0; i < redirectedTree.getNumChildren(); i++)
+    {
+        auto child = redirectedTree.getChild(i);
+        auto parameterID = child.getProperty("id").toString();
+
+        if (auto *newValue = child.getPropertyPointer("value"))
+        {
+            if (parameterID == "density")
+            {
+                mLastMaterialTensor[0][0] = float(*newValue);
+            }
+            else if (parameterID == "stiffness")
+            {
+                mLastMaterialTensor[0][1] = float(*newValue);
+            }
+            else if (parameterID == "pratio")
+            {
+                mLastMaterialTensor[0][2] = float(*newValue);
+            }
+            else if (parameterID == "alpha")
+            {
+                mLastMaterialTensor[0][3] = float(*newValue);
+            }
+            else if (parameterID == "beta")
+            {
+                mLastMaterialTensor[0][4] = float(*newValue);
+            }
+            else if (parameterID == "xpos")
+            {
+                mLastPositionTensor[0][0] = (float(*newValue) + 1.0f) * 0.5f;
+            }
+            else if (parameterID == "ypos")
+            {
+                mLastPositionTensor[0][1] =
+                    1.0f - ((float(*newValue) + 1.0f) * 0.5f);
+            }
+            else if (parameterID == "vertices")
+            {
+                auto size = newValue->size();
+
+                juce::Path path;
+                int res = 64;
+
+                for (int i = 0; i < size; i += 2)
+                {
+                    auto x = float((*newValue)[i]);
+                    auto y = float((*newValue)[i + 1]);
+
+                    // the positions are in the range [-1, 1], so we need
+                    // to scale them to the range [0, res] and flip the y
+                    // axis
+                    x = (x + 1) * 0.5 * res;
+                    y = res - ((y + 1) * 0.5 * res);
+                    if (i == 0) { path.startNewSubPath(x, y); }
+                    else { path.lineTo(x, y); }
+                }
+
+                // close the subpath
+                path.closeSubPath();
+
+                // handle the path
+                this->handleReceivedNewShape(path);
+            }
+        }
+    }
 }

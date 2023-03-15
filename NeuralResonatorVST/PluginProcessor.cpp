@@ -1,9 +1,6 @@
-#include <random>
-#include <time.h>
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
-#include "juce_core/system/juce_PlatformDefs.h"
 #include <kac_core.hpp>
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
@@ -16,13 +13,13 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
               .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
       )
-    , mFilterbank(32, 2)
     , mParameters(
           *this,    // processor to connect to
           nullptr,  // undo manager
           juce::Identifier("NeuralResonatorVSTParams"),  // identifier
           createParameterLayout()                        // parameter layout
       )
+    , mFilterbank(32, 2)
 {
     // Set up the logger
     mFileLoggerPtr.reset(juce::FileLogger::createDefaultAppLogger(
@@ -31,14 +28,10 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
         "NeuralResonatorVST log file"
     ));
     juce::Logger::setCurrentLogger(mFileLoggerPtr.get());
-    juce::Logger::writeToLog("AudioPluginAudioProcessor constructor");
+    JLOG("AudioPluginAudioProcessor constructor");
 
     // Create and append the polygon valueTree to the parameter tree
     createAndAppendValueTree();
-
-    juce::Logger::writeToLog(
-        juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state))
-    );
 
     // location of the index.html file inside the plugin bundle
     mIndexFile =
@@ -51,10 +44,10 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     
     // check that the index file exists
     if (!juce::File(mIndexFile).existsAsFile()) {
-        juce::Logger::writeToLog("index.html not found");
+        JLOG("index.html not found");
     }
 
-    // location of the pretrained models inside the plugin bundle
+    // location of the pretrained models inside the plugin bundle 
     auto encoderPath =
         juce::File::getSpecialLocation(
             juce::File::SpecialLocationType::currentApplicationFile)
@@ -73,22 +66,16 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     
     // check that the models exist
     if (!juce::File(encoderPath).existsAsFile()) {
-        juce::Logger::writeToLog("encoder.pt not found");
+        JLOG("encoder.pt not found");
     }
     if (!juce::File(fcPath).existsAsFile()) {
-        juce::Logger::writeToLog("model_wrap.pt not found");
+        JLOG("model_wrap.pt not found");
     }
 
     // initialize the torch wrapper
-    juce::Logger::writeToLog("Initializing torch wrapper");
-    mTorchWrapperPtr.reset(new TorchWrapper(this, mParameters));
-    mTorchWrapperPtr->loadModel(
-        encoderPath.toStdString(),
-        TorchWrapper::ModelType::ShapeEncoder
-    );
-    mTorchWrapperPtr->loadModel(
-        fcPath.toStdString(),
-        TorchWrapper::ModelType::FC
+    JLOG("Initializing torch wrapper");
+    mTorchWrapperPtr.reset(
+        new TorchWrapper(this, mParameters, fcPath, encoderPath)
     );
 
     // Start the threads in order (from the bottom up)
@@ -98,7 +85,7 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 {
-    juce::Logger::writeToLog("AudioPluginAudioProcessor destructor");
+    JLOG("AudioPluginAudioProcessor destructor");
 
     mTorchWrapperPtr.reset();
     mTorchWrapperPtr = nullptr;
@@ -183,14 +170,14 @@ void AudioPluginAudioProcessor::prepareToPlay(
     int samplesPerBlock
 )
 {
-    juce::Logger::writeToLog("prepareToPlay");
+    JLOG("prepareToPlay");
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 }
 
 void AudioPluginAudioProcessor::releaseResources()
 {
-    juce::Logger::writeToLog("releaseResources");
+    JLOG("releaseResources");
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
@@ -229,8 +216,8 @@ void AudioPluginAudioProcessor::processBlock(
     juce::ignoreUnused(midiMessages);
 
     // juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
+    // auto totalNumInputChannels = getTotalNumInputChannels();
+    // auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
@@ -262,7 +249,7 @@ bool AudioPluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
 {
-    juce::Logger::writeToLog("AudioPluginAudioProcessor::createEditor");
+    JLOG("AudioPluginAudioProcessor::createEditor");
     return new AudioPluginAudioProcessorEditor(*this);
 }
 
@@ -275,9 +262,10 @@ void AudioPluginAudioProcessor::getStateInformation(
     // block. You could do that either as raw data, or use the XML or
     // ValueTree classes as intermediaries to make it easy to save and load
     // complex data.
-    MemoryOutputStream stream(destData, false);
+    JLOG("AudioPluginAudioProcessor::getStateInformation");
+    juce::MemoryOutputStream stream(destData, false);
     auto str = juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state));
-    DBG("AudioPluginAudioProcessor::getStateInformation: " << str);
+    // JLOG("AudioPluginAudioProcessor::getStateInformation: " + str);
     stream.writeString(str);
 }
 
@@ -290,10 +278,10 @@ void AudioPluginAudioProcessor::setStateInformation(
     // block, whose contents will have been created by the
     // getStateInformation() call.
     //! Warning: this seems to delete the callbacks if not handled properly
-    MemoryInputStream stream(data, size_t (sizeInBytes), true);
+    JLOG("AudioPluginAudioProcessor::setStateInformation");
+    juce::MemoryInputStream stream(data, size_t (sizeInBytes), true);
     auto jsonAsStr = stream.readEntireStreamAsString();
-    DBG("AudioPluginAudioProcessor::setStateInformation: " << jsonAsStr);
-    juce::Logger::writeToLog(jsonAsStr);
+    // JLOG(jsonAsStr);
     auto json = juce::JSON::parse(jsonAsStr);
     mParameters.replaceState(HelperFunctions::convertToValueTree(json));    
 }
@@ -311,8 +299,8 @@ void AudioPluginAudioProcessor::handleCoefficentsChanged(
     const std::vector<float>& coefficients
 )
 {
-    juce::Logger::writeToLog("Coefficents changed");
-    // juce::Logger::writeToLog("Number of coefficients: " +
+    JLOG("Coefficents changed");
+    // JLOG("Number of coefficients: " +
     //                          std::to_string(coefficients.size()));
     mFilterbank.setCoefficients(coefficients);
 }
@@ -411,12 +399,12 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
         kac_core::geometry::generateConvexPolygon(10)
     );
 
-    // juce::Logger::writeToLog(
+    // JLOG(
     //     "Number of vertices: " + std::to_string(polygon.size())
     // );
     // for (auto& vertex : polygon)
     // {
-    //     juce::Logger::writeToLog(
+    //     JLOG(
     //         "Vertex: " + std::to_string(vertex.x) + ", " +
     //         std::to_string(vertex.y)
     //     );

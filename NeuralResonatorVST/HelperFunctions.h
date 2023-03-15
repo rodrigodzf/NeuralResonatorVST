@@ -2,7 +2,20 @@
 
 #include <map>
 
-#include "JuceHeader.h"
+#include <juce_core/juce_core.h>
+#include <juce_graphics/juce_graphics.h>
+#include <juce_data_structures/juce_data_structures.h>
+
+#define JLOG(msg) JUCE_BLOCK_WITH_FORCED_SEMICOLON(\
+    juce::Time current = juce::Time::getCurrentTime();\
+    juce::String timestamp = juce::String::formatted(\
+        "%02d:%02d:%02d.%03d",\
+        current.getHours(),\
+        current.getMinutes(),\
+        current.getSeconds(),\
+        current.getMilliseconds());\
+    juce::Logger::writeToLog(timestamp + " " + msg);\
+)
 
 class HelperFunctions
 {
@@ -182,7 +195,7 @@ public:
         return polygon;
     }
 
-    static juce::var convertToVar(const ValueTree& tree)
+    static juce::var convertToVar(const juce::ValueTree& tree)
     {
         juce::var root(new juce::DynamicObject());
 
@@ -192,7 +205,7 @@ public:
         for (int i = 0; i < tree.getNumProperties(); ++i)
         {
             const auto propName = tree.getPropertyName(i);
-            const var value = tree.getProperty(propName);
+            const juce::var value = tree.getProperty(propName);
 
             root.getDynamicObject()->setProperty(propName, value);
         }

@@ -1,10 +1,11 @@
 #include <random>
 #include <time.h>
+#include "HelperFunctions.h"
 #include "ParameterSyncer.h"
-#include "JuceHeader.h"
 #include <kac_core.hpp>
 ParameterSyncer::ParameterSyncer(juce::AudioProcessorValueTreeState& vtsRef)
-    : juce::ValueTreeSynchroniser(vtsRef.state), mVTSRef(vtsRef)
+    : juce::ValueTreeSynchroniser(vtsRef.state)
+    , mVTSRef(vtsRef)
 {
 }
 
@@ -32,26 +33,23 @@ void ParameterSyncer::stateChanged(
     auto changesAsBase64 =
         juce::Base64::toBase64(encodedChange, encodedChangeSize);
 
-    // juce::Logger::writeToLog("ParameterSyncer::stateChanged: " +
+    // JLOG("ParameterSyncer::stateChanged: " +
     //  mVTSRef.state.toXmlString());
 
-    juce::Logger::writeToLog(
-        "ParameterSyncer::stateChanged: sending to "
-        "server"
-    );
+    JLOG("ParameterSyncer::stateChanged: sending to server");
     mServerThreadIfPtr->sendMessage(changesAsBase64);
 }
 
 void ParameterSyncer::receivedParameterChange(const juce::var& parameter)
 {
-    MessageManager::callAsync(
+    juce::MessageManager::callAsync(
         [this, parameter]()
         {
             // update the state tree
             auto parameterID = parameter["id"].toString();
             auto newValue = parameter["value"];
 
-            // juce::Logger::writeToLog(
+            // JLOG(
             // "ParameterSyncer::receivedParameterChange: " + parameterID +
             // " " + newValue.toString());
 
@@ -64,7 +62,7 @@ void ParameterSyncer::receivedParameterChange(const juce::var& parameter)
 
 void ParameterSyncer::receivedNewShape(const juce::var& shape)
 {
-    MessageManager::callAsync(
+    juce::MessageManager::callAsync(
         [this, shape]()
         {
             auto polygonTree =
@@ -91,7 +89,7 @@ void ParameterSyncer::receivedNewShape(const juce::var& shape)
 
 void ParameterSyncer::receivedShapeUpdate(const juce::var& shape)
 {
-    MessageManager::callAsync(
+    juce::MessageManager::callAsync(
         [this, shape]()
         {
             DBG("ParameterSyncer::receivedShapeUpdate");

@@ -25,7 +25,7 @@ export const Panel = observer(
 		const parameters = useContext(ParametersContext)
 		const [_, set, get] = useControls(() => ({
 			density: {
-				value: 1,
+				value: parameters!.density.value,
 				min: 0.0,
 				max: 2.0,
 				step: 0.01,
@@ -36,7 +36,7 @@ export const Panel = observer(
 				},
 			},
 			stiffness: {
-				value: 0.5,
+				value: parameters!.stiffness.value,
 				min: 0.0,
 				max: 1.0,
 				step: 0.01,
@@ -47,7 +47,7 @@ export const Panel = observer(
 				},
 			},
 			'poisson ratio': {
-				value: 0.5,
+				value: parameters!.pratio.value,
 				min: -0.5,
 				max: 1.5,
 				step: 0.01,
@@ -58,7 +58,7 @@ export const Panel = observer(
 				},
 			},
 			alpha: {
-				value: 0.5,
+				value: parameters!.alpha.value,
 				min: -0.5,
 				max: 1.5,
 				step: 0.01,
@@ -69,7 +69,7 @@ export const Panel = observer(
 				},
 			},
 			beta: {
-				value: 0.5,
+				value: parameters!.beta.value,
 				min: -0.5,
 				max: 1.5,
 				step: 0.01,

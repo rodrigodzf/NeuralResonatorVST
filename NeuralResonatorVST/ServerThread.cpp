@@ -1,5 +1,5 @@
 #include "ServerThread.h"
-
+#include "HelperFunctions.h"
 using namespace juce;
 
 ServerThread::ServerThread(
@@ -41,14 +41,14 @@ void ServerThread::run()
     mServer.start(
         [](unsigned short port)
         {
-            juce::Logger::writeToLog(
+            JLOG(
                 "WS Server Started: Listening on port " + juce::String(port)
             );
         }
     );
 
     // Wait for server to stop
-    juce::Logger::writeToLog("WS Server: Stopped");
+    JLOG("WS Server: Stopped");
 }
 
 void ServerThread::onMessage(
@@ -66,24 +66,24 @@ void ServerThread::onMessage(
     auto messageType = parsedJson.getProperty("type", {}).toString();
     if (mParameterSyncerIfPtr == nullptr)
     {
-        juce::Logger::writeToLog("Server: TorchWrapperIf is null");
+        JLOG("Server: TorchWrapperIf is null");
         return;
     }
     if (messageType == "new_parameter")
     {
-        juce::Logger::writeToLog("Server: received new parameter");
+        JLOG("Server: received new parameter");
 
         mParameterSyncerIfPtr->receivedParameterChange(parsedJson);
     }
     else if (messageType == "new_shape")
     {
-        juce::Logger::writeToLog("Server: received new shape");
+        JLOG("Server: received new shape");
 
         mParameterSyncerIfPtr->receivedNewShape(parsedJson);
     }
     else if (messageType == "update_shape")
     {
-        juce::Logger::writeToLog("Server: received shape update");
+        JLOG("Server: received shape update");
 
         mParameterSyncerIfPtr->receivedShapeUpdate(parsedJson);
     }
@@ -94,13 +94,13 @@ void ServerThread::onMessage(
 
     if (mTorchWrapperIf == nullptr)
     {
-        juce::Logger::writeToLog("Server: TorchWrapperIf is null");
+        JLOG("Server: TorchWrapperIf is null");
         return;
     }
     // TODO: this probably should be in another thread
     if (messageType == "new_shape")
     {
-        juce::Logger::writeToLog("Server: New shape requested");
+        JLOG("Server: New shape requested");
         juce::Path path;
         int res = 64;
         parsedJson.getProperty("shape", {}).toString();
@@ -172,7 +172,7 @@ void ServerThread::onOpen(ConnectionPtr connection)
     std::stringstream ss;
     ss << connection.get();
 
-    juce::Logger::writeToLog("Server: Opened connection " + ss.str());
+    JLOG("Server: Opened connection " + ss.str());
 
     // add connection to the list of active connections
     mConnections.push_back(connection);
@@ -189,7 +189,7 @@ void ServerThread::onClose(
     std::stringstream ss;
     ss << connection.get();
 
-    // juce::Logger::writeToLog("Server: Closed connection " + ss.str() +
+    // JLOG("Server: Closed connection " + ss.str() +
     //  " with status code " + juce::String(status));
     // remove connection from the list of active connections
     auto it = std::find(mConnections.begin(), mConnections.end(), connection);
