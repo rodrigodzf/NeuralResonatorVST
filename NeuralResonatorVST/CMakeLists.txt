@@ -121,7 +121,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         ${TORCH_INSTALL_PREFIX}/lib/libc10.dylib
     )
 
-    # if the architecture is arm64, we need to add the arm64e library
+    # force set the architecture variable to the current architecture
+    # this is needed because the CMAKE_OSX_ARCHITECTURES variable is not set
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING "" FORCE)
+    endif()
+
+    # if the architecture is arm64, we need to add the libiomp5 library
     if (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
         list(APPEND TORCH_LIBS ${TORCH_INSTALL_PREFIX}/lib/libiomp5.dylib)
     endif()
