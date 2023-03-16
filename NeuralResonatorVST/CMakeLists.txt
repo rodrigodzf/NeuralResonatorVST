@@ -114,43 +114,13 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-    get_target_property(
-        JUCE_PLUGIN_ARTEFACT_FILE_AU
-        ${PLUGIN_NAME}_AU
-        JUCE_PLUGIN_ARTEFACT_FILE
-    )
-
-    get_target_property(
-        JUCE_PLUGIN_ARTEFACT_FILE_VST3
-        ${PLUGIN_NAME}_VST3
-        JUCE_PLUGIN_ARTEFACT_FILE        
-    )
-
-    set(TORCH_LIBS
+    set(
+        TORCH_LIBS
         ${TORCH_INSTALL_PREFIX}/lib/libtorch.dylib
         ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.dylib
         ${TORCH_INSTALL_PREFIX}/lib/libc10.dylib
     )
 
-    add_custom_command(
-        TARGET ${PLUGIN_NAME}_AU
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy ${TORCH_LIBS} "${JUCE_PLUGIN_ARTEFACT_FILE_AU}/Contents/MacOS/"
-        COMMENT "Copy Torch Libraries to AU"
-        VERBATIM
-    )
-
-    add_custom_command(
-        TARGET ${PLUGIN_NAME}_VST3
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy ${TORCH_LIBS} "${JUCE_PLUGIN_ARTEFACT_FILE_VST3}/Contents/MacOS/"
-        COMMENT "Copy Torch Libraries to VST3"
-        VERBATIM
-    )
-
-    # copy the pretrained models
     set(
         PRETRAINED_MODELS_PATH
         ${CMAKE_SOURCE_DIR}/pretrained/encoder.pt
@@ -158,27 +128,52 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         CACHE INTERNAL "Path to the pretrained models"
     )
 
-    # Copy pretrained models to the plugin bundle
-    target_sources(${PLUGIN_NAME}_AU PRIVATE ${PRETRAINED_MODELS_PATH})
-    target_sources(${PLUGIN_NAME}_VST3 PRIVATE ${PRETRAINED_MODELS_PATH})
-    target_sources(${PLUGIN_NAME}_Standalone PRIVATE ${PRETRAINED_MODELS_PATH})
+    get_target_property(active_targets ${PLUGIN_NAME} JUCE_ACTIVE_PLUGIN_TARGETS)
+    foreach( sub_target IN LISTS active_targets )
+        
+        message(STATUS "Adding libraries and models to ${sub_target}")
 
-    set_source_files_properties(
-        ${PRETRAINED_MODELS_PATH}
-        PROPERTIES
-        MACOSX_PACKAGE_LOCATION "Resources"
-    )
+        get_target_property(
+            BUNDLE_PATH
+            ${sub_target}
+            JUCE_PLUGIN_ARTEFACT_FILE
+        )
+    
+        add_custom_command(
+            TARGET ${sub_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy ${TORCH_LIBS} "${BUNDLE_PATH}/Contents/MacOS/"
+            COMMENT "Copy Torch Libraries to ${sub_target}"
+            VERBATIM
+        )
 
-    # Copy the minified ui to the plugin bundle
-    target_sources(${PLUGIN_NAME}_AU PRIVATE ${MINIFIED_UI_PATH})
-    target_sources(${PLUGIN_NAME}_VST3 PRIVATE ${MINIFIED_UI_PATH})
-    target_sources(${PLUGIN_NAME}_Standalone PRIVATE ${MINIFIED_UI_PATH})
+        # Copy pretrained models to the plugin bundle
+        target_sources(${sub_target} PRIVATE ${PRETRAINED_MODELS_PATH})
+        set_source_files_properties(
+            ${PRETRAINED_MODELS_PATH}
+            PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+        )
 
-    set_source_files_properties(
-        ${MINIFIED_UI_PATH}
-        PROPERTIES
-        MACOSX_PACKAGE_LOCATION "Resources"
-    )
+        # Copy the minified ui to the plugin bundle
+        target_sources(${sub_target} PRIVATE ${MINIFIED_UI_PATH})
+
+        set_source_files_properties(
+            ${MINIFIED_UI_PATH}
+            PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+        )
+
+        # TODO Sign the plugin
+        # https://forum.juce.com/t/prepare-plugins-for-distribution-on-macos-notarization-code-signing-etc/53124/7
+    #     add_custom_command(
+    #         TARGET ${sub_target} POST_BUILD
+    #         COMMENT "Signing ${sub_target}"
+    #         COMMAND "codesign" "--force" "--deep" "-s" "-" ${bundle_path}
+    #         VERBATIM
+    #     )
+    endforeach()
 
     juce_enable_copy_plugin_step(${PLUGIN_NAME})
 endif()

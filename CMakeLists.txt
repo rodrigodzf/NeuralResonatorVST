@@ -54,8 +54,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin"
     )
     set(CMAKE_MACOSX_RPATH TRUE)
     set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
-    set(CMAKE_INSTALL_RPATH "@loader_path")
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE) # This is to use the use the local libraries in the rpath as well
+    set(CMAKE_INSTALL_RPATH "@loader_path")      # This is the path to the folder containing the executable
     # set(CMAKE_SKIP_BUILD_RPATH FALSE)
     set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
 endif()
