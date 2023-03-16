@@ -1,5 +1,7 @@
 #pragma once
 
+#include <juce_core/juce_core.h>
+
 template <typename T>
 class Lerp
 {
@@ -18,6 +20,7 @@ class Lerp
 
 		T getTarget() { return m_target; }
 		T getValue() { return m_val; }
+		T getDelta() { return m_delta; }
 
 		bool isFinished() { return m_counter == 0; }
 
@@ -33,19 +36,19 @@ class Lerp
 };
 
 template <typename T>
-Lerp<T>::Lerp()
+inline Lerp<T>::Lerp()
 {
 	setup(0);
 }
 
 template <typename T>
-Lerp<T>::Lerp(unsigned int delta)
+inline Lerp<T>::Lerp(unsigned int delta)
 {
 	setup(delta);
 }
 
 template <typename T>
-void Lerp<T>::setup(unsigned int delta)
+inline void Lerp<T>::setup(unsigned int delta)
 {
 	m_val = 0;
 	m_increment = 0;
@@ -55,14 +58,14 @@ void Lerp<T>::setup(unsigned int delta)
 }
 
 template <typename T>
-void Lerp<T>::setTarget(T target)
+inline void Lerp<T>::setTarget(T target)
 {
 	m_target = target;
 	calcIncrement(m_target, m_delta);
 }
 
 template <typename T>
-void Lerp<T>::setValue(T value)
+inline void Lerp<T>::setValue(T value)
 {
 	m_val = value;
 	m_counter = 0;
@@ -70,24 +73,33 @@ void Lerp<T>::setValue(T value)
 }
 
 template <typename T>
-void Lerp<T>::setDelta(unsigned int delta)
+inline void Lerp<T>::setDelta(unsigned int delta)
 {
 	m_delta = delta;
 	calcIncrement(m_target, m_delta);
 }
 
 template <typename T>
-void Lerp<T>::calcIncrement(T target, unsigned int delta)
+inline void Lerp<T>::calcIncrement(T target, unsigned int delta)
 {
-	m_increment = (target - m_val) / static_cast<T>(delta);
-	if(m_increment == 0.0)
-		m_counter = 0;
+	if(delta == 0)
+		m_increment = 0.0;
 	else
+		m_increment = (target - m_val) / static_cast<T>(delta);
+
+	if(m_increment == 0.0)
+	{
+		m_counter = 0;
+		m_val = target;
+	}
+	else
+	{
 		m_counter = delta;
+	}
 }
 
 template <typename T>
-T Lerp<T>::process(bool bound)
+inline T Lerp<T>::process(bool bound)
 {
 	if (m_counter > 0)
 	{
@@ -100,7 +112,7 @@ T Lerp<T>::process(bool bound)
 }
 
 template <typename T>
-T Lerp<T>::boundValue()
+inline T Lerp<T>::boundValue()
 {
 	if (m_increment > 0 && m_val > m_target)
 		m_val = m_target;
@@ -110,6 +122,7 @@ T Lerp<T>::boundValue()
 }
 
 template <typename T>
-Lerp<T>::~Lerp()
+inline Lerp<T>::~Lerp()
 {
+	juce::Logger::writeToLog("Lerp::~Lerp");
 }
