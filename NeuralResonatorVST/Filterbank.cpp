@@ -1,4 +1,5 @@
 #include "Filterbank.h"
+#include "HelperFunctions.h"
 Filterbank::Filterbank()
 {
     mNumParallel = 0;
@@ -8,7 +9,7 @@ Filterbank::Filterbank()
 
 Filterbank::Filterbank(int numParallel, int numBiquads)
 {
-	setup(numParallel, numBiquads);
+    setup(numParallel, numBiquads);
 }
 
 void Filterbank::setup(int numParallel, int numBiquads)
@@ -40,14 +41,11 @@ Filterbank::~Filterbank()
 
 void Filterbank::cleanup()
 {
-	juce::Logger::writeToLog("Filterbank::cleanup()");
-	for (int i = 0; i < mNumParallel; i++)
-	{
-		for (int j = 0; j < mNumBiquads; j++)
-		{
-			mIIRFilters[i][j].cleanup();
-		}
-	}
+    JLOG("Filterbank::cleanup()");
+    for (int i = 0; i < mNumParallel; i++)
+    {
+        for (int j = 0; j < mNumBiquads; j++) { mIIRFilters[i][j].cleanup(); }
+    }
 }
 
 void Filterbank::setCoefficients(const std::vector<float>& coeffs)
@@ -58,13 +56,13 @@ void Filterbank::setCoefficients(const std::vector<float>& coeffs)
         for (int j = 0; j < mNumBiquads; j++)
         {
             int idx = i * mNumBiquads * mStride + j * mStride;
-	    mIIRFilters[i][j].set_coefficients(
-		    coeffs[idx],
-		    coeffs[idx + 1],
-		    coeffs[idx + 2],
-		    coeffs[idx + 4],
-		    coeffs[idx + 5]
-	    );
+            mIIRFilters[i][j].set_coefficients(
+                coeffs[idx],
+                coeffs[idx + 1],
+                coeffs[idx + 2],
+                coeffs[idx + 4],
+                coeffs[idx + 5]
+            );
         }
     }
 }
@@ -100,9 +98,9 @@ void Filterbank::setInterpolationDelta(unsigned int delta)
     mInterpolationDelta = delta;
     for (int i = 0; i < mNumParallel; i++)
     {
-	for (int j = 0; j < mNumBiquads; j++)
-	{
-	    mIIRFilters[i][j].setDelta(mInterpolationDelta);
-	}
+        for (int j = 0; j < mNumBiquads; j++)
+        {
+            mIIRFilters[i][j].setDelta(mInterpolationDelta);
+        }
     }
 }
