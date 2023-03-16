@@ -34,41 +34,45 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     createAndAppendValueTree();
 
     // location of the index.html file inside the plugin bundle
-    mIndexFile =
-        juce::File::getSpecialLocation(
-            juce::File::SpecialLocationType::currentApplicationFile)
-            .getChildFile("Contents")
-            .getChildFile("Resources")
-            .getChildFile("index.html")
-            .getFullPathName();
-    
+    mIndexFile = juce::File::getSpecialLocation(
+                     juce::File::SpecialLocationType::currentApplicationFile
+    )
+                     .getChildFile("Contents")
+                     .getChildFile("Resources")
+                     .getChildFile("index.html")
+                     .getFullPathName();
+
     // check that the index file exists
-    if (!juce::File(mIndexFile).existsAsFile()) {
+    if (!juce::File(mIndexFile).existsAsFile())
+    {
         JLOG("index.html not found");
     }
 
-    // location of the pretrained models inside the plugin bundle 
+    // location of the pretrained models inside the plugin bundle
     auto encoderPath =
         juce::File::getSpecialLocation(
-            juce::File::SpecialLocationType::currentApplicationFile)
+            juce::File::SpecialLocationType::currentApplicationFile
+        )
             .getChildFile("Contents")
             .getChildFile("Resources")
             .getChildFile("encoder.pt")
             .getFullPathName();
 
-    auto fcPath =
-        juce::File::getSpecialLocation(
-            juce::File::SpecialLocationType::currentApplicationFile)
-            .getChildFile("Contents")
-            .getChildFile("Resources")
-            .getChildFile("model_wrap.pt")
-            .getFullPathName();
-    
+    auto fcPath = juce::File::getSpecialLocation(
+                      juce::File::SpecialLocationType::currentApplicationFile
+    )
+                      .getChildFile("Contents")
+                      .getChildFile("Resources")
+                      .getChildFile("model_wrap.pt")
+                      .getFullPathName();
+
     // check that the models exist
-    if (!juce::File(encoderPath).existsAsFile()) {
+    if (!juce::File(encoderPath).existsAsFile())
+    {
         JLOG("encoder.pt not found");
     }
-    if (!juce::File(fcPath).existsAsFile()) {
+    if (!juce::File(fcPath).existsAsFile())
+    {
         JLOG("model_wrap.pt not found");
     }
 
@@ -173,6 +177,12 @@ void AudioPluginAudioProcessor::prepareToPlay(
     JLOG("prepareToPlay");
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+
+    // Set interpolation delta for filterbank (0.05 seconds)
+    float interpolationDeltaSeconds = 0.05;
+    unsigned int interpolationDelta =
+        (unsigned int)(interpolationDeltaSeconds * sampleRate);
+    mFilterbank.setInterpolationDelta(interpolationDelta);
 }
 
 void AudioPluginAudioProcessor::releaseResources()
@@ -237,12 +247,12 @@ void AudioPluginAudioProcessor::processBlock(
     // https://forum.juce.com/t/1-most-common-programming-mistake-that-we-see-on-the-forum/26013
 
     // if we receive any midi message and the
-    // buffer is empty, then create a buffer 
+    // buffer is empty, then create a buffer
     // with an impulse
     if (midiMessages.getNumEvents() > 0)
     {
         // get midi on
-        for (const auto &midi : midiMessages)
+        for (const auto& midi : midiMessages)
         {
             if (midi.getMessage().isNoteOn())
             {
@@ -284,7 +294,9 @@ void AudioPluginAudioProcessor::getStateInformation(
     // complex data.
     JLOG("AudioPluginAudioProcessor::getStateInformation");
     juce::MemoryOutputStream stream(destData, false);
-    auto str = juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state));
+    auto str =
+        juce::JSON::toString(HelperFunctions::convertToVar(mParameters.state)
+        );
     // JLOG("AudioPluginAudioProcessor::getStateInformation: " + str);
     stream.writeString(str);
 }
@@ -299,11 +311,11 @@ void AudioPluginAudioProcessor::setStateInformation(
     // getStateInformation() call.
     //! Warning: this seems to delete the callbacks if not handled properly
     JLOG("AudioPluginAudioProcessor::setStateInformation");
-    juce::MemoryInputStream stream(data, size_t (sizeInBytes), true);
+    juce::MemoryInputStream stream(data, size_t(sizeInBytes), true);
     auto jsonAsStr = stream.readEntireStreamAsString();
     // JLOG(jsonAsStr);
     auto json = juce::JSON::parse(jsonAsStr);
-    mParameters.replaceState(HelperFunctions::convertToValueTree(json));    
+    mParameters.replaceState(HelperFunctions::convertToValueTree(json));
 }
 
 void AudioPluginAudioProcessor::coefficentsChanged(
@@ -368,7 +380,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "alpha",                         // parameterID
         "Alpha",                         // parameter name
         juce::NormalisableRange<float>(  // range
-           -0.5f,
+            -0.5f,
             1.5f,
             0.01f
         ),    // min, max, interval
