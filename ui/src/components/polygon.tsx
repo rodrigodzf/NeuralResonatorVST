@@ -5,11 +5,11 @@ import { Shape, Vector2 } from 'three'
 
 const zoom: number = 180
 
-const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean) => any; className?: string;  }> = ({
-	point,
-	onDrag,
-	className = '',
-}) => {
+const Vertex: React.FC<{
+	point: Vector2
+	onDrag: (v: Vector2, callback: boolean) => any
+	className?: string
+}> = ({ point, onDrag, className = '' }) => {
 	/*
 	A handle for a single vertex.
 	*/
@@ -32,7 +32,13 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 	useEffect(() => {
 		// change position if mouse is down
 		const changePosition = (e: MouseEvent) => {
-			if (mouseDown) {
+			if (
+				mouseDown &&
+				e.clientX >= 0 &&
+				e.clientX <= 500 &&
+				e.clientY >= 0 &&
+				e.clientY <= 400
+			) {
 				updatePosition({ x_window: e.clientX, y_window: e.clientY })
 				onDrag(
 					new Vector2(
@@ -45,7 +51,13 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 		}
 		// release mouse is mouse down
 		const releasePoint = (e: MouseEvent) => {
-			if (mouseDown) {
+			if (
+				mouseDown &&
+				e.clientX >= 0 &&
+				e.clientX <= 500 &&
+				e.clientY >= 0 &&
+				e.clientY <= 400
+			) {
 				onDrag(
 					new Vector2(
 						(e.clientX - (window.innerWidth * 0.625) / 2) / zoom,
@@ -56,6 +68,7 @@ const Vertex: React.FC<{ point: Vector2; onDrag: (v: Vector2, callback: boolean)
 			}
 			setMouseDown(false)
 		}
+		// listeners
 		window.addEventListener('mousemove', changePosition)
 		window.addEventListener('mouseup', releasePoint)
 		return () => {
