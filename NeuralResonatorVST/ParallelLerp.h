@@ -53,10 +53,10 @@ class ParallelLerp
 		T getTarget(unsigned int index);
 		T getValue(unsigned int index);
 
-		Lerp<T>* getInterpolator(unsigned int index);
+		Lerp<T> getInterpolator(unsigned int index);
 
 	private:
-		std::vector<Lerp<T>*> m_interpolators;
+		std::vector<Lerp<T>> m_interpolators;
 		std::vector<T> m_values;
 };
 
@@ -70,11 +70,6 @@ template<typename T>
 inline void ParallelLerp<T>::cleanup()
 {
 	juce::Logger::writeToLog("ParallelLerp::cleanup()");
-	for (unsigned int i = 0; i < m_interpolators.size(); i++)
-	{
-		delete m_interpolators[i];
-	}
-	//m_values.clear();
 }
 
 template<typename T>
@@ -86,21 +81,28 @@ inline ParallelLerp<T>::~ParallelLerp()
 template<typename T>
 inline void ParallelLerp<T>::setup(unsigned int nInterp, unsigned int delta)
 {
+	m_interpolators.resize(nInterp);
+	m_values.resize(nInterp);
 	for (unsigned int i = 0; i < nInterp; i++)
 	{
-		m_interpolators.push_back(new Lerp<T>(delta));
-		m_values.push_back(T());
+		m_interpolators[i].setup(delta);
 	}
+	juce::Logger::writeToLog("ParallelLerp::setup()");
+	juce::Logger::writeToLog("Number of interpolators: " + std::to_string(m_interpolators.size()));
+	juce::Logger::writeToLog("Number of values: " + std::to_string(m_values.size()));
+
 }
 
 template<typename T>
 inline void ParallelLerp<T>::setup(const T* values, unsigned int nValues, unsigned int delta)
 {
+	m_interpolators.resize(nValues);
+	m_values.resize(nValues);
 	for (unsigned int i = 0; i < nValues; i++)
 	{
-		m_interpolators.push_back(new Lerp<T>(delta));
-		m_values.push_back(values[i]);
-		m_interpolators[i]->setValue(m_values[i]);
+		m_interpolators[i].setup(delta);
+		m_values[i] = values[i];
+		m_interpolators[i].setValue(m_values[i]);
 	}
 }
 
@@ -125,7 +127,7 @@ inline bool ParallelLerp<T>::setValues(const T* values, unsigned int nValues)
 		return false;
 	for (unsigned int i = 0; i < nValues; i++)
 	{
-		m_interpolators[i]->setValues(values[i]);
+		m_interpolators[i].setValues(values[i]);
 		m_values[i] = values[i];
 	}
 	return true;
@@ -153,7 +155,7 @@ inline bool ParallelLerp<T>::setTargets(const T* targets, unsigned int nTargets)
 
 	for (unsigned int i = 0; i < nTargets; i++)
 	{
-		m_interpolators[i]->setTarget(targets[i]);
+		m_interpolators[i].setTarget(targets[i]);
 	}
 	return true;
 }
@@ -178,7 +180,7 @@ inline void ParallelLerp<T>::setDelta(unsigned int delta)
 	juce::Logger::writeToLog("ParallelLerp::setDelta " + std::to_string(delta));
 	for (unsigned int i = 0; i < m_interpolators.size(); i++)
 	{
-		m_interpolators[i]->setDelta(delta);
+		m_interpolators[i].setDelta(delta);
 	}
 }
 
@@ -187,7 +189,7 @@ inline bool ParallelLerp<T>::isFinished()
 {
 	for (unsigned int i = 0; i < m_interpolators.size(); i++)
 	{
-		if(!m_interpolators[i]->isFinished())
+		if(!m_interpolators[i].isFinished())
 			return false;
 	}
 	return true;
@@ -198,7 +200,7 @@ inline const T* ParallelLerp<T>::process()
 {
 	for (unsigned int i = 0; i < m_interpolators.size(); i++)
 	{
-		m_values[i] = m_interpolators[i]->process();
+		m_values[i] = m_interpolators[i].process();
 	}
 	return m_values.data();
 }
@@ -222,10 +224,8 @@ inline unsigned int ParallelLerp<T>::getNValues()
 }
 
 template<typename T>
-inline Lerp<T>* ParallelLerp<T>::getInterpolator(unsigned int index)
+inline Lerp<T> ParallelLerp<T>::getInterpolator(unsigned int index)
 {
-	if(index >= m_interpolators.size())
-		return nullptr;
 	return m_interpolators[index];
 }
 
@@ -234,7 +234,7 @@ inline T ParallelLerp<T>::getTarget(unsigned int index)
 {
 	if(index >= m_interpolators.size())
 		return T();
-	return m_interpolators[index]->getTarget();
+	return m_interpolators[index].getTarget();
 }
 
 template<typename T>
@@ -242,7 +242,7 @@ inline bool ParallelLerp<T>::setValue(unsigned int index, T value)
 {
 	if(index >= m_interpolators.size())
 		return false;
-	m_interpolators[index]->setValue(value);
+	m_interpolators[index].setValue(value);
 	m_values[index] = value;
 	return true;
 }
@@ -254,7 +254,7 @@ inline bool ParallelLerp<T>::setTarget(unsigned int index, T target)
 	{
 		return false;
 	}
-	m_interpolators[index]->setTarget(target);
+	m_interpolators[index].setTarget(target);
 	return true;
 }
 
@@ -277,5 +277,5 @@ inline unsigned int ParallelLerp<T>::getDelta()
 {
 	if(m_interpolators.size() == 0)
 		return 0;
-	return m_interpolators[0]->getDelta();
+	return m_interpolators[0].getDelta();
 }
