@@ -7,7 +7,7 @@
 class TwoPoleInterpolated : public TwoPole<double>
 {
 	public:
-		TwoPoleInterpolated();
+		TwoPoleInterpolated() : m_interpolator(N_COEFFICIENTS_TWO_POLE, 0) {};
 		~TwoPoleInterpolated();
 
 		TwoPoleInterpolated(unsigned int delta);
@@ -28,11 +28,6 @@ class TwoPoleInterpolated : public TwoPole<double>
 		bool m_interpolationFinished = false;
 };
 
-inline TwoPoleInterpolated::TwoPoleInterpolated()
-{
-	setup(0);
-}
-
 inline TwoPoleInterpolated::TwoPoleInterpolated(unsigned int delta)
 {
 	setup(delta);
@@ -45,7 +40,8 @@ inline TwoPoleInterpolated::~TwoPoleInterpolated()
 
 inline void TwoPoleInterpolated::setup(unsigned int delta)
 {
-	m_interpolator.setup(N_COEFFICIENTS_TWO_POLE, delta);
+	//m_interpolator.setup(N_COEFFICIENTS_TWO_POLE, delta);
+	setDelta(delta);
 }
 
 inline void TwoPoleInterpolated::setDelta(unsigned int delta)

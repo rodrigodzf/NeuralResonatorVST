@@ -28,7 +28,6 @@ void Filterbank::setup(int numParallel, int numBiquads)
     {
         for (int j = 0; j < mNumBiquads; j++)
         {
-            mIIRFilters[i][j].setup(0);
             mIIRFilters[i][j].setCoefficientValues(0.0, 0.0, 0.0, 0.0, 0.0);
         }
     }
