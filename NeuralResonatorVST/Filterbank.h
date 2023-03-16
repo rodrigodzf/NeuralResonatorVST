@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TwoPole.h"
+#include "TwoPoleInterpolated.h"
 #include <juce_core/juce_core.h>
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <vector>
@@ -8,9 +8,13 @@
 class Filterbank
 {
 public:
-    Filterbank(int numParallel, int numBiquads);
+    Filterbank();
     ~Filterbank();
 
+    Filterbank(int numParallel, int numBiquads);
+    void setup(int numParallel, int numBiquads);
+
+    void cleanup();
     /**
      * @brief  Set the coefficients of the filterbank
      * @note   The coefficients are expected to be in the following order:
@@ -28,12 +32,15 @@ public:
      */
     void processBuffer(juce::AudioBuffer<float>& buffer);
 
+    void setInterpolationDelta(unsigned int delta);
+
 private:
-    std::vector<std::vector<TwoPole<double>>> mIIRFilters;
+    std::vector<std::vector<TwoPoleInterpolated>> mIIRFilters;
 
     int mNumParallel;
     int mNumBiquads;
     int mStride;
+    unsigned int mInterpolationDelta;
 
     juce::SpinLock mProcessLock;
 

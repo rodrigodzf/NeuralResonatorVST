@@ -1,6 +1,17 @@
 #include "Filterbank.h"
+Filterbank::Filterbank()
+{
+    mNumParallel = 0;
+    mNumBiquads = 0;
+    mStride = 0;
+}
 
 Filterbank::Filterbank(int numParallel, int numBiquads)
+{
+	setup(numParallel, numBiquads);
+}
+
+void Filterbank::setup(int numParallel, int numBiquads)
 {
     mNumParallel = numParallel;
     mNumBiquads = numBiquads;
@@ -17,29 +28,44 @@ Filterbank::Filterbank(int numParallel, int numBiquads)
     {
         for (int j = 0; j < mNumBiquads; j++)
         {
-            mIIRFilters[i][j].set_coefficients(0.0, 0.0, 0.0, 0.0, 0.0);
+            mIIRFilters[i][j].setup(0);
+            mIIRFilters[i][j].setCoefficientValues(0.0, 0.0, 0.0, 0.0, 0.0);
         }
     }
 }
 
-Filterbank::~Filterbank() {}
+Filterbank::~Filterbank()
+{
+    cleanup();
+}
+
+void Filterbank::cleanup()
+{
+	juce::Logger::writeToLog("Filterbank::cleanup()");
+	for (int i = 0; i < mNumParallel; i++)
+	{
+		for (int j = 0; j < mNumBiquads; j++)
+		{
+			mIIRFilters[i][j].cleanup();
+		}
+	}
+}
 
 void Filterbank::setCoefficients(const std::vector<float>& coeffs)
 {
     const juce::SpinLock::ScopedLockType lock(mProcessLock);
-
     for (int i = 0; i < mNumParallel; i++)
     {
         for (int j = 0; j < mNumBiquads; j++)
         {
             int idx = i * mNumBiquads * mStride + j * mStride;
-            mIIRFilters[i][j].set_coefficients(
-                coeffs[idx],
-                coeffs[idx + 1],
-                coeffs[idx + 2],
-                coeffs[idx + 4],
-                coeffs[idx + 5]
-            );
+	    mIIRFilters[i][j].set_coefficients(
+		    coeffs[idx],
+		    coeffs[idx + 1],
+		    coeffs[idx + 2],
+		    coeffs[idx + 4],
+		    coeffs[idx + 5]
+	    );
         }
     }
 }
@@ -68,5 +94,16 @@ void Filterbank::processBuffer(juce::AudioBuffer<float>& buffer)
 
             buffer.setSample(channel, sampleIdx, static_cast<float>(out));
         }
+    }
+}
+void Filterbank::setInterpolationDelta(unsigned int delta)
+{
+    mInterpolationDelta = delta;
+    for (int i = 0; i < mNumParallel; i++)
+    {
+	for (int j = 0; j < mNumBiquads; j++)
+	{
+	    mIIRFilters[i][j].setDelta(mInterpolationDelta);
+	}
     }
 }
