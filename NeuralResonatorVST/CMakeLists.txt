@@ -121,6 +121,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         ${TORCH_INSTALL_PREFIX}/lib/libc10.dylib
     )
 
+    # if the architecture is arm64, we need to add the arm64e library
+    if (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
+        list(APPEND TORCH_LIBS ${TORCH_INSTALL_PREFIX}/lib/libiomp5.dylib)
+    endif()
+
     set(
         PRETRAINED_MODELS_PATH
         ${CMAKE_SOURCE_DIR}/pretrained/encoder.pt
