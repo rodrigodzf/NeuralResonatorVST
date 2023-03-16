@@ -173,6 +173,11 @@ void AudioPluginAudioProcessor::prepareToPlay(
     JLOG("prepareToPlay");
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+
+    // Set interpolation delta for filterbank (0.05 seconds)
+    float interpolationDeltaSeconds = 0.05;
+    unsigned int interpolationDelta = (unsigned int)(interpolationDeltaSeconds * sampleRate);
+    mFilterbank.setInterpolationDelta(interpolationDelta);
 }
 
 void AudioPluginAudioProcessor::releaseResources()
