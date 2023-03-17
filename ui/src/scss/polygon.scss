@@ -4,10 +4,10 @@
 	position: absolute;
 	z-index: 10;
 	border-radius: 10px;
-	background-color: $accent;
+	background: radial-gradient(white 0%, $accent 60%);
+	cursor: pointer !important;
 }
 
 .listener {
-	border-radius: 0;
-	background-color: black;
+	background: radial-gradient(#303030 0%, #101010 50%);
 }
