@@ -19,7 +19,7 @@ done
 if ! [[ -d "./third_party/libtorch" ]]
 then
     cd ./third_party
-		curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.13.1.zip -o libtorch.zip
+		curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.0.0.zip -o libtorch.zip
 		unzip libtorch.zip
 		rm -rf libtorch.zip
 	cd ../	
