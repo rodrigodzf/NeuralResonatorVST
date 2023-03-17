@@ -14,21 +14,11 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  OPENSSL_ROOT_DIR: /usr/local/opt/openssl@3
-  OPENSSL_INCLUDE_DIR: /usr/local/opt/openssl@3/include
-  OPENSSL_CRYPTO_LIBRARY: /usr/local/opt/openssl@3/lib/libcrypto.dylib
 
 jobs:
   arm64-build:
     runs-on: macos-latest
     steps:
-      - name: Install dependencies
-        run: |
-          brew install openssl
-          brew link --force openssl
-          export PKG_CONFIG_PATH="${{env.OPENSSL_ROOT_DIR}}/lib/pkgconfig"
-          pkg-config --modversion openssl
-          ls "${{env.OPENSSL_ROOT_DIR}}"
 
       - name: Check out code
         uses: actions/checkout@v3
@@ -37,13 +27,14 @@ jobs:
 
       - name: Setup torch
         run: |
-          curl -L https://anaconda.org/pytorch/pytorch/1.13.1/download/osx-arm64/pytorch-1.13.1-py3.9_0.tar.bz2 | tar -xv
+          curl -L https://anaconda.org/pytorch/pytorch/2.0.0/download/osx-arm64/pytorch-2.0.0-py3.9_0.tar.bz2 -o pytorch.tar.bz2
+          mkdir pytorch && tar -xvf pytorch.tar.bz2 -C pytorch
 
       - name: Build
         run: |
           mkdir build
           cd build
-          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/lib/python3.9/site-packages/torch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_OSX_ARCHITECTURES=arm64
+          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/pytorch/lib/python3.9/site-packages/torch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_OSX_ARCHITECTURES=arm64
           make -j
 
       - name: Package
@@ -62,6 +53,7 @@ jobs:
   x86_64-build:
     runs-on: macos-latest
     steps:
+
       - name: Check out code
         uses: actions/checkout@v3
         with:
@@ -69,7 +61,7 @@ jobs:
 
       - name: Setup torch
         run: |
-          curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-1.13.1.zip -o libtorch.zip
+          curl -L https://download.pytorch.org/libtorch/cpu/libtorch-macos-2.0.0.zip -o libtorch.zip
           unzip libtorch.zip
 
       - name: Build
