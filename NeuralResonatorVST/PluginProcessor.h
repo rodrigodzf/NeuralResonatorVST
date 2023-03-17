@@ -68,6 +68,8 @@ private:
 private:
     std::unique_ptr<juce::FileLogger> mFileLoggerPtr;
     Filterbank mFilterbank;
+    // We need this to be able to set the coefficients of the IIR filters at first without interpolation
+    bool firstCoefficients = true;
 
 private:
     //==============================================================================

@@ -22,7 +22,7 @@ public:
      * @param  coeffs: The coefficients
      * @retval None
      */
-    void setCoefficients(const std::vector<float>& coeffs);
+    void setCoefficients(const std::vector<float>& coeffs, bool interpolate = true);
 
     /**
      * @brief  Process a block of samples through the filterbank

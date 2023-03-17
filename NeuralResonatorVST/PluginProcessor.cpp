@@ -334,6 +334,11 @@ void AudioPluginAudioProcessor::handleCoefficentsChanged(
     JLOG("Coefficents changed");
     // JLOG("Number of coefficients: " +
     //                          std::to_string(coefficients.size()));
+    if (firstCoefficients)
+    { 
+        mFilterbank.setCoefficients(coefficients, false);
+        firstCoefficients = false;
+    }
     mFilterbank.setCoefficients(coefficients);
 }
 
