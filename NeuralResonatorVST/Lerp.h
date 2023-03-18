@@ -124,5 +124,5 @@ inline T Lerp<T>::boundValue()
 template <typename T>
 inline Lerp<T>::~Lerp()
 {
-	juce::Logger::writeToLog("Lerp::~Lerp");
+	// juce::Logger::writeToLog("Lerp::~Lerp");
 }

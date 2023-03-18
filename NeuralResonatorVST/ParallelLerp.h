@@ -68,7 +68,7 @@ inline ParallelLerp<T>::ParallelLerp(unsigned int nInterp, unsigned int delta)
 template <typename T>
 inline void ParallelLerp<T>::cleanup()
 {
-    juce::Logger::writeToLog("ParallelLerp::cleanup()");
+    // juce::Logger::writeToLog("ParallelLerp::cleanup()");
 }
 
 template <typename T>
@@ -86,13 +86,13 @@ inline void ParallelLerp<T>::setup(unsigned int nInterp, unsigned int delta)
     {
         m_interpolators[i].setup(delta);
     }
-    juce::Logger::writeToLog("ParallelLerp::setup()");
-    juce::Logger::writeToLog(
-        "Number of interpolators: " + std::to_string(m_interpolators.size())
-    );
-    juce::Logger::writeToLog(
-        "Number of values: " + std::to_string(m_values.size())
-    );
+    // juce::Logger::writeToLog("ParallelLerp::setup()");
+    // juce::Logger::writeToLog(
+    //    "Number of interpolators: " + std::to_string(m_interpolators.size())
+    // );
+    // juce::Logger::writeToLog(
+    //     "Number of values: " + std::to_string(m_values.size())
+    // );
 }
 
 template <typename T>
@@ -185,9 +185,9 @@ inline bool ParallelLerp<T>::setTargets(T const (&targets)[N])
 template <typename T>
 inline void ParallelLerp<T>::setDelta(unsigned int delta)
 {
-    juce::Logger::writeToLog(
-        "ParallelLerp::setDelta " + std::to_string(delta)
-    );
+    // juce::Logger::writeToLog(
+    //    "ParallelLerp::setDelta " + std::to_string(delta)
+    //);
     for (unsigned int i = 0; i < m_interpolators.size(); i++)
     {
         m_interpolators[i].setDelta(delta);

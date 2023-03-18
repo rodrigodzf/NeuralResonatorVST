@@ -1,3 +1,4 @@
+#include "HelperFunctions.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -17,11 +18,11 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #endif
 
     // Initialize the parameter syncer
-    juce::Logger::writeToLog("Initializing parameter syncer");
+    JLOG("Initializing parameter syncer");
     mParameterSyncerPtr.reset(new ParameterSyncer(processorRef.mParameters));
 
     // Initialize the server thread
-    juce::Logger::writeToLog("Initializing server thread");
+    JLOG("Initializing server thread");
     mServerThreadPtr.reset(
         new ServerThread(mParameterSyncerPtr->getParameterSyncerIfPtr())
     );
