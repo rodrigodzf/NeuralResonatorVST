@@ -28,7 +28,7 @@ const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void
 	}, [parameters?.vertices.value])
 
 	useEffect(() => {
-        setStrike(new Vector2(parameters!.xpos.value, parameters!.ypos.value))
+		setStrike(new Vector2(parameters!.xpos.value, parameters!.ypos.value))
 	}, [parameters!.xpos.value, parameters!.ypos.value])
 
 	return (
@@ -44,8 +44,12 @@ const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void
 						sendMessage(JSON.stringify({ type: 'update_shape', value: flatVertices }))
 					}}
 					onListenerChange={(V: Vector2) => {
-						sendMessage(JSON.stringify({ type: 'new_parameter', id: 'xpos', value: V.x }))
-						sendMessage(JSON.stringify({ type: 'new_parameter', id: 'ypos', value: V.y }))
+						sendMessage(
+							JSON.stringify({ type: 'new_parameter', id: 'xpos', value: V.x }),
+						)
+						sendMessage(
+							JSON.stringify({ type: 'new_parameter', id: 'ypos', value: V.y }),
+						)
 					}}
 				/>
 			)}
