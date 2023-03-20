@@ -3,59 +3,80 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "HelperFunctions.h"
-#include <kac_core.hpp>
+#include <geometry/generate_polygon.hpp>
+#include <geometry/morphisms.hpp>
+#include <geometry/lines.hpp>
 class ShapeComponent : public juce::Component,
                        public juce::ValueTree::Listener
 {
 public:
     ShapeComponent(juce::AudioProcessorValueTreeState &VTS)
+        : mVts(VTS)
     {
-        VTS.state.addListener(this);
+        setOpaque(true);
         valueTreeRedirected(VTS.state);
-        // setOpaque(true);
+        mVts.state.addListener(this);
         // setInterceptsMouseClicks(false, false);
+    }
+
+    ~ShapeComponent()
+    {
+        mVts.state.removeListener(this);
+        mPath.clear();
     }
 
     void paint(juce::Graphics &g) override
     {
+        const juce::SpinLock::ScopedLockType lock(mMutex);
+
         // colors should have ff in front for alpha
         g.fillAll(juce::Colour::fromString("ff0057b8"));
         g.setColour(juce::Colour::fromString("ffffcc00"));
-        g.fillPath(mPath);
+
+        auto margin = getWidth() - getHeight();
+        auto transform =
+            juce::AffineTransform()
+                .scaled(getHeight(), getHeight())
+                .translated(static_cast<float>(margin) / 2.0f, 0);
+
+        // copy the path and apply a transform
+        // we need to do this because paint might be run multiple times and
+        // the shape will only get bigger otherwise
+        auto path = mPath;
+        path.applyTransform(transform);
+        g.fillPath(path);
     }
 
     void valueTreeRedirected(juce::ValueTree &redirectedTree) override
     {
-        JLOG("redirected");
+        JLOG("polygon valueTreeRedirected");
+        const juce::SpinLock::ScopedLockType lock(mMutex);
 
         auto child = redirectedTree.getChildWithProperty("id", "vertices");
 
         if (auto *newValue = child.getPropertyPointer("value"))
         {
-            JLOG("aaa---------------");
             auto size = newValue->size();
 
-                mPath.clear();
-                int res = this->getHeight();
+            mPath.clear();
 
-                for (int i = 0; i < size; i += 2)
-                {
-                    JLOG("x: " + juce::String((*newValue)[i]));
-                    auto x = float((*newValue)[i]);
-                    auto y = float((*newValue)[i + 1]);
+            for (int i = 0; i < size; i += 2)
+            {
+                auto x = float((*newValue)[i]);
+                auto y = float((*newValue)[i + 1]);
 
-                    // the positions are in the range [-1, 1], so we need
-                    // to scale them to the range [0, res] and flip the y
-                    // axis
-                    x = (x + 1) * 0.5 * res;
-                    y = res - ((y + 1) * 0.5 * res);
-                    if (i == 0) { mPath.startNewSubPath(x, y); }
-                    else { mPath.lineTo(x, y); }
-                }
+                // the positions are in the range [-1, 1], so we need
+                // to scale them to the range [0, res] and flip the y
+                // axis
+                x = (x + 1) * 0.5;
+                y = 1 - ((y + 1) * 0.5);
+                if (i == 0) { mPath.startNewSubPath(x, y); }
+                else { mPath.lineTo(x, y); }
+            }
 
-                // close the subpath
-                mPath.closeSubPath();
-                this->repaint();
+            // close the subpath
+            mPath.closeSubPath();
+            repaint();
         }
     }
 
@@ -64,6 +85,8 @@ public:
         const juce::Identifier &changedProperty
     ) override
     {
+        const juce::SpinLock::ScopedLockType lock(mMutex);
+
         auto treeType = changedTree.getType().toString();
 
         if (treeType == "polygon")
@@ -75,7 +98,6 @@ public:
                 auto size = flattenedVertices->size();
 
                 mPath.clear();
-                int res = this->getHeight();
 
                 for (int i = 0; i < size; i += 2)
                 {
@@ -85,21 +107,23 @@ public:
                     // the positions are in the range [-1, 1], so we need
                     // to scale them to the range [0, res] and flip the y
                     // axis
-                    x = (x + 1) * 0.5 * res;
-                    y = res - ((y + 1) * 0.5 * res);
+                    x = (x + 1) * 0.5;
+                    y = 1 - ((y + 1) * 0.5);
                     if (i == 0) { mPath.startNewSubPath(x, y); }
                     else { mPath.lineTo(x, y); }
                 }
 
                 // close the subpath
                 mPath.closeSubPath();
-                this->repaint();
+                repaint();
             }
         }
     }
 
 private:
     juce::Path mPath;
+    juce::SpinLock mMutex;
+    juce::AudioProcessorValueTreeState &mVts;
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ShapeComponent)

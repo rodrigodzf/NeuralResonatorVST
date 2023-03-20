@@ -13,6 +13,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     , mPanel(p.mParameters)
 #endif
 {
+#ifndef SIMPLE_UI
     // init browser
 #if BROWSER_DEV_SERVER
 #pragma message("Using dev server for UI")
@@ -21,7 +22,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #pragma message("Using local file for UI")
     juce::String url = "file://" + processorRef.mIndexFile.getFullPathName();
 #endif
-#ifndef SIMPLE_UI
     // Initialize the parameter syncer
     JLOG("Initializing parameter syncer");
     mParameterSyncerPtr.reset(new ParameterSyncer(processorRef.mParameters));

@@ -4,7 +4,6 @@
 #include "ConsoleLogger.h"
 #include "BrowserComponent.h"
 #include <juce_gui_basics/juce_gui_basics.h>
-#define SIMPLE_UI 1
 
 #if SIMPLE_UI
 #include "FallbackUI.h"

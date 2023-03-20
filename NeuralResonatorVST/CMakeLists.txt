@@ -47,6 +47,16 @@ if (NOT EXISTS ${MINIFIED_UI_PATH})
     )
 endif()
 
+# Use or not the SIMPLE UI
+if (USE_SIMPLE_UI)
+    message(STATUS "Using the simple UI")
+    target_compile_definitions(
+        ${PLUGIN_NAME}
+        PUBLIC
+        SIMPLE_UI=1
+    )
+endif()
+
 # Add any resources you need to this target
 # juce_add_binary_data(
 #     BinaryData
