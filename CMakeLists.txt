@@ -13,6 +13,20 @@ option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
 option(ASIO_STANDALONE "Use standalone ASIO" ON)
 option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON)
+option(BUILD_TESTS "Build tests" ON)
+
+# force set the architecture variable to the current architecture
+# this is needed because the CMAKE_OSX_ARCHITECTURES variable is not set
+# and we might be building for a different architecture than the one
+# we are currently running on
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING "" FORCE)
+    endif()
+endif()
+
+# utility functions
+include("cmake/TorchUtils.cmake")
 
 # Dependencies
 
@@ -55,9 +69,20 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin"
     set(CMAKE_MACOSX_RPATH TRUE)
     set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE) # This is to use the use the local libraries in the rpath as well
-    set(CMAKE_INSTALL_RPATH "@loader_path")      # This is the path to the folder containing the executable
     # set(CMAKE_SKIP_BUILD_RPATH FALSE)
     set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
+
+    if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+         # This is the path to the folder containing the executable
+        set(CMAKE_INSTALL_RPATH "@loader_path")
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(CMAKE_INSTALL_RPATH "$ORIGIN")
+    endif()
+    
+
 endif()
 
 add_subdirectory(NeuralResonatorVST)
+if (BUILD_TESTS)
+    add_subdirectory(NeuralResonatorVST/test)
+endif()

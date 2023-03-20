@@ -16,7 +16,11 @@ TorchWrapper::TorchWrapper(
     mCoefficients.resize(32 * 2 * 6);
 
     // initialize the tensors
-    auto options = torch::TensorOptions().dtype(torch::kFloat32);
+    auto options = torch::TensorOptions()
+        .dtype(torch::kFloat32)
+        .device(torch::kCPU)
+        .requires_grad(false);
+
     mLastMaterialTensor = torch::full({1, 5}, 0.5f, options);
     mLastPositionTensor = torch::full({1, 2}, 0.5f, options);
 

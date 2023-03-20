@@ -86,12 +86,10 @@ target_compile_definitions(
 
 target_link_libraries(
     ${PLUGIN_NAME}
-    PRIVATE
+    PUBLIC
     asio
     juce::juce_gui_extra
-    # BinaryData
 	kac_core
-    PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     # juce::juce_recommended_warning_flags
@@ -102,7 +100,7 @@ target_link_libraries(
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(
         ${PLUGIN_NAME}
-        PRIVATE
+        PUBLIC
         juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
     )
     # target_compile_options(
@@ -112,52 +110,28 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # )
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
-    set(
-        TORCH_LIBS
-        ${TORCH_INSTALL_PREFIX}/lib/libtorch.dylib
-        ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.dylib
-        ${TORCH_INSTALL_PREFIX}/lib/libc10.dylib
-    )
+set(
+    PRETRAINED_MODELS_PATH
+    ${CMAKE_SOURCE_DIR}/pretrained/encoder.pt
+    ${CMAKE_SOURCE_DIR}/pretrained/model_wrap.pt
+    CACHE INTERNAL "Path to the pretrained models"
+)
 
-    # force set the architecture variable to the current architecture
-    # this is needed because the CMAKE_OSX_ARCHITECTURES variable is not set
-    if (NOT CMAKE_OSX_ARCHITECTURES)
-        set(CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING "" FORCE)
-    endif()
-
-    # if the architecture is arm64, we need to add the libiomp5 library
-    if (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
-        list(APPEND TORCH_LIBS ${TORCH_INSTALL_PREFIX}/lib/libiomp5.dylib)
-    endif()
-
-    set(
-        PRETRAINED_MODELS_PATH
-        ${CMAKE_SOURCE_DIR}/pretrained/encoder.pt
-        ${CMAKE_SOURCE_DIR}/pretrained/model_wrap.pt
-        CACHE INTERNAL "Path to the pretrained models"
-    )
-
-    get_target_property(active_targets ${PLUGIN_NAME} JUCE_ACTIVE_PLUGIN_TARGETS)
-    foreach( sub_target IN LISTS active_targets )
-        
-        message(STATUS "Adding libraries and models to ${sub_target}")
-
-        get_target_property(
-            BUNDLE_PATH
-            ${sub_target}
-            JUCE_PLUGIN_ARTEFACT_FILE
-        )
+get_target_property(active_targets ${PLUGIN_NAME} JUCE_ACTIVE_PLUGIN_TARGETS)
+foreach( sub_target IN LISTS active_targets )
     
-        add_custom_command(
-            TARGET ${sub_target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy ${TORCH_LIBS} "${BUNDLE_PATH}/Contents/MacOS/"
-            COMMENT "Copy Torch Libraries to ${sub_target}"
-            VERBATIM
-        )
+    message(STATUS "Adding libraries and models to ${sub_target}")
+
+    get_target_property(
+        BUNDLE_PATH
+        ${sub_target}
+        JUCE_PLUGIN_ARTEFACT_FILE
+    )
+
+    copy_torch_libs(${sub_target})
+    
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
         # Copy pretrained models to the plugin bundle
         target_sources(${sub_target} PRIVATE ${PRETRAINED_MODELS_PATH})
@@ -169,22 +143,39 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
         # Copy the minified ui to the plugin bundle
         target_sources(${sub_target} PRIVATE ${MINIFIED_UI_PATH})
-
         set_source_files_properties(
             ${MINIFIED_UI_PATH}
             PROPERTIES
             MACOSX_PACKAGE_LOCATION "Resources"
         )
+    elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        # Copy pretrained models to the plugin bundle
+        add_custom_command(
+            TARGET ${sub_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy ${PRETRAINED_MODELS_PATH} "$<TARGET_FILE_DIR:${sub_target}>"
+            COMMENT "Copy models to ${sub_target}"
+            VERBATIM
+        )
+        # Copy the minified ui to the plugin bundle
+        add_custom_command(
+            TARGET ${sub_target}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND}
+            ARGS -E copy ${MINIFIED_UI_PATH} "$<TARGET_FILE_DIR:${sub_target}>"
+            COMMENT "Copy minified ui to ${sub_target}"
+            VERBATIM
+        )
+    endif()
+    # TODO Sign the plugin
+    # https://forum.juce.com/t/prepare-plugins-for-distribution-on-macos-notarization-code-signing-etc/53124/7
+#     add_custom_command(
+#         TARGET ${sub_target} POST_BUILD
+#         COMMENT "Signing ${sub_target}"
+#         COMMAND "codesign" "--force" "--deep" "-s" "-" ${bundle_path}
+#         VERBATIM
+#     )
+endforeach()
 
-        # TODO Sign the plugin
-        # https://forum.juce.com/t/prepare-plugins-for-distribution-on-macos-notarization-code-signing-etc/53124/7
-    #     add_custom_command(
-    #         TARGET ${sub_target} POST_BUILD
-    #         COMMENT "Signing ${sub_target}"
-    #         COMMAND "codesign" "--force" "--deep" "-s" "-" ${bundle_path}
-    #         VERBATIM
-    #     )
-    endforeach()
-
-    juce_enable_copy_plugin_step(${PLUGIN_NAME})
-endif()
+juce_enable_copy_plugin_step(${PLUGIN_NAME})
