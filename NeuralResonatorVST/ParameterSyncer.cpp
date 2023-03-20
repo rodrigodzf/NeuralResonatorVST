@@ -2,7 +2,10 @@
 #include <time.h>
 #include "HelperFunctions.h"
 #include "ParameterSyncer.h"
-#include <kac_core.hpp>
+#include <geometry/generate_polygon.hpp>
+#include <geometry/morphisms.hpp>
+#include <geometry/lines.hpp>
+
 ParameterSyncer::ParameterSyncer(juce::AudioProcessorValueTreeState& vtsRef)
     : juce::ValueTreeSynchroniser(vtsRef.state)
     , mVTSRef(vtsRef)

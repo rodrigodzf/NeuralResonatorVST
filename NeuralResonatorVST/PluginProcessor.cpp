@@ -1,7 +1,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "HelperFunctions.h"
-#include <kac_core.hpp>
+#include <geometry/generate_polygon.hpp>
+#include <geometry/morphisms.hpp>
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     : AudioProcessor(
