@@ -14,6 +14,7 @@ option(ASIO_STANDALONE "Use standalone ASIO" ON)
 option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON)
 option(USE_SIMPLE_UI "Use simple UI" OFF)
+option(BUILD_TESTS "Build tests" ON)
 
 # In linux, we need a simple UI
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -88,4 +89,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin"
 endif()
 
 add_subdirectory(NeuralResonatorVST)
-add_subdirectory(NeuralResonatorVST/test)
+if (BUILD_TESTS)
+    add_subdirectory(NeuralResonatorVST/test)
+endif()
