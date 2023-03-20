@@ -13,6 +13,7 @@ option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
 option(ASIO_STANDALONE "Use standalone ASIO" ON)
 option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON)
+option(BUILD_TESTS "Build tests" ON)
 
 # force set the architecture variable to the current architecture
 # this is needed because the CMAKE_OSX_ARCHITECTURES variable is not set
@@ -82,4 +83,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin"
 endif()
 
 add_subdirectory(NeuralResonatorVST)
-add_subdirectory(NeuralResonatorVST/test)
+if (BUILD_TESTS)
+    add_subdirectory(NeuralResonatorVST/test)
+endif()
