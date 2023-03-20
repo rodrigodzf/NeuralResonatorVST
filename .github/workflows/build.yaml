@@ -16,6 +16,38 @@ env:
   BUILD_TYPE: Release
 
 jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      
+      - name: Setup torch
+        run: |
+          curl -L https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.0.0%2Bcpu.zip -o libtorch.zip
+          unzip libtorch.zip
+
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_PREFIX_PATH=${{ github.workspace }}/libtorch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          make -j
+
+      - name: Package
+        run: |
+          mkdir -p NeuralResonator
+          cp -r ~/.vst/NeuralResonator.vst3 NeuralResonator
+          tar -czvf NeuralResonator_linux_x86_64.tar.gz NeuralResonator
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: NeuralResonator
+          path: NeuralResonator_linux_x86_64.tar.gz
+
   arm64-build:
     runs-on: macos-latest
     steps:
@@ -86,7 +118,7 @@ jobs:
   
   release:
     runs-on: ubuntu-latest
-    needs: [arm64-build,x86_64-build]
+    needs: [arm64-build,x86_64-build,linux-build]
     permissions: write-all
     steps:
       - name: Download build binaries
@@ -101,3 +133,4 @@ jobs:
           files: |
             NeuralResonator_macOS_x86_64.tar.gz
             NeuralResonator_macOS_arm64.tar.gz
+            NeuralResonator_linux_x86_64.tar.gz
