@@ -45,8 +45,8 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
 #else
     addAndMakeVisible(mShapeComponent);
     addAndMakeVisible(mPanel);
-    setSize(800, 400);
 #endif
+    setSize(800, 400);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
