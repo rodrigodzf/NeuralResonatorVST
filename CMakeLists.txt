@@ -14,6 +14,19 @@ option(ASIO_STANDALONE "Use standalone ASIO" ON)
 option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON)
 
+# force set the architecture variable to the current architecture
+# this is needed because the CMAKE_OSX_ARCHITECTURES variable is not set
+# and we might be building for a different architecture than the one
+# we are currently running on
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING "" FORCE)
+    endif()
+endif()
+
+# utility functions
+include("cmake/TorchUtils.cmake")
+
 # Dependencies
 
 # Torch

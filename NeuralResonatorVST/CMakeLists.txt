@@ -86,12 +86,10 @@ target_compile_definitions(
 
 target_link_libraries(
     ${PLUGIN_NAME}
-    PRIVATE
+    PUBLIC
     asio
     juce::juce_gui_extra
-    # BinaryData
 	kac_core
-    PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     # juce::juce_recommended_warning_flags
@@ -102,7 +100,7 @@ target_link_libraries(
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(
         ${PLUGIN_NAME}
-        PRIVATE
+        PUBLIC
         juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
     )
     # target_compile_options(
@@ -113,24 +111,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-
-    set(
-        TORCH_LIBS
-        ${TORCH_INSTALL_PREFIX}/lib/libtorch.dylib
-        ${TORCH_INSTALL_PREFIX}/lib/libtorch_cpu.dylib
-        ${TORCH_INSTALL_PREFIX}/lib/libc10.dylib
-    )
-
-    # force set the architecture variable to the current architecture
-    # this is needed because the CMAKE_OSX_ARCHITECTURES variable is not set
-    if (NOT CMAKE_OSX_ARCHITECTURES)
-        set(CMAKE_OSX_ARCHITECTURES ${CMAKE_SYSTEM_PROCESSOR} CACHE STRING "" FORCE)
-    endif()
-
-    # if the architecture is arm64, we need to add the libiomp5 library
-    if (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
-        list(APPEND TORCH_LIBS ${TORCH_INSTALL_PREFIX}/lib/libiomp5.dylib)
-    endif()
 
     set(
         PRETRAINED_MODELS_PATH
@@ -150,14 +130,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             JUCE_PLUGIN_ARTEFACT_FILE
         )
     
-        add_custom_command(
-            TARGET ${sub_target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy ${TORCH_LIBS} "${BUNDLE_PATH}/Contents/MacOS/"
-            COMMENT "Copy Torch Libraries to ${sub_target}"
-            VERBATIM
-        )
+        copy_torch_libs(${sub_target})
 
         # Copy pretrained models to the plugin bundle
         target_sources(${sub_target} PRIVATE ${PRETRAINED_MODELS_PATH})
