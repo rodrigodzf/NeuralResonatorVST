@@ -13,7 +13,13 @@ option(JUCE_BUILD_EXTRAS "Build JUCE Extras" OFF)
 option(ASIO_STANDALONE "Use standalone ASIO" ON)
 option(BROWSER_DEV_SERVER "Use browser dev server" OFF)
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Generate compile_commands.json" ON)
+option(USE_SIMPLE_UI "Use simple UI" OFF)
 option(BUILD_TESTS "Build tests" ON)
+
+# In linux, we need a simple UI
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(USE_SIMPLE_UI ON)
+endif()
 
 # force set the architecture variable to the current architecture
 # this is needed because the CMAKE_OSX_ARCHITECTURES variable is not set
