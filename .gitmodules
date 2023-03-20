@@ -8,4 +8,4 @@
     branch = master
 [submodule "third_party/kac_core"]
 	path = third_party/kac_core
-	url = https://github.com/lewiswolf/kac_core.git
+	url = https://github.com/rodrigodzf/kac_core.git
