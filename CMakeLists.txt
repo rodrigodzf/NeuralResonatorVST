@@ -61,3 +61,4 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR CMAKE_SYSTEM_NAME STREQUAL "Darwin"
 endif()
 
 add_subdirectory(NeuralResonatorVST)
+add_subdirectory(NeuralResonatorVST/test)

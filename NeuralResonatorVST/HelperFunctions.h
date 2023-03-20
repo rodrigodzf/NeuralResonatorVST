@@ -6,16 +6,18 @@
 #include <juce_graphics/juce_graphics.h>
 #include <juce_data_structures/juce_data_structures.h>
 
-#define JLOG(msg) JUCE_BLOCK_WITH_FORCED_SEMICOLON(\
-    juce::Time current = juce::Time::getCurrentTime();\
-    juce::String timestamp = juce::String::formatted(\
-        "%02d:%02d:%02d.%03d",\
-        current.getHours(),\
-        current.getMinutes(),\
-        current.getSeconds(),\
-        current.getMilliseconds());\
-    juce::Logger::writeToLog(timestamp + " " + msg);\
-)
+#define JLOG(msg)                                          \
+    JUCE_BLOCK_WITH_FORCED_SEMICOLON(                      \
+        juce::Time current = juce::Time::getCurrentTime(); \
+        juce::String timestamp = juce::String::formatted(  \
+            "%02d:%02d:%02d.%03d",                         \
+            current.getHours(),                            \
+            current.getMinutes(),                          \
+            current.getSeconds(),                          \
+            current.getMilliseconds()                      \
+        );                                                 \
+        juce::Logger::writeToLog(timestamp + " " + msg);   \
+    )
 
 class HelperFunctions
 {
@@ -94,6 +96,39 @@ public:
             {"port", juce::String(port)}};
 
         return configMap;
+    }
+
+    static juce::String findResourcePath(const juce::String& path)
+    {
+        // locate the resource path inside the bundle
+        juce::String resourcePath =
+            juce::File::getSpecialLocation(
+                juce::File::SpecialLocationType::currentApplicationFile
+            )
+                .getChildFile("Contents")
+                .getChildFile("Resources")
+                .getChildFile(path)
+                .getFullPathName();
+
+        // if the resource path doesn't exist, use the current directory
+        if (!juce::File(resourcePath).existsAsFile())
+        {
+            resourcePath =
+                juce::File::getSpecialLocation(
+                    juce::File::SpecialLocationType::currentExecutableFile
+                )
+                    .getSiblingFile(path)
+                    .getFullPathName();
+        }
+
+        // if the resource path doesn't exist exit
+        if (!juce::File(resourcePath).existsAsFile())
+        {
+            JLOG("Resource file: " + path + " doesn't exist");
+            jassertfalse;
+        }
+
+        return resourcePath;
     }
 
 #if 0

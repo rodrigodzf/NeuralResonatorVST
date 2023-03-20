@@ -35,47 +35,11 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
     createAndAppendValueTree();
 
     // location of the index.html file inside the plugin bundle
-    mIndexFile = juce::File::getSpecialLocation(
-                     juce::File::SpecialLocationType::currentApplicationFile
-    )
-                     .getChildFile("Contents")
-                     .getChildFile("Resources")
-                     .getChildFile("index.html")
-                     .getFullPathName();
-
-    // check that the index file exists
-    if (!juce::File(mIndexFile).existsAsFile())
-    {
-        JLOG("index.html not found");
-    }
+    mIndexFile = HelperFunctions::findResourcePath("index.html");
 
     // location of the pretrained models inside the plugin bundle
-    auto encoderPath =
-        juce::File::getSpecialLocation(
-            juce::File::SpecialLocationType::currentApplicationFile
-        )
-            .getChildFile("Contents")
-            .getChildFile("Resources")
-            .getChildFile("encoder.pt")
-            .getFullPathName();
-
-    auto fcPath = juce::File::getSpecialLocation(
-                      juce::File::SpecialLocationType::currentApplicationFile
-    )
-                      .getChildFile("Contents")
-                      .getChildFile("Resources")
-                      .getChildFile("model_wrap.pt")
-                      .getFullPathName();
-
-    // check that the models exist
-    if (!juce::File(encoderPath).existsAsFile())
-    {
-        JLOG("encoder.pt not found");
-    }
-    if (!juce::File(fcPath).existsAsFile())
-    {
-        JLOG("model_wrap.pt not found");
-    }
+    auto encoderPath = HelperFunctions::findResourcePath("encoder.pt");
+    auto fcPath = HelperFunctions::findResourcePath("model_wrap.pt");
 
     // initialize the torch wrapper
     JLOG("Initializing torch wrapper");
