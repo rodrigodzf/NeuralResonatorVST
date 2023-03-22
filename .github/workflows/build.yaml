@@ -45,7 +45,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p NeuralResonator
-          cp -r ~/.vst/NeuralResonator.vst3 NeuralResonator
+          cp -r ~/.vst3/NeuralResonator.vst3 NeuralResonator
           tar -czvf NeuralResonator_linux_x86_64.tar.gz NeuralResonator
 
       - name: Upload binaries
