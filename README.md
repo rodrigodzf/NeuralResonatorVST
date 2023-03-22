@@ -16,30 +16,70 @@
 
 This is a VST plugin that uses a neural network to generate filters based on arbitrary 2D shapes and materials. It is possible to use midi to trigger simple impulses to excite these filters. Additionally any audio signal can be used as input to the filters.
 
-## Clone
+This plugin uses LibTorch for the neural network and JUCE for the VST plugin. It also features an easily extensible web-based user interface built with React and Typescript. However, it is possible to build the plugin with a traditional C++ GUI (Linux will use this as default).
+
+## Installation
+
+The plugin is currently available for **Mac** and **Linux** only. The plugin is available as a VST3 plugin. Simply download the [latest release](https://github.com/rodrigodzf/NeuralResonatorVST/releases) and copy the plugin to your preferred VST3 folder.
+
+In **Mac** this is:
 
 ```bash
-git clone --recurse-submodules
+~/Library/Audio/Plug-Ins/VST3
 ```
 
-## Build
+In **Linux** this is:
 
-First we need to install the dependencies of [juce](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md):
+```bash
+~/.vst3
+```
 
-For **Linux**:
+## Building from source
+
+First, clone this repo with its submodules:
+
+```bash
+git clone --recurse-submodules git@github.com:rodrigodzf/NeuralResonatorVST.git
+```
+
+For all platforms the plugin can be built using:
+
+```bash
+bash ./bin/build.sh
+```
+
+It is also possible to build the plugin with a traditional C++ GUI using:
+
+```bash
+bash ./bin/build.sh -s
+```
+
+### Dependencies
+
+For building on **Linux** we need the dependencies of [juce](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md):
 
 ```bash
 sudo apt update
-sudo apt install libasound2-dev libjack-jackd2-dev \
-    ladspa-sdk \
-    libcurl4-openssl-dev  \
+sudo apt install libasound2-dev \
     libfreetype6-dev \
-    libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev \
-    libwebkit2gtk-4.0-dev \
-    libglu1-mesa-dev mesa-common-dev
+    libx11-dev \
+    libxcomposite-dev \
+    libxcursor-dev \
+    libxext-dev \
+    libxinerama-dev \
+    libxrandr-dev \
+    libwebkit2gtk-4.0-dev
 ```
 
-For debug, we can build the project:
+Libtorch is automatically downloaded by the build script. However, in case you want to use your own libtorch installation it is possible to manually set it as:
+
+```bash
+cmake -S . -B build  -DCMAKE_PREFIX_PATH=YOUR_LIBTORCH_PATH
+```
+
+### Development
+
+For development, we can build the project using:
 
 ```bash
 sh ./bin/build.sh --test
@@ -49,22 +89,6 @@ cd ui && npm run dev
 This will open a server on `localhost:3000` and you can start developing the UI. The UI will automatically reload when you change something in the source code.
 
 The VST and the UI communicate via a websocket. The websocket server is started by the VST and the UI connects to it. The websocket server is started on `localhost:8000/ui`.
-
-Finally, the project can be built for release using:
-
-```bash
-sh ./bin/build.sh
-```
-
-See the `.github/workflows/build.yml` for more details.
-
-### Pytorch
-
-For now the pytorch path **must** must be passed to `cmake`. This is because the pytorch library is not installed on the system. The path should be set to the `libtorch` folder in the pytorch installation.
-
-```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=YOUR_PYTORCH_PATH
-```
 
 ## Logs and config files
 
@@ -76,19 +100,11 @@ In Mac this is:
 tail -F ~/Library/Logs/NeuralResonatorVST/log.txt
 ```
 
-Note that the config file is the folder
-
-```bash
-~/Library/NeuralResonatorVST
-```
-
-In Linux this is:
+and in Linux this is:
 
 ```bash
 tail -F ~/.config/NeuralResonatorVST/log.txt
 ```
-
-with the config file in the same folder.
 
 ## Related projects
 
