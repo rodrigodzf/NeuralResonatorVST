@@ -23,28 +23,30 @@ juce_add_plugin(${PLUGIN_NAME}
     FORMATS ${FORMATS}                          # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
     PRODUCT_NAME "NeuralResonator")             # The name of the final executable, which can differ from the target name
 
-# Custom command to compile the ui
-# We use the `execute_process` because the `juce_add_binary_data` command
-# doesn't support custom commands or generated files
-set(MINIFIED_UI_PATH ${CMAKE_SOURCE_DIR}/ui/dist/index.html CACHE INTERNAL "Path to the minified ui")
-# check if the ui is already built
-# WARNING: any new changes to the ui won't be reflected in the plugin
-if (NOT EXISTS ${MINIFIED_UI_PATH})
-    # if not, build it
-    message(STATUS "Installing dev dependencies for the ui")
-    execute_process(
-        COMMAND npm i --include=dev
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ui
-        COMMAND_ERROR_IS_FATAL ANY
-        COMMAND_ECHO STDOUT
-    )
-    message(STATUS "Building the ui")
-    execute_process(
-        COMMAND npm run build
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ui
-        COMMAND_ERROR_IS_FATAL ANY
-        COMMAND_ECHO STDOUT
-    )
+if (NOT USE_SIMPLE_UI)
+    # Custom command to compile the ui
+    # We use the `execute_process` because the `juce_add_binary_data` command
+    # doesn't support custom commands or generated files
+    set(MINIFIED_UI_PATH ${CMAKE_SOURCE_DIR}/ui/dist/index.html CACHE INTERNAL "Path to the minified ui")
+    # check if the ui is already built
+    # WARNING: any new changes to the ui won't be reflected in the plugin
+    if (NOT EXISTS ${MINIFIED_UI_PATH})
+        # if not, build it
+        message(STATUS "Installing dev dependencies for the ui")
+        execute_process(
+            COMMAND npm i --include=dev
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ui
+            COMMAND_ERROR_IS_FATAL ANY
+            COMMAND_ECHO STDOUT
+        )
+        message(STATUS "Building the ui")
+        execute_process(
+            COMMAND npm run build
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/ui
+            COMMAND_ERROR_IS_FATAL ANY
+            COMMAND_ECHO STDOUT
+        )
+    endif()
 endif()
 
 # Use or not the SIMPLE UI
