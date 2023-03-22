@@ -12,12 +12,13 @@ DragableVertex::DragableVertex(const juce::Point<float> &initialPos)
 
 void DragableVertex::paint(juce::Graphics &g)
 {
+    auto color = juce::Colour::fromString("ffeefa5a");
     g.setColour(
-        juce::Colours::white.withAlpha(isMouseOverOrDragging() ? 0.9f : 0.5f)
+        color.withAlpha(isMouseOverOrDragging() ? 0.9f : 0.5f)
     );
     g.fillEllipse(getLocalBounds().reduced(3).toFloat());
 
-    g.setColour(juce::Colours::lavender);
+    g.setColour(color);
     g.drawEllipse(getLocalBounds().reduced(3).toFloat(), 2.0f);
 }
 
@@ -52,7 +53,7 @@ void DragableVertex::mouseUp(const juce::MouseEvent &e)
     // if the mouse hasn't moved, dont do anything
     if (mOldPos != mRelativePos)
     {
-        JLOG("MOUSE UP IN DRAGABLE VERTEX");
+        // JLOG("MOUSE UP IN DRAGABLE VERTEX");
         // send a message to the parent component
         getParentComponent()->postCommandMessage(0);
     }

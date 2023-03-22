@@ -20,12 +20,12 @@ public:
 
     void paint(juce::Graphics& g) override
     {
-        g.setColour(juce::Colours::red.withAlpha(
+        g.setColour(juce::Colours::black.withAlpha(
             isMouseOverOrDragging() ? 0.9f : 0.5f
         ));
         g.fillEllipse(getLocalBounds().reduced(3).toFloat());
 
-        g.setColour(juce::Colours::red);
+        g.setColour(juce::Colours::black);
         g.drawEllipse(getLocalBounds().reduced(3).toFloat(), 2.0f);
     }
 

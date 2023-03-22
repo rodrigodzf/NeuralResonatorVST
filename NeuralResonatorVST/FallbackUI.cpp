@@ -4,19 +4,26 @@
 ShapeComponent::ShapeComponent(juce::AudioProcessorValueTreeState &VTS)
     : mVts(VTS)
 {
+    // build the transform to go from [-1, 1] to [0, 1] with y going down
+    mMainTransform =
+        juce::AffineTransform::scale(0.5f, -0.5f).translated(0.5f, 0.5f);
+
     setOpaque(true);
     setInterceptsMouseClicks(false, true);
     valueTreeRedirected(VTS.state);
     mVts.state.addListener(this);
 
     // add a single vertex for the excitation
-    mExciter =
-        std::make_unique<ExciterVertex>(juce::Point<float>(0.5f, 0.5f));
-    addAndMakeVisible(mExciter.get());
+    auto xpos = mVts.state.getChildWithProperty("id", "xpos")
+                    .getPropertyPointer("value");
+    auto ypos = mVts.state.getChildWithProperty("id", "ypos")
+                    .getPropertyPointer("value");
 
-    // build the transform to go from [-1, 1] to [0, 1] with y going down
-    mMainTransform =
-        juce::AffineTransform().scaled(0.5f, 0.5f).translated(0.5f, 0.5f);
+    auto exciterPos = juce::Point<float>(float(*xpos), float(*ypos))
+                          .transformedBy(mMainTransform);
+
+    mExciter = std::make_unique<ExciterVertex>(exciterPos);
+    addAndMakeVisible(mExciter.get());
 }
 
 ShapeComponent::~ShapeComponent()
@@ -27,6 +34,8 @@ ShapeComponent::~ShapeComponent()
 
 void ShapeComponent::handleCommandMessage(int commandId)
 {
+    auto invertedPos =
+        mExciter->mRelativePos.transformedBy(mMainTransform.inverted());
     // update the tree
     if (commandId == 0)
     {
@@ -36,29 +45,20 @@ void ShapeComponent::handleCommandMessage(int commandId)
 
         for (auto *vertex : mVertices)
         {
-            vertices.add(juce::var(vertex->mRelativePos.x * 2.0f - 1));
-            vertices.add(juce::var((1 - vertex->mRelativePos.y) * 2.0f - 1));
+            vertices.add(juce::var(invertedPos.x));
+            vertices.add(juce::var(invertedPos.y));
         }
 
         polygonTree.setProperty("value", vertices, nullptr);
     }
     else if (commandId == 1)
     {
-        JLOG("MOUSE UP IN SHAPE COMPONENT");
         // update the tree
         auto xpos = mVts.state.getChildWithProperty("id", "xpos");
         auto ypos = mVts.state.getChildWithProperty("id", "ypos");
 
-        xpos.setProperty(
-            "value",
-            juce::var(mExciter->mRelativePos.x * 2.0f - 1),
-            nullptr
-        );
-        ypos.setProperty(
-            "value",
-            juce::var((1 - mExciter->mRelativePos.y) * 2.0f - 1),
-            nullptr
-        );
+        xpos.setProperty("value", juce::var(invertedPos.x), nullptr);
+        ypos.setProperty("value", juce::var(invertedPos.y), nullptr);
     }
 }
 
@@ -80,8 +80,8 @@ void ShapeComponent::paint(juce::Graphics &g)
     const juce::SpinLock::ScopedLockType lock(mMutex);
 
     // colors should have ff in front for alpha
-    g.fillAll(juce::Colour::fromString("ff0057b8"));
-    g.setColour(juce::Colour::fromString("ffffcc00"));
+    g.fillAll(juce::Colour::fromString("fffe746e"));
+    g.setColour(juce::Colour::fromString("ff2f7df6"));
 
     for (auto *vertex : mVertices)
         vertex->setCentrePosition(
@@ -98,7 +98,7 @@ void ShapeComponent::paint(juce::Graphics &g)
 
 void ShapeComponent::valueTreeRedirected(juce::ValueTree &redirectedTree)
 {
-    JLOG("polygon valueTreeRedirected");
+    // JLOG("polygon valueTreeRedirected");
     const juce::SpinLock::ScopedLockType lock(mMutex);
 
     auto child = redirectedTree.getChildWithProperty("id", "vertices");
@@ -118,12 +118,12 @@ void ShapeComponent::valueTreeRedirected(juce::ValueTree &redirectedTree)
             // the positions are in the range [-1, 1], so we need
             // to scale them to the range [0, res] and flip the y
             // axis
-            x = (x + 1) * 0.5;
-            y = 1 - ((y + 1) * 0.5);
-            if (i == 0) { mPath.startNewSubPath(x, y); }
-            else { mPath.lineTo(x, y); }
 
-            addAndMakeVisible(mVertices.add(new DragableVertex({x, y})));
+            auto pos = juce::Point<float>(x, y).transformedBy(mMainTransform);
+            if (i == 0) { mPath.startNewSubPath(pos); }
+            else { mPath.lineTo(pos); }
+
+            addAndMakeVisible(mVertices.add(new DragableVertex(pos)));
         }
 
         // close the subpath
@@ -143,7 +143,7 @@ void ShapeComponent::valueTreePropertyChanged(
 
     if (treeType == "polygon")
     {
-        JLOG("polygon changed");
+        // JLOG("ShapeComponent::valueTreePropertyChanged polygon changed");
         if (auto *flattenedVertices =
                 changedTree.getPropertyPointer(changedProperty))
         {
@@ -160,12 +160,12 @@ void ShapeComponent::valueTreePropertyChanged(
                 // the positions are in the range [-1, 1], so we need
                 // to scale them to the range [0, res] and flip the y
                 // axis
-                x = (x + 1) * 0.5;
-                y = 1 - ((y + 1) * 0.5);
-                if (i == 0) { mPath.startNewSubPath(x, y); }
-                else { mPath.lineTo(x, y); }
+                auto pos =
+                    juce::Point<float>(x, y).transformedBy(mMainTransform);
+                if (i == 0) { mPath.startNewSubPath(pos); }
+                else { mPath.lineTo(pos); }
 
-                addAndMakeVisible(mVertices.add(new DragableVertex({x, y})));
+                addAndMakeVisible(mVertices.add(new DragableVertex(pos)));
             }
 
             // close the subpath
@@ -189,7 +189,6 @@ Panel::Panel(juce::AudioProcessorValueTreeState &VTS)
     , mNumVerticesSlider("Number of Vertices")
     , mNewShapeButton("New Shape")
 {
-
     // add the sliders with labels
     addAndMakeVisible(mDensitySlider);
 
