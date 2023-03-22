@@ -32,3 +32,6 @@ libtorch
 # Clangd
 compile_commands.json
 .cache
+.gitsecret/keys/random_seed
+!*.secret
+bin/codesign.sh
