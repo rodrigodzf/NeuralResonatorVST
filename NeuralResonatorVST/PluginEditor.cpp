@@ -58,10 +58,11 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 
     mParameterSyncerPtr.reset();
     mParameterSyncerPtr = nullptr;
-#endif
+
     mBrowserPtr.reset();
     mBrowserPtr = nullptr;
-
+#endif
+    
 }
 
 //==============================================================================

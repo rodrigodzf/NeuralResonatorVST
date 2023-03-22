@@ -1,12 +1,13 @@
 #pragma once
-#include "ParameterSyncer.h"
 #include "PluginProcessor.h"
 #include "ConsoleLogger.h"
-#include "BrowserComponent.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #if SIMPLE_UI
 #include "FallbackUI.h"
+#else
+#include "BrowserComponent.h"
+#include "ParameterSyncer.h"
 #endif
 //==============================================================================
 class AudioPluginAudioProcessorEditor : public juce::AudioProcessorEditor
@@ -32,11 +33,11 @@ private:
 #else 
     std::unique_ptr<ServerThread> mServerThreadPtr;
     std::unique_ptr<ParameterSyncer> mParameterSyncerPtr;
+    std::unique_ptr<BrowserComponent> mBrowserPtr;
 #endif
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     AudioPluginAudioProcessor &processorRef;
-    std::unique_ptr<BrowserComponent> mBrowserPtr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(
         AudioPluginAudioProcessorEditor)

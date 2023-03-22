@@ -77,18 +77,32 @@ target_sources(
     PRIVATE
     PluginEditor.cpp
     PluginProcessor.cpp
-    ServerThread.cpp
-    BrowserComponent.cpp
     TorchWrapper.cpp
     Filterbank.cpp
-    ParameterSyncer.cpp
 )
+
+if (USE_SIMPLE_UI)
+    target_sources(
+        ${PLUGIN_NAME}
+        PRIVATE
+        DragableVertex.cpp
+        FallbackUI.cpp
+    )
+else()
+    target_sources(
+        ${PLUGIN_NAME}
+        PRIVATE
+        ServerThread.cpp
+        BrowserComponent.cpp
+        ParameterSyncer.cpp
+    )
+endif()
 
 target_compile_definitions(
     ${PLUGIN_NAME}
     PRIVATE
-    JUCE_WEB_BROWSER=1  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
-    JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
+    JUCE_WEB_BROWSER=$<NOT:$<BOOL:${USE_SIMPLE_UI}>>  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
+    JUCE_USE_CURL=0  # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     # JUCE_DEBUG=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     BROWSER_DEV_SERVER=$<BOOL:${BROWSER_DEV_SERVER}>
@@ -108,11 +122,13 @@ target_link_libraries(
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(
-        ${PLUGIN_NAME}
-        PUBLIC
-        juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
-    )
+    if (NOT USE_SIMPLE_UI)
+        target_link_libraries(
+            ${PLUGIN_NAME}
+            PUBLIC
+            juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
+        )
+    endif()
     # target_compile_options(
     #     ${PLUGIN_NAME}
     #     PRIVATE
@@ -151,13 +167,16 @@ foreach( sub_target IN LISTS active_targets )
             MACOSX_PACKAGE_LOCATION "Resources"
         )
 
-        # Copy the minified ui to the plugin bundle
-        target_sources(${sub_target} PRIVATE ${MINIFIED_UI_PATH})
-        set_source_files_properties(
-            ${MINIFIED_UI_PATH}
-            PROPERTIES
-            MACOSX_PACKAGE_LOCATION "Resources"
-        )
+        if (NOT USE_SIMPLE_UI)
+            # Copy the minified ui to the plugin bundle
+            target_sources(${sub_target} PRIVATE ${MINIFIED_UI_PATH})
+            set_source_files_properties(
+                ${MINIFIED_UI_PATH}
+                PROPERTIES
+                MACOSX_PACKAGE_LOCATION "Resources"
+            )
+        endif()
+
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         # Copy pretrained models to the plugin bundle
         add_custom_command(
@@ -168,24 +187,18 @@ foreach( sub_target IN LISTS active_targets )
             COMMENT "Copy models to ${sub_target}"
             VERBATIM
         )
-        # Copy the minified ui to the plugin bundle
-        add_custom_command(
-            TARGET ${sub_target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy ${MINIFIED_UI_PATH} "$<TARGET_FILE_DIR:${sub_target}>"
-            COMMENT "Copy minified ui to ${sub_target}"
-            VERBATIM
-        )
+        if (NOT USE_SIMPLE_UI)
+            # Copy the minified ui to the plugin bundle
+            add_custom_command(
+                TARGET ${sub_target}
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND}
+                ARGS -E copy ${MINIFIED_UI_PATH} "$<TARGET_FILE_DIR:${sub_target}>"
+                COMMENT "Copy minified ui to ${sub_target}"
+                VERBATIM
+            )
+        endif()
     endif()
-    # TODO Sign the plugin
-    # https://forum.juce.com/t/prepare-plugins-for-distribution-on-macos-notarization-code-signing-etc/53124/7
-#     add_custom_command(
-#         TARGET ${sub_target} POST_BUILD
-#         COMMENT "Signing ${sub_target}"
-#         COMMAND "codesign" "--force" "--deep" "-s" "-" ${bundle_path}
-#         VERBATIM
-#     )
 endforeach()
 
 juce_enable_copy_plugin_step(${PLUGIN_NAME})

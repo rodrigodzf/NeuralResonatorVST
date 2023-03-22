@@ -34,12 +34,14 @@ add_custom_command(
     VERBATIM
 )
 
-# Copy the minified ui to the plugin bundle
-add_custom_command(
-    TARGET ${EXE_NAME}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND}
-    ARGS -E copy ${MINIFIED_UI_PATH} "$<TARGET_FILE_DIR:${EXE_NAME}>"
-    COMMENT "Copy minified ui to ${EXE_NAME}"
-    VERBATIM
-)
+if (NOT USE_SIMPLE_UI)
+    # Copy the minified ui to the plugin bundle
+    add_custom_command(
+        TARGET ${EXE_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND}
+        ARGS -E copy ${MINIFIED_UI_PATH} "$<TARGET_FILE_DIR:${EXE_NAME}>"
+        COMMENT "Copy minified ui to ${EXE_NAME}"
+        VERBATIM
+    )
+endif()
