@@ -167,13 +167,16 @@ foreach( sub_target IN LISTS active_targets )
             MACOSX_PACKAGE_LOCATION "Resources"
         )
 
-        # Copy the minified ui to the plugin bundle
-        target_sources(${sub_target} PRIVATE ${MINIFIED_UI_PATH})
-        set_source_files_properties(
-            ${MINIFIED_UI_PATH}
-            PROPERTIES
-            MACOSX_PACKAGE_LOCATION "Resources"
-        )
+        if (NOT USE_SIMPLE_UI)
+            # Copy the minified ui to the plugin bundle
+            target_sources(${sub_target} PRIVATE ${MINIFIED_UI_PATH})
+            set_source_files_properties(
+                ${MINIFIED_UI_PATH}
+                PROPERTIES
+                MACOSX_PACKAGE_LOCATION "Resources"
+            )
+        endif()
+
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         # Copy pretrained models to the plugin bundle
         add_custom_command(
@@ -184,24 +187,18 @@ foreach( sub_target IN LISTS active_targets )
             COMMENT "Copy models to ${sub_target}"
             VERBATIM
         )
-        # Copy the minified ui to the plugin bundle
-        add_custom_command(
-            TARGET ${sub_target}
-            POST_BUILD
-            COMMAND ${CMAKE_COMMAND}
-            ARGS -E copy ${MINIFIED_UI_PATH} "$<TARGET_FILE_DIR:${sub_target}>"
-            COMMENT "Copy minified ui to ${sub_target}"
-            VERBATIM
-        )
+        if (NOT USE_SIMPLE_UI)
+            # Copy the minified ui to the plugin bundle
+            add_custom_command(
+                TARGET ${sub_target}
+                POST_BUILD
+                COMMAND ${CMAKE_COMMAND}
+                ARGS -E copy ${MINIFIED_UI_PATH} "$<TARGET_FILE_DIR:${sub_target}>"
+                COMMENT "Copy minified ui to ${sub_target}"
+                VERBATIM
+            )
+        endif()
     endif()
-    # TODO Sign the plugin
-    # https://forum.juce.com/t/prepare-plugins-for-distribution-on-macos-notarization-code-signing-etc/53124/7
-#     add_custom_command(
-#         TARGET ${sub_target} POST_BUILD
-#         COMMENT "Signing ${sub_target}"
-#         COMMAND "codesign" "--force" "--deep" "-s" "-" ${bundle_path}
-#         VERBATIM
-#     )
 endforeach()
 
 juce_enable_copy_plugin_step(${PLUGIN_NAME})
