@@ -77,18 +77,32 @@ target_sources(
     PRIVATE
     PluginEditor.cpp
     PluginProcessor.cpp
-    ServerThread.cpp
-    BrowserComponent.cpp
     TorchWrapper.cpp
     Filterbank.cpp
-    ParameterSyncer.cpp
 )
+
+if (USE_SIMPLE_UI)
+    target_sources(
+        ${PLUGIN_NAME}
+        PRIVATE
+        DragableVertex.cpp
+        FallbackUI.cpp
+    )
+else()
+    target_sources(
+        ${PLUGIN_NAME}
+        PRIVATE
+        ServerThread.cpp
+        BrowserComponent.cpp
+        ParameterSyncer.cpp
+    )
+endif()
 
 target_compile_definitions(
     ${PLUGIN_NAME}
     PRIVATE
-    JUCE_WEB_BROWSER=1  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
-    JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
+    JUCE_WEB_BROWSER=$<NOT:$<BOOL:${USE_SIMPLE_UI}>>  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
+    JUCE_USE_CURL=0  # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
     # JUCE_DEBUG=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     BROWSER_DEV_SERVER=$<BOOL:${BROWSER_DEV_SERVER}>
@@ -108,11 +122,13 @@ target_link_libraries(
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_link_libraries(
-        ${PLUGIN_NAME}
-        PUBLIC
-        juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
-    )
+    if (NOT USE_SIMPLE_UI)
+        target_link_libraries(
+            ${PLUGIN_NAME}
+            PUBLIC
+            juce::pkgconfig_JUCE_BROWSER_LINUX_DEPS
+        )
+    endif()
     # target_compile_options(
     #     ${PLUGIN_NAME}
     #     PRIVATE
