@@ -57,7 +57,7 @@ if [[ "$uname" == "Darwin" ]] && [[ "$arch" == "arm64" ]]; then
         mkdir pytorch
         tar -xvf pytorch.tar.bz2 -C pytorch
         cp -r pytorch/lib/python3.9/site-packages/torch libtorch
-        rm -rf pytorch
+        rm -rf pytorch pytorch.tar.bz2
         cd ../
     fi
 fi
