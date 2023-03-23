@@ -48,21 +48,44 @@ void Filterbank::cleanup()
     }
 }
 
-void Filterbank::setCoefficients(const std::vector<float>& coeffs)
+void Filterbank::setCoefficients(
+    const std::vector<float>& coeffs,
+    bool interpolate
+)
 {
     const juce::SpinLock::ScopedLockType lock(mProcessLock);
-    for (int i = 0; i < mNumParallel; i++)
+    if (interpolate)
     {
-        for (int j = 0; j < mNumBiquads; j++)
+        for (int i = 0; i < mNumParallel; i++)
         {
-            int idx = i * mNumBiquads * mStride + j * mStride;
-            mIIRFilters[i][j].set_coefficients(
-                coeffs[idx],
-                coeffs[idx + 1],
-                coeffs[idx + 2],
-                coeffs[idx + 4],
-                coeffs[idx + 5]
-            );
+            for (int j = 0; j < mNumBiquads; j++)
+            {
+                int idx = i * mNumBiquads * mStride + j * mStride;
+                mIIRFilters[i][j].set_coefficients(
+                    coeffs[idx],
+                    coeffs[idx + 1],
+                    coeffs[idx + 2],
+                    coeffs[idx + 4],
+                    coeffs[idx + 5]
+                );
+            }
+        }
+    }
+    else
+    {
+        for (int i = 0; i < mNumParallel; i++)
+        {
+            for (int j = 0; j < mNumBiquads; j++)
+            {
+                int idx = i * mNumBiquads * mStride + j * mStride;
+                mIIRFilters[i][j].setCoefficientValues(
+                    coeffs[idx],
+                    coeffs[idx + 1],
+                    coeffs[idx + 2],
+                    coeffs[idx + 4],
+                    coeffs[idx + 5]
+                );
+            }
         }
     }
 }
