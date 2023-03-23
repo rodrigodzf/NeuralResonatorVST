@@ -1,15 +1,18 @@
 <div  align="center">
 
 # Neural Resonator VST
+
 > Generate and use filters based on arbitrary 2D shapes and materials
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/rodrigodzf/NeuralResonatorVST/build.yaml)
 ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/rodrigodzf/NeuralResonatorVST?include_prereleases)
 ![GitHub](https://img.shields.io/github/license/rodrigodzf/NeuralResonatorVST)
 [![arXiv](https://img.shields.io/badge/arXiv-2210.15306-b31b1b.svg)](https://arxiv.org/abs/2210.15306)
-</div>
+
+Demo video 🎥
 
 [![Watch the video](https://i.ytimg.com/vi/HnUc3VTUReo/maxresdefault.jpg)](https://youtu.be/HnUc3VTUReo)
+
+</div>
 
 ## About
 
