@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <regex>
 
 #include <juce_core/juce_core.h>
 #include <juce_graphics/juce_graphics.h>
@@ -291,6 +292,30 @@ public:
         }
 
         return root;
+    }
+
+    static void replaceSubstringInFile(
+        juce::File& file,
+        const std::regex& pattern,
+        const juce::String& replace
+    )
+    {
+        // read the file into a string
+        juce::String fileContents = file.loadFileAsString();
+
+        // regex search and replace
+        // std::regex regex(R"(ws://localhost:\d+/ui)");
+        fileContents = std::regex_replace(
+            fileContents.toStdString(),
+            pattern,
+            replace.toStdString()
+        );
+
+        // replace the search string with the replace string
+        // fileContents = fileContents.replace(search, replace);
+
+        // write the string back to the file
+        file.replaceWithText(fileContents);
     }
 };
 

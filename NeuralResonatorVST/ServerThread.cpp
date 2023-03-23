@@ -1,12 +1,12 @@
 #include "ServerThread.h"
 #include "HelperFunctions.h"
-using namespace juce;
 
 ServerThread::ServerThread(
     ParameterSyncerIf *parameterSyncerIf,
     unsigned short port
 )
-    : Thread("Server Thread"), mParameterSyncerIfPtr(parameterSyncerIf)
+    : juce::Thread("Server Thread")
+    , mParameterSyncerIfPtr(parameterSyncerIf)
 {
     addListener(this);
 
@@ -38,14 +38,17 @@ void ServerThread::run()
 {
     // Start server and receive assigned port when server is listening for
     // requests
-    mServer.start(
-        [](unsigned short port)
-        {
-            JLOG(
-                "WS Server Started: Listening on port " + juce::String(port)
-            );
-        }
-    );
+
+    // recursively try to find a port that is not in use
+    while (checkPortInUse(mServer.config.port))
+    {
+        JLOG(
+            "WS Server: Port " + juce::String(mServer.config.port) + " in use"
+        );
+        mServer.config.port++;
+    }
+
+    mServer.start(mOnStartCallback);
 
     // Wait for server to stop
     JLOG("WS Server: Stopped");
@@ -62,7 +65,7 @@ void ServerThread::onMessage(
     // "
     //   << connection.get() << std::endl;
 
-    auto parsedJson = JSON::parse(out_message);
+    auto parsedJson = juce::JSON::parse(out_message);
     auto messageType = parsedJson.getProperty("type", {}).toString();
     if (mParameterSyncerIfPtr == nullptr)
     {
@@ -213,11 +216,30 @@ void ServerThread::sendMessage(const juce::String &message)
             {
                 if (ec)
                 {
-                    Logger::writeToLog(
-                        "Server: Error sending message. " + ec.message()
-                    );
+                    JLOG("Server: Error sending message. " + ec.message());
                 }
             }
         );
     }
+}
+
+void ServerThread::setOnStartCallback(
+    std::function<void(unsigned short)> callback
+)
+{
+    mOnStartCallback = callback;
+}
+
+bool ServerThread::checkPortInUse(unsigned short port)
+{
+    using namespace asio;
+    using ip::tcp;
+
+    io_service svc;
+    tcp::acceptor a(svc);
+
+    asio::error_code ec;
+    a.open(tcp::v4(), ec) || a.bind({tcp::v4(), port}, ec);
+
+    return ec == error::address_in_use;
 }

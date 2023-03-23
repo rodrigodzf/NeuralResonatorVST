@@ -38,10 +38,35 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
         mServerThreadPtr->getServerThreadIfPtr()
     );
 
+    mServerThreadPtr->setOnStartCallback(
+        [this, url](unsigned short port)
+        {
+            JLOG(
+                "WS Server Started: Listening on port " + juce::String(port)
+            );
+
+            // find and replace the port in the index file
+            juce::String indexFileContents = processorRef.mIndexFile.loadFileAsString();
+
+            HelperFunctions::replaceSubstringInFile(
+                processorRef.mIndexFile,
+                std::regex(R"(ws://localhost:\d+/ui)"),
+                "ws://localhost:" + juce::String(port) + "/ui"
+            );
+
+            // post a message to the message thread to load the url
+            juce::MessageManager::callAsync(
+                [this, url]()
+                {
+                    mBrowserPtr->goToURL(url);
+                }
+            );
+        }
+    );
+
     setOpaque(true);
     mBrowserPtr.reset(new BrowserComponent());
     addAndMakeVisible(mBrowserPtr.get());
-    mBrowserPtr->goToURL(url);
 #else
     addAndMakeVisible(mShapeComponent);
     addAndMakeVisible(mPanel);
