@@ -2,6 +2,7 @@
 
 #include <juce_core/juce_core.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include <functional>
 #include "simple_ws_server/server_ws.hpp"
 
 #include "ParameterSyncerIf.h"
@@ -25,6 +26,7 @@ public:
     void sendMessage(const juce::String &message) override;
     ServerThreadIf *getServerThreadIfPtr() override;
 
+    void setOnStartCallback(std::function<void(unsigned short)> callback);
 private:
     ParameterSyncerIf *mParameterSyncerIfPtr;
 
@@ -34,9 +36,13 @@ private:
     void exitSignalSent() override;
     void onMessage(ConnectionPtr connection, MessagePtr in_message);
 
+    std::function<void(unsigned short)> mOnStartCallback;
+
     void onOpen(ConnectionPtr connection);
     void onClose(ConnectionPtr connection, int status,
                  const juce::String &reason);
+
+    bool checkPortInUse(unsigned short port);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ServerThread)
 };
