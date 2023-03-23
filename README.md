@@ -9,8 +9,7 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2210.15306-b31b1b.svg)](https://arxiv.org/abs/2210.15306)
 </div>
 
-<!-- <video src='https://youtu.be/8sANJMmIxBQ' width=180/> -->
-[![Watch the video](https://img.youtube.com/vi/T-D1KVIuvjA/maxresdefault.jpg)](https://youtu.be/T-D1KVIuvjA)
+[![Watch the video](https://i.ytimg.com/vi/HnUc3VTUReo/maxresdefault.jpg)](https://youtu.be/HnUc3VTUReo)
 
 ## About
 
