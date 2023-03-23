@@ -111,7 +111,8 @@ This repo uses extensively the Typescript code from [here](https://github.com/to
 
 For the websocket server it uses the code from [here](https://gitlab.com/eidheim/Simple-WebSocket-Server).
 Because this project does not depend on openssl, it uses instead:
- - [for sha1 hashing](https://github.com/zaphoyd/websocketpp)
- - [for base64 encoding](https://github.com/gaspardpetit/base64)
+
+- [for sha1 hashing](https://github.com/zaphoyd/websocketpp)
+- [for base64 encoding](https://github.com/gaspardpetit/base64)
 
 It also uses the code from [here](https://github.com/rodrigodzf/torchplugins) for the pytorch plugin and the filterbank implementation.
