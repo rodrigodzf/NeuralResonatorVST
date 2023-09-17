@@ -4,26 +4,23 @@
 	"private": true,
 	"type": "module",
 	"dependencies": {
-		"@react-three/fiber": "^8.12.0",
-		"leva": "^0.9.34",
-		"mobx": "^6.8.0",
-		"mobx-react": "^7.6.0",
+		"leva": "^0.9.35",
+		"mobx": "^6.10.2",
+		"mobx-react": "^9.0.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
-		"react-use-websocket": "^4.3.1",
-		"sass": "^1.59.3",
-		"three": "^0.150.1"
+		"react-use-websocket": "^4.4.0",
+		"sass": "^1.67.0"
 	},
 	"devDependencies": {
-		"@types/node": "^18.15.3",
-		"@types/react": "^18.0.28",
-		"@types/react-dom": "^18.0.11",
-		"@types/three": "^0.149.0",
-		"@vitejs/plugin-react-swc": "^3.2.0",
-		"prettier": "^2.8.4",
-		"typescript": "^5.0.2",
-		"vite": "^4.2.0",
-		"vite-plugin-singlefile": "^0.13.3"
+		"@types/node": "^20.6.2",
+		"@types/react": "^18.2.21",
+		"@types/react-dom": "^18.2.7",
+		"@vitejs/plugin-react-swc": "^3.3.2",
+		"prettier": "^3.0.3",
+		"typescript": "^5.2.2",
+		"vite": "^4.4.9",
+		"vite-plugin-singlefile": "^0.13.5"
 	},
 	"overrides": {
 		"react": "$react",

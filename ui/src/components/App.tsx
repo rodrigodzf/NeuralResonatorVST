@@ -2,53 +2,55 @@
 import { observer } from 'mobx-react'
 import { useContext, useEffect, useState } from 'react'
 import useWebSocket from 'react-use-websocket'
-import { Vector2 } from 'three'
 
 // src
-import { callbacks, JuceIntegration, JuceMessage, ParametersContext } from './juceIntegration'
 import { VALUE_TREE_STATE_CHANGE } from './messages/callbackEventTypes'
 import { ParametersModelType } from './models/ParametersModel'
-import { Polygon } from './polygon'
-import { Panel } from './panel'
+import { Drum } from './drum'
+import { callbacks, JuceIntegration, JuceMessage, ParametersContext } from './juce-integration'
+import { LevaPanel } from './leva-panel'
 import '../scss/App.scss'
-import { convertArrayToVector2, convertVector2ToArray } from './vectorUtils'
 
 const Internal = observer(({ sendMessage }: { sendMessage: (msg: string) => void }) => {
 	// update polygon coordinates
 	const parameters: ParametersModelType | undefined = useContext(ParametersContext)
-	const [polygon, setPolygon] = useState<Vector2[] | null>()
-	const [strike, setStrike] = useState<Vector2 | null>()
+	const [polygon, setPolygon] = useState<Polygon | null>(null)
+	const [strike, setStrike] = useState<Point | null>(null)
 
 	useEffect(() => {
 		if (parameters?.vertices.value) {
-			console.log('new polygon')
-			const flatVertices = [...parameters.vertices.value] // this is the array of vertices flattened
-			setPolygon(convertArrayToVector2(flatVertices))
+			const a = [...parameters.vertices.value]
+			console.log(`new polygon ${a}`)
+			let P: Polygon = []
+			for (let i = 0; i < a.length; i += 2) {
+				P.push({ x: a[i]!, y: a[i + 1]! })
+			}
+			setPolygon(P)
 		}
 	}, [parameters?.vertices.value])
 
 	useEffect(() => {
-		setStrike(new Vector2(parameters!.xpos.value, parameters!.ypos.value))
+		setStrike({ x: parameters!.xpos.value, y: parameters!.ypos.value })
 	}, [parameters!.xpos.value, parameters!.ypos.value])
 
 	return (
 		<>
-			<Panel sendMessage={sendMessage} />
+			<LevaPanel sendMessage={sendMessage} />
 			{polygon && strike && (
-				<Polygon
+				<Drum
 					polygon={polygon}
-					listener={strike}
-					onPolygonChange={(V: Vector2[]) => {
-						const flatVertices = convertVector2ToArray(V)
-						console.log('sending vertices', flatVertices)
+					strike={strike}
+					onPolygonChange={(P: Polygon) => {
+						const flatVertices: number[] = []
+						P.map((p: Point) => flatVertices.push(p.x, p.y))
 						sendMessage(JSON.stringify({ type: 'update_shape', value: flatVertices }))
 					}}
-					onListenerChange={(V: Vector2) => {
+					onStrikeChange={(p: Point) => {
 						sendMessage(
-							JSON.stringify({ type: 'new_parameter', id: 'xpos', value: V.x }),
+							JSON.stringify({ type: 'new_parameter', id: 'xpos', value: p.x }),
 						)
 						sendMessage(
-							JSON.stringify({ type: 'new_parameter', id: 'ypos', value: V.y }),
+							JSON.stringify({ type: 'new_parameter', id: 'ypos', value: p.y }),
 						)
 					}}
 				/>

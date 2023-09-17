@@ -4,7 +4,7 @@
  * is read-only, i.e. it can only receive updates, not send them.
  */
 
-import { registerCallback } from '../juceIntegration'
+import { registerCallback } from '../juce-integration'
 import { VALUE_TREE_STATE_CHANGE } from '../messages/callbackEventTypes'
 import { InputStream } from './InputStream'
 import { performUpdate } from './mobxHelpers'

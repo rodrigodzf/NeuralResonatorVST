@@ -2,7 +2,7 @@
 import { Leva, button, useControls } from 'leva'
 import { observer } from 'mobx-react'
 import { useContext, useEffect } from 'react'
-import { ParametersContext } from './juceIntegration'
+import { ParametersContext } from './juce-integration'
 
 type ParameterObject = {
 	max: number
@@ -12,7 +12,7 @@ type ParameterObject = {
 	onChange: (msg: string) => void
 }
 
-export type Parameters = {
+export type LevaParameters = {
 	alpha: ParameterObject
 	beta: ParameterObject
 	density: ParameterObject
@@ -20,7 +20,7 @@ export type Parameters = {
 	stiffness: ParameterObject
 }
 
-export const Panel = observer(
+export const LevaPanel = observer(
 	({ sendMessage }: { sendMessage: (msg: string) => void }): JSX.Element => {
 		const parameters = useContext(ParametersContext)
 		const [_, set, get] = useControls(() => ({

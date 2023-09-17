@@ -81,8 +81,8 @@ void ParameterSyncer::receivedNewShape(const juce::var& shape)
 
             for (int i = 0; i < polygon.size(); ++i)
             {
-                vertices.add(juce::var((polygon[i].x * 2.0f) - 1.));
-                vertices.add(juce::var((polygon[i].y * 2.0f) - 1.));
+                vertices.add(juce::var(polygon[i].x));
+                vertices.add(juce::var(polygon[i].y));
             }
 
             polygonTree.setProperty("value", vertices, nullptr);
