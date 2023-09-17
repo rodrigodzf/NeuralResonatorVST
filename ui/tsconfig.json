@@ -33,8 +33,6 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
-		// backwards compatibility
-		"keyofStringsOnly": true,
 		// language and environment
 		"jsx": "react-jsx",
 		"lib": ["dom", "dom.iterable", "esnext"],

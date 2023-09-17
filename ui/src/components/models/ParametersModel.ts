@@ -5,7 +5,10 @@ import { createValueTreeSynchroniser } from '../valueTree/ValueTreeSynchroniser'
 import { ParameterModel } from './ParameterModel'
 
 export class ParametersModel {
-	constructor(private valueTree: ValueTree, parameterIds: string[]) {
+	constructor(
+		private valueTree: ValueTree,
+		parameterIds: string[],
+	) {
 		//console.log((this.valueTree.childrenWithProperty('id', 'vertices')!).properties.get('value')!)
 
 		parameterIds.forEach((parameterId) => {
