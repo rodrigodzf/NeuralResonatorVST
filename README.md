@@ -20,6 +20,10 @@ This is a VST plugin that uses a neural network to generate filters based on arb
 
 This plugin uses LibTorch for the neural network and JUCE for the VST plugin. It also features an easily extensible web-based user interface built with React and Typescript. However, it is possible to build the plugin with a traditional C++ GUI (Linux will use this as default).
 
+See also the implementation of this project on the **Bela** platform:
+
+https://github.com/rodrigodzf/NeuralResonatorBela
+
 ## Installation
 
 The plugin is currently available for **Mac** and **Linux** only. The plugin is available as a VST3 plugin. Simply download the [latest release](https://github.com/rodrigodzf/NeuralResonatorVST/releases) and copy the plugin to your preferred VST3 folder.
