@@ -27,6 +27,8 @@ public:
     ServerThreadIf *getServerThreadIfPtr() override;
 
     void setOnStartCallback(std::function<void(unsigned short)> callback);
+    unsigned short setFreePort();
+
 private:
     ParameterSyncerIf *mParameterSyncerIfPtr;
 

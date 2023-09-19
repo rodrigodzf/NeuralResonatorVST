@@ -34,11 +34,8 @@ void ServerThread::exitSignalSent()
     mConnections.clear();
 }
 
-void ServerThread::run()
+unsigned short ServerThread::setFreePort()
 {
-    // Start server and receive assigned port when server is listening for
-    // requests
-
     // recursively try to find a port that is not in use
     while (checkPortInUse(mServer.config.port))
     {
@@ -48,7 +45,15 @@ void ServerThread::run()
         mServer.config.port++;
     }
 
-    mServer.start(mOnStartCallback);
+    return mServer.config.port;
+}
+
+void ServerThread::run()
+{
+
+    mServer.start([](unsigned short port){
+        JLOG("WS Server Started: Listening on port " + juce::String(port));
+    });
 
     // Wait for server to stop
     JLOG("WS Server: Stopped");
