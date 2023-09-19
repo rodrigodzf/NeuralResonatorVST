@@ -31,41 +31,35 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(
     mServerThreadPtr.reset(
         new ServerThread(mParameterSyncerPtr->getParameterSyncerIfPtr())
     );
-    mServerThreadPtr->startThread();
+
+    // Set the port to a free port
+    auto freePort = mServerThreadPtr->setFreePort();
 
     // Pass the server thread to the parameter syncer
     mParameterSyncerPtr->setServerThreadIf(
         mServerThreadPtr->getServerThreadIfPtr()
     );
 
-    mServerThreadPtr->setOnStartCallback(
-        [this, url](unsigned short port)
-        {
-            JLOG(
-                "WS Server Started: Listening on port " + juce::String(port)
-            );
+    mServerThreadPtr->startThread();
 
-            // find and replace the port in the index file
-            juce::String indexFileContents = processorRef.mIndexFile.loadFileAsString();
+    // find and replace the port in the index file
+    juce::String indexFileContents = processorRef.mIndexFile.loadFileAsString();
 
-            HelperFunctions::replaceSubstringInFile(
-                processorRef.mIndexFile,
-                std::regex(R"(ws://localhost:\d+/ui)"),
-                "ws://localhost:" + juce::String(port) + "/ui"
-            );
-
-            // post a message to the message thread to load the url
-            juce::MessageManager::callAsync(
-                [this, url]()
-                {
-                    mBrowserPtr->goToURL(url);
-                }
-            );
-        }
+    HelperFunctions::replaceSubstringInFile(
+        processorRef.mIndexFile,
+        std::regex(R"(ws://localhost:\d+/ui)"),
+        "ws://localhost:" + juce::String(freePort) + "/ui"
     );
 
-    setOpaque(true);
+    // post a message to the message thread to load the url
     mBrowserPtr.reset(new BrowserComponent());
+    if (mBrowserPtr != nullptr)
+    {
+        JLOG("Going to URL: " + url);
+        mBrowserPtr->goToURL(url);
+    }
+
+    setOpaque(true);
     addAndMakeVisible(mBrowserPtr.get());
 #else
     addAndMakeVisible(mShapeComponent);
