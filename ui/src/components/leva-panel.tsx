@@ -105,12 +105,7 @@ export const LevaPanel = observer(({ sendMessage }: { sendMessage: (msg: string)
 
 	return (
 		<>
-			<Leva
-				// oneLineLabels={true}
-				titleBar={false}
-				flat={true}
-				hideCopyButton={true}
-			/>
+			<Leva flat={true} hideCopyButton={true} titleBar={false} />
 		</>
 	)
 })

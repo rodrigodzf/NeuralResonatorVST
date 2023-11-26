@@ -60,8 +60,12 @@ const App = observer(() => {
 	// web socket communication
 	const endpoint = 'ws://localhost:8000/ui'
 	const { sendMessage } = useWebSocket(endpoint, {
-		onOpen: () => console.log('ws opened'),
-		onClose: () => console.log('ws closed'),
+		onOpen: () => {
+			console.log('ws opened')
+		},
+		onClose: () => {
+			console.log('ws closed')
+		},
 		onMessage: (e: WebSocketEventMap['message']) => {
 			console.log('ws message')
 			const message: JuceMessage<any> = {
@@ -83,7 +87,7 @@ const App = observer(() => {
 				throw e
 			}
 		},
-		shouldReconnect: (_: WebSocketEventMap['close']): boolean => false,
+		shouldReconnect: (): boolean => false,
 	})
 
 	return (
