@@ -21,5 +21,6 @@ npm run build
 ## Test and that
 
 ```bash
+npm run test
 npm run lint
 ```
