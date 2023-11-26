@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx'
-import { JuceVariant, Vertex } from '../valueTree/InputStream'
+import { JuceVariant } from '../valueTree/InputStream'
 import { ValueTree } from '../valueTree/ValueTree'
 
 export class PolygonModel<T extends JuceVariant> {
@@ -13,7 +13,7 @@ export class PolygonModel<T extends JuceVariant> {
 	}
 
 	get values() {
-		const vertices: Vertex[] = []
+		const vertices: Point[] = []
 		console.log('PolygonModel::values', this.parameter.properties.get('value'))
 		// this.parameter.children.forEach((child) => {
 		//   if (child.properties.get('x') !== undefined && child.properties.get('y') !== undefined) {
@@ -48,10 +48,7 @@ export class ParameterModel<T extends JuceVariant> {
 	get values() {
 		const vertices: { x: number; y: number }[] = []
 		this.parameter.children.forEach((child) => {
-			if (
-				child.properties.get('x') !== undefined &&
-				child.properties.get('y') !== undefined
-			) {
+			if (child.properties.get('x') !== undefined && child.properties.get('y') !== undefined) {
 				vertices.push({
 					x: child.properties.get('x') as number,
 					y: child.properties.get('y') as number,

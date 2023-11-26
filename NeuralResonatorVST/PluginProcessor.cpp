@@ -300,7 +300,7 @@ void AudioPluginAudioProcessor::handleCoefficentsChanged(
     // JLOG("Number of coefficients: " +
     //                          std::to_string(coefficients.size()));
     if (firstCoefficients)
-    { 
+    {
         mFilterbank.setCoefficients(coefficients, false);
         firstCoefficients = false;
     }
@@ -372,22 +372,22 @@ juce::AudioProcessorValueTreeState::ParameterLayout
         "xpos",                          // parameterID
         "X Position",                    // parameter name
         juce::NormalisableRange<float>(  // range
-            -1.0f,
+            0.0f,
             1.0f,
             0.01f
         ),    // min, max, interval
-        0.0f  // default value
+        0.5f  // default value
     ));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>(
         "ypos",                          // parameterID
         "Y Position",                    // parameter name
         juce::NormalisableRange<float>(  // range
-            -1.0f,
+            0.0f,
             1.0f,
             0.01f
         ),    // min, max, interval
-        0.0f  // default value
+        0.5f  // default value
     ));
 
     return layout;
@@ -419,8 +419,8 @@ void AudioPluginAudioProcessor::createAndAppendValueTree()
 
     for (int i = 0; i < polygon.size(); ++i)
     {
-        vertices.add(juce::var((polygon[i].x * 2.0f) - 1.));
-        vertices.add(juce::var((polygon[i].y * 2.0f) - 1.));
+        vertices.add(juce::var(polygon[i].x));
+        vertices.add(juce::var(polygon[i].y));
     }
 
     verticesTree.setProperty("value", vertices, nullptr);

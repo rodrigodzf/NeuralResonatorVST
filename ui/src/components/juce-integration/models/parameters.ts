@@ -20,13 +20,4 @@ export type ParametersType = {
 	vertices: ParameterModel<number[]>
 }
 
-export const PARAMETER_IDS = [
-	'density',
-	'stiffness',
-	'pratio',
-	'alpha',
-	'beta',
-	'xpos',
-	'ypos',
-	'vertices',
-]
+export const PARAMETER_IDS = ['density', 'stiffness', 'pratio', 'alpha', 'beta', 'xpos', 'ypos', 'vertices']

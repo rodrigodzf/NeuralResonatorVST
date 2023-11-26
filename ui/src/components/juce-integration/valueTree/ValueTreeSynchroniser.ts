@@ -4,7 +4,7 @@
  * is read-only, i.e. it can only receive updates, not send them.
  */
 
-import { registerCallback } from '../juceIntegration'
+import { registerCallback } from '..'
 import { VALUE_TREE_STATE_CHANGE } from '../messages/callbackEventTypes'
 import { InputStream } from './InputStream'
 import { performUpdate } from './mobxHelpers'
@@ -19,11 +19,7 @@ enum ChangeType {
 	propertyRemoved = 6,
 }
 
-export const applyChange = (
-	valueTree: ValueTree,
-	input: Uint8Array,
-	onFullSync = () => {},
-): boolean => {
+export const applyChange = (valueTree: ValueTree, input: Uint8Array, onFullSync = () => {}): boolean => {
 	const inputStream = new InputStream(input)
 
 	const type: ChangeType = inputStream.readByte()
@@ -81,12 +77,7 @@ export const applyChange = (
 			const oldIndex = inputStream.readCompressedInt()
 			const newIndex = inputStream.readCompressedInt()
 
-			if (
-				oldIndex < subtree.children.length &&
-				oldIndex >= 0 &&
-				newIndex < subtree.children.length &&
-				newIndex >= 0
-			) {
+			if (oldIndex < subtree.children.length && oldIndex >= 0 && newIndex < subtree.children.length && newIndex >= 0) {
 				performUpdate(() => {
 					const temp = subtree.children[oldIndex]
 					subtree.children[oldIndex] = subtree.children[newIndex]!
@@ -125,13 +116,7 @@ const readSubTreeLocation = (valueTree: ValueTree, input: InputStream) => {
 
 type ValueTreeStateChangeMessageBody = { treeId: string; changes: string[] }
 
-export const createValueTreeSynchroniser = (
-	treeId: string,
-	targetTree: ValueTree,
-	onInitialSyncRecieved = () => {},
-) => {
-	const initialSyncRecieved = false
-
+export const createValueTreeSynchroniser = (treeId: string, targetTree: ValueTree, onInitialSyncRecieved = () => {}) => {
 	registerCallback(VALUE_TREE_STATE_CHANGE, (message: ValueTreeStateChangeMessageBody) => {
 		if (message.treeId !== treeId) return
 
@@ -142,7 +127,7 @@ export const createValueTreeSynchroniser = (
 					// Decode base64 encded change: https://stackoverflow.com/questions/21797299/convert-base64-string-to-arraybuffer
 					Uint8Array.from(atob(change), (c) => c.charCodeAt(0)),
 					() => {
-						if (!initialSyncRecieved) onInitialSyncRecieved()
+						onInitialSyncRecieved()
 					},
 				)
 			})

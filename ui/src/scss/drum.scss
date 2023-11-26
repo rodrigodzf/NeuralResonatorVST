@@ -1,0 +1,32 @@
+.drum {
+	height: min(calc(100dvw - 332px), calc(100dvh - 30px));
+	width: min(calc(100dvw - 332px), calc(100dvh - 30px));
+	position: relative;
+	background-color: $background;
+	border: 5px solid $background;
+
+	svg {
+		height: 100%;
+		width: 100%;
+
+		polygon {
+			fill: $foreground;
+			stroke: $black;
+			stroke-width: 0.2;
+		}
+	}
+
+	.vertex {
+		height: 10px;
+		width: 10px;
+		position: absolute;
+		z-index: 10;
+		border-radius: 10px;
+		background: radial-gradient(white 0%, $accent 60%);
+		cursor: pointer !important;
+	}
+
+	.strike {
+		background: radial-gradient(#303030 0%, $black 50%);
+	}
+}

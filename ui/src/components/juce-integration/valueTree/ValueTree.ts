@@ -5,7 +5,7 @@
 
 import { action, makeObservable, observable } from 'mobx'
 import { InputStream, JuceVariant } from './InputStream'
-import { performUpdate, USE_MOBX } from './mobxHelpers'
+import { performUpdate } from './mobxHelpers'
 
 export class ValueTree {
 	constructor(
@@ -14,16 +14,14 @@ export class ValueTree {
 		public children: ValueTree[] = [],
 		public parent: ValueTree | undefined = undefined,
 	) {
-		if (USE_MOBX) {
-			makeObservable(this, {
-				type: observable,
-				properties: observable,
-				children: observable,
-				parent: observable,
-				setProperty: action,
-				replaceWithValueTree: action,
-			})
-		}
+		makeObservable(this, {
+			type: observable,
+			properties: observable,
+			children: observable,
+			parent: observable,
+			setProperty: action,
+			replaceWithValueTree: action,
+		})
 	}
 
 	isValid = (): boolean => {

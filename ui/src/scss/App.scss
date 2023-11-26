@@ -3,6 +3,7 @@
 $background: #fe746e;
 $foreground: #2f7df6;
 $accent: #eefa5a;
+$black: #101010;
 
 // animation
 
@@ -19,13 +20,13 @@ $accent: #eefa5a;
 
 html,
 body {
-	height: 100%;
-	width: 100%;
+	height: 100dvh;
+	width: 100dvw;
 	margin: 0;
 	padding: 0;
 	overflow: hidden;
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
-		'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
+		'Droid Sans', 'Helvetica Neue', sans-serif;
 	-webkit-text-size-adjust: 100%;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -34,22 +35,11 @@ body {
 }
 
 #root {
-	height: 100%;
-	width: 62.5%;
-}
-
-canvas {
-	height: 100%;
-	width: 100%;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	font-family: inherit;
-	cursor: normal !important;
-}
-
-code {
-	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+	height: calc(100% - 10px);
+	width: calc(100% - 302px);
+	display: grid;
+	align-items: center;
+	justify-items: center;
 }
 
 .leva-c-hBtFDW {
@@ -94,4 +84,4 @@ code {
 
 // children
 
-@import './polygon';
+@import './drum';

@@ -10,4 +10,8 @@ export const USE_MOBX = true
     reactionRequiresObservable: true,
   });*/
 
-export const performUpdate = (fn: () => void) => (USE_MOBX ? runInAction(() => fn()) : fn())
+export const performUpdate = (fn: () => void) => {
+	runInAction(() => {
+		fn()
+	})
+}

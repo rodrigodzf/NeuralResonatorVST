@@ -19,17 +19,8 @@ enum VariantStreamMarkers {
 	varMarker_Binary = 8,
 	varMarker_Undefined = 9,
 }
-export type Vertex = { x: number; y: number }
 
-export type JuceVariant =
-	| number
-	| BigInt
-	| string
-	| boolean
-	| undefined
-	| ValueTree
-	| Vertex
-	| JuceVariant[]
+export type JuceVariant = number | BigInt | string | boolean | undefined | ValueTree | Point | JuceVariant[]
 
 export class InputStream {
 	constructor(private data: Uint8Array) {}
