@@ -6,6 +6,3 @@
 	path = third_party/asio
 	url = https://github.com/rodrigodzf/asio.git
     branch = master
-[submodule "third_party/kac_core"]
-	path = third_party/kac_core
-	url = https://github.com/lewiswolf/kac_core
